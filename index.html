@@ -22,6 +22,7 @@ body{
   margin:0;
   padding:0;
 }
+
 /* Topo fixo do site com gradiente */
 .header{
   background:linear-gradient(90deg,#0f3b73,#1e6fb5);
@@ -31,17 +32,20 @@ body{
   top:0;
   z-index:40;
 }
+
 /* Título dentro do header */
 .header h1{
   margin:0;
   font-size:18px;
 }
+
 /* Container principal que limita a largura do conteúdo */
 .container{
   max-width:1400px;
   margin:18px auto;
   padding:12px;
 }
+
 /* Blocos de conteúdo (cards maiores) */
 .block{
   background:var(--card);
@@ -50,6 +54,7 @@ body{
   box-shadow:0 6px 18px rgba(16,24,40,0.04);
   margin-bottom:16px;
 }
+
 /* Linhas de inputs, alinhamento dos elementos */
 .row{
   display:flex;
@@ -57,12 +62,14 @@ body{
   flex-wrap:wrap;
   align-items:center;
 }
+
 /* Inputs padrão */
 .input{
   padding:8px;
   border-radius:8px;
   border:1px solid #e6edf6;
 }
+
 /* Botões gerais */
 .button{
   background:var(--primary);
@@ -73,22 +80,26 @@ body{
   cursor:pointer;
   font-weight:600;
 }
+
 /* Botão menor */
 .small{
   padding:6px 8px;
   font-size:13px;
 }
+
 /* Wrapper que permite scroll horizontal na tabela */
 .tableWrapper{
   overflow:auto;
   border-radius:8px;
 }
+
 /* Estilos da tabela */
 table{
   border-collapse:collapse;
   width:100%;
   min-width:900px;
 }
+
 /* Células (TH e TD) */
 th,td{
   border-bottom:1px solid #eef2ff;
@@ -96,6 +107,7 @@ th,td{
   text-align:center;
   vertical-align:middle;
 }
+
 /* Cabeçalho fixo e destaque */
 th{
   background:var(--accent);
@@ -105,6 +117,7 @@ th{
   top:0;
   z-index:2;
 }
+
 /* Inputs dentro da tabela */
 input.cell{
   width:100%;
@@ -112,10 +125,12 @@ input.cell{
   border-radius:6px;
   border:1px solid #eef2ff;
 }
+
 /* Classe usada no "melhor fornecedor" para destacar a linha */
 .best{
   background:var(--success)!important;
 }
+
 /* Cards de resumo (grid automática) */
 .summaryGrid{
   display:grid;
@@ -123,6 +138,7 @@ input.cell{
   gap:12px;
   margin-top:12px;
 }
+
 /* Aparência dos cards de resumo */
 .card{
   background:linear-gradient(180deg,#fff,#f8fbff);
@@ -131,6 +147,7 @@ input.cell{
   border:1px solid #eef6ff;
   box-shadow:0 6px 18px rgba(16,24,40,0.04);
 }
+
 /* Botão de exportar */
 .btn-export{
   padding:10px 14px;
@@ -140,33 +157,41 @@ input.cell{
   font-weight:700;
   cursor:pointer;
 }
+
 /* Botão PDF */
 .btn-pdf{
   background:#d9534f;
 }
+
 /* Botão Excel */
 .btn-excel{
   background:#28a745;
 }
+
 /* Pequena legenda explicativa */
 .legend{
   font-size:13px;
   color:var(--muted);
   margin-top:8px;
 }
+
 /* Ícone de medalha (melhor fornecedor) */
 .medalha{
   font-size:20px;
 }
-/* Texto menor dentro dos campos de fornecedor */
+
+/* 🔽 Texto menor dentro dos campos de fornecedor
+   (esses inputs aparecem no bloco onde você coloca os nomes e dados dos fornecedores) */
 .fornecedor-card input{
-  font-size:11px;
+  font-size:13px;
 }
+
 /* Células menores da tabela */
 .td-small{
   font-size:13px;
   padding:8px;
 }
+
 /* Total Geral (parte final do cálculo) */
 .total-geral{
   margin-top:12px;
@@ -177,6 +202,7 @@ input.cell{
   background:linear-gradient(180deg,#fbfdff,#f7fbff);
   display:inline-block;
 }
+
 /* Linha de filtros de fornecedor (select + botões) */
 .filterRow{
   display:flex;
@@ -185,6 +211,7 @@ input.cell{
   flex-wrap:wrap;
   margin-top:12px;
 }
+
 <header class="header"><h1>🛡️ Batalha de Fornecedores ⚔️ </h1></header>
 <div class="container">
 
@@ -614,5 +641,3 @@ gerarCamposFornecedores();
 </script>
 </body>
 </html>
-
-
