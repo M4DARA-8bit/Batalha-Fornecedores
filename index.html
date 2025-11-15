@@ -3,12 +3,16 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>🛡️ Batalha de Fornecedores ⚔️ — Batalha_Fornecedores_V4</title>
+<title>🛡️ Batalha de Fornecedores ⚔️ — Batalha_Fornecedores_V5</title>
+
+<!-- Bibliotecas externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <style>
-/* 🔹 Variáveis globais de cores para fácil manutenção */
+/* ==========================
+   🔹 Variáveis de cores
+========================== */
 :root{
   --bg:#f0f4fb; 
   --card:#ffffff; 
@@ -19,10 +23,14 @@
   --danger:#fee2e2;
 }
 
-/* 🔹 Reset do box model */
+/* ==========================
+   🔹 Reset básico
+========================== */
 *{box-sizing:border-box}
 
-/* 🔹 Estilo do corpo da página */
+/* ==========================
+   🔹 Corpo da página
+========================== */
 body{
   font-family:Inter, Arial, sans-serif;
   background:var(--bg);
@@ -31,7 +39,9 @@ body{
   padding:0;
 }
 
-/* 🔹 Cabeçalho fixo */
+/* ==========================
+   🔹 Cabeçalho
+========================== */
 .header{
   background:linear-gradient(90deg,#0f3b73,#1e6fb5);
   color:#fff;
@@ -40,21 +50,15 @@ body{
   top:0;
   z-index:40;
 }
-
-/* 🔹 Título do header */
 .header h1{
   margin:0;
   font-size:18px;
 }
 
-/* 🔹 Container central com largura máxima */
-.container{
-  max-width:1400px;
-  margin:18px auto;
-  padding:12px;
-}
-
-/* 🔹 Blocos de conteúdo (cards) */
+/* ==========================
+   🔹 Containers e cards
+========================== */
+.container{ max-width:1400px; margin:18px auto; padding:12px; }
 .block{
   background:var(--card);
   padding:14px;
@@ -63,91 +67,34 @@ body{
   margin-bottom:16px;
 }
 
-/* 🔹 Flex para organizar linhas de inputs */
-.row{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  align-items:center;
-}
+/* ==========================
+   🔹 Inputs e botões
+========================== */
+.input{ padding:8px; border-radius:8px; border:1px solid #e6edf6; }
+.button{ background:var(--primary); color:#fff; padding:8px 12px; border-radius:8px; border:none; cursor:pointer; font-weight:600; }
+.button.small{ padding:6px 8px; font-size:13px; }
+.btn-export{ padding:10px 14px; border-radius:8px; border:none; color:#fff; font-weight:700; cursor:pointer; }
+.btn-pdf{ background:#d9534f; }
 
-/* 🔹 Inputs padrão */
-.input{
-  padding:8px;
-  border-radius:8px;
-  border:1px solid #e6edf6;
-}
+/* ==========================
+   🔹 Tabela
+========================== */
+.tableWrapper{ overflow:auto; border-radius:8px; margin-top:12px; }
+table{ border-collapse:collapse; width:100%; min-width:900px; }
+th, td{ border-bottom:1px solid #eef2ff; padding:10px; text-align:center; vertical-align:middle; }
+th{ background:var(--accent); color:var(--primary); font-weight:700; position:sticky; top:0; z-index:2; }
+input.cell{ width:100%; padding:6px; border-radius:6px; border:1px solid #eef2ff; }
+.best{ background:var(--success)!important; }
 
-/* 🔹 Botões padrão */
-.button{
-  background:var(--primary);
-  color:#fff;
-  padding:8px 12px;
-  border-radius:8px;
-  border:none;
-  cursor:pointer;
-  font-weight:600;
-}
-
-/* 🔹 Botões pequenos */
-.small{
-  padding:6px 8px;
-  font-size:13px;
-}
-
-/* 🔹 Tabela com scroll horizontal */
-.tableWrapper{
-  overflow:auto;
-  border-radius:8px;
-}
-
-/* 🔹 Tabela principal */
-table{
-  border-collapse:collapse;
-  width:100%;
-  min-width:900px;
-}
-
-/* 🔹 Células da tabela */
-th,td{
-  border-bottom:1px solid #eef2ff;
-  padding:10px;
-  text-align:center;
-  vertical-align:middle;
-}
-
-/* 🔹 Cabeçalho fixo */
-th{
-  background:var(--accent);
-  color:var(--primary);
-  font-weight:700;
-  position:sticky;
-  top:0;
-  z-index:2;
-}
-
-/* 🔹 Inputs dentro da tabela */
-input.cell{
-  width:100%;
-  padding:6px;
-  border-radius:6px;
-  border:1px solid #eef2ff;
-}
-
-/* 🔹 Destaque de melhor fornecedor */
-.best{
-  background:var(--success)!important;
-}
-
-/* 🔹 Cards de resumo */
+/* ==========================
+   🔹 Cards de resumo
+========================== */
 .summaryGrid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
   gap:12px;
   margin-top:12px;
 }
-
-/* 🔹 Aparência dos cards */
 .card{
   background:linear-gradient(180deg,#fff,#f8fbff);
   padding:12px;
@@ -156,37 +103,11 @@ input.cell{
   box-shadow:0 6px 18px rgba(16,24,40,0.04);
 }
 
-/* 🔹 Botões de exportar */
-.btn-export{
-  padding:10px 14px;
-  border-radius:8px;
-  border:none;
-  color:#fff;
-  font-weight:700;
-  cursor:pointer;
-}
-
-/* 🔹 Botões específicos */
-.btn-pdf{ background:#d9534f }
-.btn-excel{ background:#28a745 }
-
-/* 🔹 Legendas pequenas */
-.legend{
-  font-size:13px;
-  color:var(--muted);
-  margin-top:8px;
-}
-
-/* 🔹 Medalha (ranking) */
-.medalha{ font-size:20px }
-
-/* 🔹 Inputs menores para fornecedores */
-.fornecedor-card input{ font-size:13px }
-
-/* 🔹 Células menores da tabela */
-.td-small{ font-size:13px; padding:8px }
-
-/* 🔹 Total geral */
+/* ==========================
+   🔹 Legendas e estilos menores
+========================== */
+.legend{ font-size:13px; color:var(--muted); margin-top:8px; }
+.td-small{ font-size:13px; padding:8px; }
 .total-geral{
   margin-top:12px;
   padding:10px;
@@ -196,8 +117,6 @@ input.cell{
   background:linear-gradient(180deg,#fbfdff,#f7fbff);
   display:inline-block;
 }
-
-/* 🔹 Linha de filtros */
 .filterRow{
   display:flex;
   gap:12px;
@@ -209,14 +128,22 @@ input.cell{
 </head>
 <body>
 
+<!-- ==========================
+     🔹 Header
+========================== -->
 <header class="header"><h1>🛡️ Batalha de Fornecedores ⚔️ </h1></header>
+
 <div class="container">
 
+  <!-- ==========================
+       🔹 Configuração de Linhas/Colunas
+  ========================== -->
   <div class="block">
     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
       <label>Qtd. Itens: <input id="linhas" class="input" type="number" value="3" min="1"></label>
       <label>Qtd. Fornecedores: <input id="colunas" class="input" type="number" value="3" min="1"></label>
       <button id="btnAvancar" class="button">Avançar</button>
+    </div>
     <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
       <button class="button small" onclick="adicionarLinha()">+ Item</button>
       <button class="button small" onclick="adicionarColuna()">+ Fornecedor</button>
@@ -226,70 +153,88 @@ input.cell{
 
     <hr style="margin:12px 0">
 
-<h3>Inserção em Massa (uma linha = um item)</h3>
-<div style="display:flex;gap:12px;flex-wrap:wrap">
-  <div style="flex:1;min-width:220px">
-    <label>Descrição (uma por linha)</label>
-    <textarea id="bulkDesc" class="input" style="width:100%;min-height:90px" placeholder="Descrição 1&#10;Descrição 2"></textarea>
-  </div>
-  <div style="width:160px">
-    <label>Unidade (uma por linha)</label>
-    <textarea id="bulkUnid" class="input" style="width:100%;min-height:90px" placeholder="UN&#10;KG"></textarea>
-  </div>
-  <div style="width:120px">
-    <label>Quantidade (uma por linha)</label>
-    <textarea id="bulkQtd" class="input" style="width:100%;min-height:90px" placeholder="1&#10;2"></textarea>
-  </div>
-  <div style="width:260px">
-    <label>Valor Unitário (tab = colunas para fornecedores)</label>
-    <textarea id="bulkVal" class="input" style="width:100%;min-height:90px" placeholder="10,00&#09;12,50&#10;11,00&#09;13,00"></textarea>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <select id="bulkValForn" class="input" style="flex:1">
-        <option value="">Todos fornecedores</option>
-      </select>
-      <button id="btnBulkValAplicar" class="button small">Aplicar</button>
+    <!-- ==========================
+         🔹 Inserção em Massa
+    ========================== -->
+    <h3>Inserção em Massa (uma linha = um item)</h3>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:220px">
+        <label>Descrição (uma por linha)</label>
+        <textarea id="bulkDesc" class="input" style="width:100%;min-height:90px" placeholder="Descrição 1&#10;Descrição 2"></textarea>
+      </div>
+      <div style="width:160px">
+        <label>Unidade (uma por linha)</label>
+        <textarea id="bulkUnid" class="input" style="width:100%;min-height:90px" placeholder="UN&#10;KG"></textarea>
+      </div>
+      <div style="width:120px">
+        <label>Quantidade (uma por linha)</label>
+        <textarea id="bulkQtd" class="input" style="width:100%;min-height:90px" placeholder="1&#10;2"></textarea>
+      </div>
+      <div style="width:260px">
+        <label>Valor Unitário (tab = múltiplos fornecedores)</label>
+        <textarea id="bulkVal" class="input" style="width:100%;min-height:90px" placeholder="10,00&#09;12,50&#10;11,00&#09;13,00"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <select id="bulkValForn" class="input" style="flex:1">
+            <option value="">Todos fornecedores</option>
+          </select>
+          <button id="btnBulkValAplicar" class="button small">Aplicar</button>
+        </div>
+        <div class="legend">Quebra de linha = novo item; tab = aplica para múltiplos fornecedores.</div>
+      </div>
     </div>
-    <div class="legend">Quebra de linha = novo item; tab = aplica para múltiplos fornecedores na ordem.</div>
-  </div>
-</div>
-
   </div>
 
+  <!-- ==========================
+       🔹 Fornecedores
+  ========================== -->
   <div id="fornecedoresContainer" class="block"></div>
 
+  <!-- ==========================
+       🔹 Tabela e filtro
+  ========================== -->
   <div id="tabelaContainer" class="block">
     <div class="filterRow">
       <label>Filtro Fornecedor: </label>
       <select id="filterForn" class="input"><option value="">Mostrar todos</option></select>
       <button class="button small" id="btnClearFilter">Limpar filtro</button>
     </div>
-    <div class="tableWrapper" id="tableWrapper" style="margin-top:12px"></div>
-    <div id="valorTotalGeral" style="margin-top:12px"></div>
+    <div class="tableWrapper" id="tableWrapper"></div>
+    <div id="valorTotalGeral"></div>
   </div>
 
+  <!-- ==========================
+       🔹 Resumo
+  ========================== -->
   <div id="summaryArea" class="block" style="display:none"></div>
+
+  <!-- ==========================
+       🔹 Botão exportar PDF
+  ========================== -->
+  <div style="margin-top:12px;">
+    <button class="btn-export btn-pdf" onclick="exportPDF()">Exportar PDF</button>
+  </div>
 
 </div>
 
 <script>
-// ==========================
-// 🔹 Utilitários
-// ==========================
+/* ==========================
+   🔹 Utilitários
+========================== */
 function esc(s){ if(s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function parseBR(v){ if(v==null||v==='') return NaN; v=String(v).trim().replace(/\./g,'').replace(',', '.'); const n=parseFloat(v); return isNaN(n)?NaN:n; }
 function parseBRzero(v){ if(v==null||v==='') return 0; v=String(v).trim().replace(/\./g,'').replace(',', '.'); const n=parseFloat(v); return isNaN(n)?0:n; }
 function fmtBR(n){ if(n==null||isNaN(n)) return ''; return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
-// ==========================
-// 🔹 Eventos iniciais
-// ==========================
+/* ==========================
+   🔹 Eventos iniciais
+========================== */
 document.getElementById('btnAvancar').addEventListener('click', gerarCamposFornecedores);
 document.getElementById('btnClearFilter').addEventListener('click', ()=>{ document.getElementById('filterForn').value=''; applyFilter(); });
 document.getElementById('btnBulkValAplicar').addEventListener('click', aplicarEmMassa);
 
-// ==========================
-// 🔹 Funções principais
-// ==========================
+/* ==========================
+   🔹 Gerar campos fornecedores
+========================== */
 function gerarCamposFornecedores(){
   const col = parseInt(document.getElementById('colunas').value)||1;
   const cont = document.getElementById('fornecedoresContainer');
@@ -321,9 +266,9 @@ function gerarCamposFornecedores(){
   gerarTabela();
 }
 
-// ==========================
-// 🔹 Inserção em massa
-// ==========================
+/* ==========================
+   🔹 Inserção em massa
+========================== */
 function aplicarEmMassa(){
   const sel = document.getElementById('bulkValForn').value;
   const raw = document.getElementById('bulkVal').value || '';
@@ -369,9 +314,9 @@ function aplicarEmMassa(){
   calcular();
 }
 
-// ==========================
-// 🔹 Gerar tabela
-// ==========================
+/* ==========================
+   🔹 Gerar tabela
+========================== */
 function gerarTabela(){
   const linhas = parseInt(document.getElementById('linhas').value)||1;
   const colunas = parseInt(document.getElementById('colunas').value)||1;
@@ -382,6 +327,7 @@ function gerarTabela(){
     <th style="min-width:260px">Descrição</th><th>Unid.</th><th>Qtd</th><th>IPI (%)</th>`;
   for(let c=1;c<=colunas;c++) html += `<th class="forncol col-${c}" style="min-width:120px">${esc(nomes[c-1])}<div style="font-size:11px;color:#666">Valor Unit.</div></th>`;
   html += `<th style="min-width:140px">Melhor Fornecedor</th><th style="min-width:140px">Valor Total (linha)</th></tr></thead><tbody>`;
+
   for(let r=1;r<=linhas;r++){
     html += `<tr id="row${r}">`;
     html += `<td class="td-small"><input class="cell" id="desc${r}" oninput="calcular()"></td>`;
@@ -391,73 +337,81 @@ function gerarTabela(){
     for(let c=1;c<=colunas;c++){
       html += `<td class="td-small forncol col-${c}"><input class="cell" id="valor${r}_${c}" oninput="calcular()"></td>`;
     }
-    html += `<td id="best${r}" class="td-small"></td><td id="total${r}" class="td-small"></td></tr>`;
+    html += `<td class="td-small" id="melhor${r}"></td>`;
+    html += `<td class="td-small" id="total${r}"></td>`;
+    html += `</tr>`;
   }
   html += `</tbody></table></div>`;
   document.getElementById('tableWrapper').innerHTML = html;
   calcular();
 }
 
-// ==========================
-// 🔹 Calcular totais e melhor fornecedor
-// ==========================
+/* ==========================
+   🔹 Calcular totais
+========================== */
 function calcular(){
-  const linhas = parseInt(document.getElementById('linhas').value)||0;
-  const colunas = parseInt(document.getElementById('colunas').value)||0;
-  let totalGeral = 0;
+  const linhas = parseInt(document.getElementById('linhas').value)||1;
+  const colunas = parseInt(document.getElementById('colunas').value)||1;
+  let totalGeral=0;
+  let melhorFornecedores=[];
+
   for(let r=1;r<=linhas;r++){
-    let minVal = Infinity;
-    let best = '';
-    let somaLinha = 0;
+    let melhorVal = Infinity;
+    let idxMelhor = 0;
+    let qtd = parseBRzero(document.getElementById('qtd'+r).value);
+    let ipi = parseBRzero(document.getElementById('ipi'+r).value);
+
     for(let c=1;c<=colunas;c++){
       const el = document.getElementById(`valor${r}_${c}`);
-      let v = parseBRzero(el?.value);
-      const qtd = parseBRzero(document.getElementById(`qtd${r}`)?.value);
-      const ipi = parseBRzero(document.getElementById(`ipi${r}`)?.value);
-      v = v*(1+ipi/100)*qtd;
-      if(!isNaN(v)) somaLinha += v;
-      if(v < minVal){ minVal = v; best = c; }
+      let val = parseBRzero(el.value);
+      val = val*(1+ipi/100);
+      el.classList.remove('best');
+      if(val<melhorVal){ melhorVal=val; idxMelhor=c; }
     }
-    document.getElementById(`best${r}`).textContent = best ? `Fornecedor ${best}` : '';
-    document.getElementById(`total${r}`).textContent = fmtBR(somaLinha);
-    totalGeral += somaLinha;
+    document.getElementById(`melhor${r}`).innerText = idxMelhor?document.getElementById('nomeForn'+idxMelhor)?.value:'';
+    document.getElementById(`valor${r}_${idxMelhor}`)?.classList.add('best');
+    const totalLinha = qtd*melhorVal;
+    document.getElementById(`total${r}`).innerText = fmtBR(totalLinha);
+    totalGeral += totalLinha;
+    melhorFornecedores.push(idxMelhor?document.getElementById('nomeForn'+idxMelhor)?.value:'');
   }
-  document.getElementById('valorTotalGeral').textContent = `Total Geral: R$ ${fmtBR(totalGeral)}`;
+
+  document.getElementById('valorTotalGeral').innerHTML = `<div class="total-geral">Total Geral: R$ ${fmtBR(totalGeral)}</div>`;
+
+  // Resumo
+  const resumo = {};
+  melhorFornecedores.forEach(f=>{
+    if(f){ resumo[f]=(resumo[f]||0)+1; }
+  });
+  let resumoHTML='<h3>Resumo de Itens por Fornecedor</h3><div class="summaryGrid">';
+  for(const f in resumo){
+    resumoHTML+=`<div class="card"><strong>${esc(f)}</strong><br>${resumo[f]} item(s)</div>`;
+  }
+  resumoHTML+='</div>';
+  document.getElementById('summaryArea').innerHTML = resumoHTML;
+  document.getElementById('summaryArea').style.display='block';
 }
 
-// ==========================
-// 🔹 Atualizar nomes de fornecedores
-// ==========================
+/* ==========================
+   🔹 Atualizar nomes fornecedores
+========================== */
 function atualizarNomes(){
-  const colunas = parseInt(document.getElementById('colunas').value)||0;
-  for(let c=1;c<=colunas;c++){
-    const name = document.getElementById('nomeForn'+c)?.value || `Fornecedor ${c}`;
-    document.querySelectorAll(`.col-${c}`).forEach(td=>{ td.querySelector('input')?.setAttribute('placeholder',name); });
-  }
+  const colunas = parseInt(document.getElementById('colunas').value)||1;
   const sel = document.getElementById('bulkValForn');
-  sel.innerHTML = '<option value="">Escolher fornecedor...</option>';
-  for(let i=1;i<=colunas;i++){ const name=document.getElementById('nomeForn'+i)?.value || `Fornecedor ${i}`; sel.innerHTML += `<option value="${i}">${name}</option>`; }
   const fsel = document.getElementById('filterForn');
+  sel.innerHTML = '<option value="">Escolher fornecedor...</option>';
   fsel.innerHTML = '<option value="">Mostrar todos</option>';
-  for(let i=1;i<=colunas;i++){ const name=document.getElementById('nomeForn'+i)?.value || `Fornecedor ${i}`; fsel.innerHTML += `<option value="${i}">${name}</option>`; }
-}
-
-// ==========================
-// 🔹 Filtrar tabela
-// ==========================
-function applyFilter(){
-  const f = document.getElementById('filterForn').value;
-  const linhas = parseInt(document.getElementById('linhas').value)||0;
-  for(let r=1;r<=linhas;r++){
-    const best = document.getElementById(`best${r}`).textContent.replace('Fornecedor ','');
-    document.getElementById('row'+r).style.display = (!f || f===best) ? '' : 'none';
+  for(let i=1;i<=colunas;i++){
+    const name = document.getElementById('nomeForn'+i)?.value || `Fornecedor ${i}`;
+    sel.innerHTML += `<option value="${i}">${name}</option>`;
+    fsel.innerHTML += `<option value="${i}">${name}</option>`;
   }
+  gerarTabela();
 }
 
-// ==========================
-//🔹 Exportação PDF modo Paisagem.
-// ==========================
-   Ajuste para permitir várias linhas sem cortar o resumo */
+/* ==========================
+   🔹 Exportar PDF
+========================== */
 function exportPDF(){
   const tableEl = document.getElementById('tableWrapper');
   const summaryEl = document.getElementById('summaryArea');
@@ -494,7 +448,7 @@ function exportPDF(){
       heightLeft -= pageHeight;
     }
 
-    pdf.save('Quadro_Concorrencia.pdf');
+    pdf.save('Batalha_Fornecedores_V4_Resumo.pdf');
     document.body.removeChild(temp);
   }).catch(e=>{
     alert('Erro ao gerar PDF: ' + e.message);
@@ -502,66 +456,28 @@ function exportPDF(){
   });
 }
 
-// ==========================
-// 🔹 Funções novas para adicionar/remover linhas e colunas
-// ==========================
+/* ==========================
+   🔹 Adicionar / remover linhas e colunas
+========================== */
+function adicionarLinha(){ document.getElementById('linhas').value=parseInt(document.getElementById('linhas').value||0)+1; gerarTabela(); }
+function removerLinha(){ let v=parseInt(document.getElementById('linhas').value||0); if(v>1){ document.getElementById('linhas').value=v-1; gerarTabela(); } }
+function adicionarColuna(){ document.getElementById('colunas').value=parseInt(document.getElementById('colunas').value||0)+1; gerarCamposFornecedores(); }
+function removerColuna(){ let v=parseInt(document.getElementById('colunas').value||0); if(v>1){ document.getElementById('colunas').value=v-1; gerarCamposFornecedores(); } }
 
-function adicionarLinha(){
-  let linhas = parseInt(document.getElementById('linhas').value)||0;
-  document.getElementById('linhas').value = linhas + 1;
-  gerarTabela();
+/* ==========================
+   🔹 Filtrar tabela por fornecedor
+========================== */
+document.getElementById('filterForn').addEventListener('change', applyFilter);
+function applyFilter(){
+  const val = document.getElementById('filterForn').value;
+  const linhas = document.querySelectorAll('#tabelaQuadro tbody tr');
+  linhas.forEach(row=>{
+    if(!val){ row.style.display=''; return; }
+    const melhor = row.querySelector('td[id^="melhor"]')?.innerText || '';
+    const nome = document.getElementById('nomeForn'+val)?.value || '';
+    row.style.display = melhor === nome ? '' : 'none';
+  });
 }
-
-function adicionarColuna(){
-  let colunas = parseInt(document.getElementById('colunas').value)||0;
-  document.getElementById('colunas').value = colunas + 1;
-  gerarCamposFornecedores();
-}
-
-function removerLinha(){
-  let linhas = parseInt(document.getElementById('linhas').value)||0;
-  if(linhas <= 1){ alert('Não é possível remover todas as linhas'); return; }
-  let idx = parseInt(prompt(`Digite o número do item a remover (1 a ${linhas})`));
-  if(isNaN(idx) || idx<1 || idx>linhas) return;
-
-  const colunas = parseInt(document.getElementById('colunas').value)||0;
-  document.getElementById(`desc${idx}`).value = '';
-  document.getElementById(`unid${idx}`).value = '';
-  document.getElementById(`qtd${idx}`).value = '';
-  document.getElementById(`ipi${idx}`).value = '0';
-  for(let c=1;c<=colunas;c++){
-    const td = document.getElementById(`valor${idx}_${c}`);
-    if(td) td.value = '';
-  }
-  document.getElementById('linhas').value = linhas - 1;
-  gerarTabela();
-}
-
-function removerColuna(){
-  let colunas = parseInt(document.getElementById('colunas').value)||0;
-  if(colunas <= 1){ alert('Não é possível remover todos os fornecedores'); return; }
-  let idx = parseInt(prompt(`Digite o número do fornecedor a remover (1 a ${colunas})`));
-  if(isNaN(idx) || idx<1 || idx>colunas) return;
-
-  document.getElementById(`nomeForn${idx}`).value = '';
-  document.getElementById(`cond${idx}`).value = '';
-  document.getElementById(`prazo${idx}`).value = '';
-  document.getElementById(`difalVal${idx}`).value = '';
-  document.getElementById(`freteVal${idx}`).value = '';
-
-  const linhas = parseInt(document.getElementById('linhas').value)||0;
-  for(let r=1;r<=linhas;r++){
-    const td = document.getElementById(`valor${r}_${idx}`);
-    if(td) td.value = '';
-  }
-  document.getElementById('colunas').value = colunas - 1;
-}
-  
-// ==========================
-// 🔹 Inicializar
-// ==========================
-gerarCamposFornecedores();
-
 </script>
 
 </body>
