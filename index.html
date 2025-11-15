@@ -205,6 +205,9 @@ input.cell{
   flex-wrap:wrap;
   margin-top:12px;
 }
+</style>
+</head>
+<body>
 
 <header class="header"><h1>🛡️ Batalha de Fornecedores ⚔️ </h1></header>
 <div class="container">
@@ -214,6 +217,11 @@ input.cell{
       <label>Qtd. Itens: <input id="linhas" class="input" type="number" value="3" min="1"></label>
       <label>Qtd. Fornecedores: <input id="colunas" class="input" type="number" value="3" min="1"></label>
       <button id="btnAvancar" class="button">Avançar</button>
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+      <button class="button small" onclick="adicionarLinha()">+ Item</button>
+      <button class="button small" onclick="adicionarColuna()">+ Fornecedor</button>
+      <button class="button small" onclick="removerLinha()">- Item</button>
+      <button class="button small" onclick="removerColuna()">- Fornecedor</button>
     </div>
 
     <hr style="margin:12px 0">
@@ -245,51 +253,7 @@ input.cell{
   </div>
 </div>
 
-<script>
-document.getElementById('btnBulkValAplicar').addEventListener('click', () => {
-  const descs = document.getElementById('bulkDesc').value.split(/\r?\n/).filter(s => s.trim() !== '');
-  const unids = document.getElementById('bulkUnid').value.split(/\r?\n/).filter(s => s.trim() !== '');
-  const qtds = document.getElementById('bulkQtd').value.split(/\r?\n/).filter(s => s.trim() !== '');
-  const vals = document.getElementById('bulkVal').value.split(/\r?\n/).filter(s => s.trim() !== '');
-  const fornIdx = document.getElementById('bulkValForn').value;
-
-  const linhas = Math.max(descs.length, unids.length, qtds.length, vals.length);
-
-  for(let r=0;r<linhas;r++){
-    const desc = descs[r] || '';
-    const unid = unids[r] || '';
-    const qtd = qtds[r] || '';
-
-    if(document.getElementById(`desc${r+1}`)) document.getElementById(`desc${r+1}`).value = desc;
-    if(document.getElementById(`unid${r+1}`)) document.getElementById(`unid${r+1}`).value = unid;
-    if(document.getElementById(`qtd${r+1}`)) document.getElementById(`qtd${r+1}`).value = qtd;
-
-    if(vals[r]){
-      const valCols = vals[r].split(/\t/);
-      if(fornIdx){ // um fornecedor específico
-        const el = document.getElementById(`valor${r+1}_${fornIdx}`);
-        if(el) el.value = parseValorBR(valCols[0]);
-      } else { // todos os fornecedores na ordem
-        for(let c=0;c<valCols.length;c++){
-          const el = document.getElementById(`valor${r+1}_${c+1}`);
-          if(el) el.value = parseValorBR(valCols[c]);
-        }
-      }
-    }
-  }
-
-  calcular(); // Atualiza tabela e resumo
-  document.getElementById('bulkDesc').value = '';
-  document.getElementById('bulkUnid').value = '';
-  document.getElementById('bulkQtd').value = '';
-  document.getElementById('bulkVal').value = '';
-});
-
-function parseValorBR(str){
-  if(!str) return NaN;
-  return parseFloat(str.replace(/\./g,'').replace(',','.')) || NaN;
-}
-</script>
+  </div>
 
   <div id="fornecedoresContainer" class="block"></div>
 
@@ -308,17 +272,24 @@ function parseValorBR(str){
 </div>
 
 <script>
-/* Utilitário */
+// ==========================
+// 🔹 Utilitários
+// ==========================
 function esc(s){ if(s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function parseBR(v){ if(v==null||v==='') return NaN; v=String(v).trim().replace(/\\./g,'').replace(',', '.'); const n=parseFloat(v); return isNaN(n)?NaN:n; }
-function parseBRzero(v){ if(v==null||v==='') return 0; v=String(v).trim().replace(/\\./g,'').replace(',', '.'); const n=parseFloat(v); return isNaN(n)?0:n; }
+function parseBR(v){ if(v==null||v==='') return NaN; v=String(v).trim().replace(/\./g,'').replace(',', '.'); const n=parseFloat(v); return isNaN(n)?NaN:n; }
+function parseBRzero(v){ if(v==null||v==='') return 0; v=String(v).trim().replace(/\./g,'').replace(',', '.'); const n=parseFloat(v); return isNaN(n)?0:n; }
 function fmtBR(n){ if(n==null||isNaN(n)) return ''; return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
-/* Iniciar */
+// ==========================
+// 🔹 Eventos iniciais
+// ==========================
 document.getElementById('btnAvancar').addEventListener('click', gerarCamposFornecedores);
 document.getElementById('btnClearFilter').addEventListener('click', ()=>{ document.getElementById('filterForn').value=''; applyFilter(); });
+document.getElementById('btnBulkValAplicar').addEventListener('click', aplicarEmMassa);
 
-/* Crie uma IU de fornecedores */
+// ==========================
+// 🔹 Funções principais
+// ==========================
 function gerarCamposFornecedores(){
   const col = parseInt(document.getElementById('colunas').value)||1;
   const cont = document.getElementById('fornecedoresContainer');
@@ -336,7 +307,7 @@ function gerarCamposFornecedores(){
   html += '</div>';
   cont.innerHTML = html;
 
-  // Preencher o seletor em massa e selecionar o filtro
+  // atualizar opções de seleção em massa e filtro
   const sel = document.getElementById('bulkValForn');
   const fsel = document.getElementById('filterForn');
   sel.innerHTML = '<option value="">Escolher fornecedor...</option>';
@@ -350,14 +321,16 @@ function gerarCamposFornecedores(){
   gerarTabela();
 }
 
-/* Aplicação em massa */
-document.getElementById('btnBulkValAplicar').addEventListener('click', ()=>{
+// ==========================
+// 🔹 Inserção em massa
+// ==========================
+function aplicarEmMassa(){
   const sel = document.getElementById('bulkValForn').value;
   const raw = document.getElementById('bulkVal').value || '';
-  const linesVal = raw.split(/\\r?\\n/).map(s=>s.trim()).filter(s=>s.length>0);
-  const linesDesc = (document.getElementById('bulkDesc').value||'').split(/\\r?\\n/).map(s=>s.trim());
-  const linesUnid = (document.getElementById('bulkUnid').value||'').split(/\\r?\\n/).map(s=>s.trim());
-  const linesQtd = (document.getElementById('bulkQtd').value||'').split(/\\r?\\n/).map(s=>s.trim());
+  const linesVal = raw.split(/\r?\n/).map(s=>s.trim()).filter(s=>s.length>0);
+  const linesDesc = (document.getElementById('bulkDesc').value||'').split(/\r?\n/).map(s=>s.trim());
+  const linesUnid = (document.getElementById('bulkUnid').value||'').split(/\r?\n/).map(s=>s.trim());
+  const linesQtd = (document.getElementById('bulkQtd').value||'').split(/\r?\n/).map(s=>s.trim());
 
   if(sel){
     const f = parseInt(sel);
@@ -377,7 +350,7 @@ document.getElementById('btnBulkValAplicar').addEventListener('click', ()=>{
   }
 
   if(!raw) return;
-  const rows = raw.split(/\\r?\\n/).map(r => r.split(/\\t/).map(c=>c.trim()));
+  const rows = raw.split(/\r?\n/).map(r => r.split(/\t/).map(c=>c.trim()));
   const maxRows = rows.length;
   if(maxRows > parseInt(document.getElementById('linhas').value||0)){
     document.getElementById('linhas').value = maxRows;
@@ -394,9 +367,11 @@ document.getElementById('btnBulkValAplicar').addEventListener('click', ()=>{
     if(linesQtd[r]){ const q=document.getElementById('qtd'+(r+1)); if(q) q.value = linesQtd[r]; }
   }
   calcular();
-});
+}
 
-/* Gere uma tabela com IPI + Total por linha (sem aplicar frete/diferenças). */
+// ==========================
+// 🔹 Gerar tabela
+// ==========================
 function gerarTabela(){
   const linhas = parseInt(document.getElementById('linhas').value)||1;
   const colunas = parseInt(document.getElementById('colunas').value)||1;
@@ -416,227 +391,178 @@ function gerarTabela(){
     for(let c=1;c<=colunas;c++){
       html += `<td class="td-small forncol col-${c}"><input class="cell" id="valor${r}_${c}" oninput="calcular()"></td>`;
     }
-    html += `<td id="melhor${r}"></td><td id="total${r}"></td></tr>`;
+    html += `<td id="best${r}" class="td-small"></td><td id="total${r}" class="td-small"></td></tr>`;
   }
   html += `</tbody></table></div>`;
   document.getElementById('tableWrapper').innerHTML = html;
-  // atualizar opções de seleção de filtro
-  const fsel = document.getElementById('filterForn');
-  fsel.innerHTML = '<option value="">Mostrar todos</option>';
-  for(let i=1;i<=colunas;i++) fsel.innerHTML += `<option value="${i}">${document.getElementById('nomeForn'+i)?.value || 'Fornecedor '+i}</option>`;
-  // anexar manipulador de filtro
-  fsel.onchange = applyFilter;
   calcular();
 }
 
-/* Atualizar nomes de cabeçalho de fornecedores e seletor em massa */
-function applyFilter(){
-  const val = document.getElementById('filterForn').value;
-  const cols = document.querySelectorAll('.forncol');
-  cols.forEach(el=> el.style.display = '');
-  const inputs = document.querySelectorAll('[id^="valor"]');
-  inputs.forEach(i=> i.parentElement.style.display = '');
-  // Se estiver vazio -> mostrar tudo
-  if(!val) return;
-  const idx = parseInt(val);
-  // ocultar todas as colunas de fornecedores, exceto o índice
-  const colEls = document.querySelectorAll(`.forncol`);
-  colEls.forEach(el=>{
-    if(!el.classList.contains(`col-${idx}`)) el.style.display = 'none';
-    else el.style.display = '';
-  });
-  // ocultar entradas em outras colunas
-  const rows = parseInt(document.getElementById('linhas').value)||0;
-  const colCount = parseInt(document.getElementById('colunas').value)||0;
-  for(let r=1;r<=rows;r++){
-    for(let c=1;c<=colCount;c++){
-      const td = document.querySelector(`#valor${r}_${c}`)?.parentElement;
-      if(!td) continue;
-      if(c===idx) td.style.display='';
-      else td.style.display='none';
-    }
-  }
-  // ocultar também as células de cabeçalho correspondentes (gerenciadas pela classe)
-}
-
-/* Atualizar nomes de cabeçalho de fornecedores e seletor em massa */
-function atualizarNomes(){
-  const colunas = parseInt(document.getElementById('colunas').value)||1;
-  for(let c=1;c<=colunas;c++){
-    const name = document.getElementById('nomeForn'+c).value || `Fornecedor ${c}`;
-    const th = document.querySelector(`#tabelaQuadro thead tr th.col-${c}`);
-    if(th) th.innerHTML = `${esc(name)}<div style="font-size:11px;color:#666">Valor Unit.</div>`;
-  }
-  const sel = document.getElementById('bulkValForn');
-  const fsel = document.getElementById('filterForn');
-  if(sel){
-    sel.innerHTML = '<option value="">Escolher fornecedor...</option>';
-    for(let i=1;i<=colunas;i++) sel.innerHTML += `<option value="${i}">${document.getElementById('nomeForn'+i)?.value || 'Fornecedor '+i}</option>`;
-  }
-  if(fsel){
-    fsel.innerHTML = '<option value="">Mostrar todos</option>';
-    for(let i=1;i<=colunas;i++) fsel.innerHTML += `<option value="${i}">${document.getElementById('nomeForn'+i)?.value || 'Fornecedor '+i}</option>`;
-  }
-}
-
-/* Cálculo principal:
-   - As comparações por linha usam unidade*quantidade com IPI aplicado (SEM DIFAL, SEM FRETE)
-   - Os totais do fornecedor são a soma desses valores por linha (sem frete/difal)
-   - Em resumo, adicione DIFAL% (aplicado sobre a soma do fornecedor) e FRETE (uma vez)
-   - Medalhas ordenadas por total crescente (após adicionar difal+frete)
-   - Valor Total Geral = soma do melhor (mínimo) por linha (sem difal/frete)
-*/
+// ==========================
+// 🔹 Calcular totais e melhor fornecedor
+// ==========================
 function calcular(){
   const linhas = parseInt(document.getElementById('linhas').value)||0;
   const colunas = parseInt(document.getElementById('colunas').value)||0;
-  if(!document.getElementById('tabelaQuadro')) return;
-  const nomes = [];
-  for(let c=1;c<=colunas;c++) nomes.push(document.getElementById('nomeForn'+c)?.value||`Fornecedor ${c}`);
-
-  // totais sem frete/difal
-  const totalSemExtras = Array(colunas).fill(0);
-  let sumBestLines = 0;
-
+  let totalGeral = 0;
   for(let r=1;r<=linhas;r++){
-    let bestVal = Infinity, bestIdx = -1;
-    const qtd = parseBRzero(document.getElementById('qtd'+r)?.value) || 1;
-    const ipiPerc = parseBRzero(document.getElementById('ipi'+r)?.value) || 0;
-
+    let minVal = Infinity;
+    let best = '';
+    let somaLinha = 0;
     for(let c=1;c<=colunas;c++){
-      const input = document.getElementById(`valor${r}_${c}`);
-      let val = parseBR(input?.value);
-      if(isNaN(val) || val<=0){ input && input.classList.remove('best'); continue; }
-
-      // Calcular o total por linha SEM diferencial e frete:
-      let totalItem = val * qtd;
-      // apply IPI percent (on total item)
-      totalItem = totalItem * (1 + ipiPerc/100);
-      totalItem = parseFloat(totalItem.toFixed(2));
-
-      if(totalItem < bestVal){ bestVal = totalItem; bestIdx = c; }
-      totalSemExtras[c-1] += totalItem;
-      input.classList.remove('best');
+      const el = document.getElementById(`valor${r}_${c}`);
+      let v = parseBRzero(el?.value);
+      const qtd = parseBRzero(document.getElementById(`qtd${r}`)?.value);
+      const ipi = parseBRzero(document.getElementById(`ipi${r}`)?.value);
+      v = v*(1+ipi/100)*qtd;
+      if(!isNaN(v)) somaLinha += v;
+      if(v < minVal){ minVal = v; best = c; }
     }
-
-    if(bestIdx>0){
-      const bestInput = document.getElementById(`valor${r}_${bestIdx}`);
-      if(bestInput) bestInput.classList.add('best');
-      document.getElementById('melhor'+r).innerText = nomes[bestIdx-1];
-      document.getElementById('total'+r).innerText = bestVal>0 ? fmtBR(bestVal) : '';
-      sumBestLines += bestVal>0 ? bestVal : 0;
-    } else {
-      document.getElementById('melhor'+r).innerText = '';
-      document.getElementById('total'+r).innerText = '';
-    }
+    document.getElementById(`best${r}`).textContent = best ? `Fornecedor ${best}` : '';
+    document.getElementById(`total${r}`).textContent = fmtBR(somaLinha);
+    totalGeral += somaLinha;
   }
-
-  // mostrar Valor Total Geral (soma dos melhores)
-  const vt = document.getElementById('valorTotalGeral');
-  vt.innerHTML = `<div class="total-geral">Valor Total Geral (menores valores por item): R$ ${fmtBR(sumBestLines)}</div>`;
-
-  // Calcule os totais resumidos, incluindo DIFAL (como % em relação à soma do fornecedor) e FRETE (uma vez).
-  const suppliers = [];
-  for(let c=0;c<colunas;c++){
-    const nome = nomes[c] || `Fornecedor ${c+1}`;
-    const difalPerc = parseBRzero(document.getElementById('difalVal'+(c+1))?.value) || 0;
-    const freteVal = parseBRzero(document.getElementById('freteVal'+(c+1))?.value) || 0;
-    const condVal = document.getElementById('cond'+(c+1))?.value || '-';
-    const prazoVal = document.getElementById('prazo'+(c+1))?.value || '-';
-    let subtotal = totalSemExtras[c]; // sum of lines with IPI applied, no difal, no frete
-    let difalValue = subtotal * (difalPerc/100);
-    let totalWithExtras = subtotal + difalValue + freteVal;
-    suppliers.push({
-      idx: c,
-      nome,
-      subtotal,
-      difalPerc,
-      difalValue,
-      freteVal,
-      total: parseFloat(totalWithExtras.toFixed(2)),
-      condVal,
-      prazoVal
-    });
-  }
-
-  // Classificar fornecedores por total crescente (for medals)
-  const sorted = suppliers.slice().sort((a,b)=> a.total - b.total);
-
-  // Prepare um resumo em HTML ordenado pelos totais classificados.
-  const summary = document.getElementById('summaryArea');
-  let html = '<h3>Resumo dos Fornecedores</h3><div class="summaryGrid">';
-  for(let rank=0; rank<sorted.length; rank++){
-    const s = sorted[rank];
-    // Item mais caro do fornecedor s.idx
-    let maxDiff = 0, maxIdx = -1, maxVal = 0;
-    for(let r=1;r<=linhas;r++){
-      const valC = parseBR(document.getElementById(`valor${r}_${s.idx+1}`)?.value);
-      if(isNaN(valC) || valC<=0) continue;
-      let minOther = Infinity;
-      for(let k=1;k<=colunas;k++){
-        if(k-1===s.idx) continue;
-        const vk = parseBR(document.getElementById(`valor${r}_${k}`)?.value);
-        if(!isNaN(vk) && vk>0 && vk < minOther) minOther = vk;
-      }
-      if(minOther===Infinity) continue;
-      const diffItem = (valC - minOther);
-      if(diffItem > maxDiff){ maxDiff = diffItem; maxIdx = r; maxVal = valC; }
-    }
-    const medal = rank===0? '🥇' : rank===1? '🥈' : rank===2? '🥉' : '';
-    const diffToBest = s.total - sorted[0].total;
-    const diffPerc = sorted[0].total>0 ? (diffToBest / sorted[0].total) * 100 : 0;
-    html += `<div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div><strong>${esc(s.nome)}</strong></div><div class="medalha">${medal}</div>
-      </div>
-      <div style="margin-top:8px">Subtotal (linhas com IPI): <strong>R$ ${fmtBR(s.subtotal)}</strong></div>
-      <div>DIFAL (aplicado no resumo): <strong>${s.difalPerc}% → R$ ${fmtBR(s.difalValue)}</strong></div>
-      <div>Frete (aplicado no resumo): <strong>R$ ${fmtBR(s.freteVal)}</strong></div>
-      <div style="margin-top:6px">Total (subtotal + DIFAL + Frete): <strong>R$ ${fmtBR(s.total)}</strong></div>
-      <div style="margin-top:6px">Diferença para menor total: <strong>R$ ${fmtBR(diffToBest>0?diffToBest:0)}</strong> (${diffPerc>0?diffPerc.toFixed(2):0}%)</div>
-      <div style="margin-top:6px">Item mais caro: ${maxIdx>0? esc(document.getElementById('desc'+maxIdx)?.value||'') + ' (R$ ' + fmtBR(maxVal)+')' : '—' }</div>
-      <div style="margin-top:8px">Condição: ${esc(s.condVal)} • Prazo: ${esc(s.prazoVal)}</div>
-    </div>`;
-  }
-  html += '</div>';
-  html += `<div style="margin-top:12px"><button class="btn-export btn-pdf" onclick="exportPDF()">📄 Exportar PDF</button></div>`;
-  summary.innerHTML = html;
-  summary.style.display = 'block';
+  document.getElementById('valorTotalGeral').textContent = `Total Geral: R$ ${fmtBR(totalGeral)}`;
 }
 
-/* Exportações: O PDF deve incluir apenas tableWrapper e summaryArea, formato paisagem. */
+// ==========================
+// 🔹 Atualizar nomes de fornecedores
+// ==========================
+function atualizarNomes(){
+  const colunas = parseInt(document.getElementById('colunas').value)||0;
+  for(let c=1;c<=colunas;c++){
+    const name = document.getElementById('nomeForn'+c)?.value || `Fornecedor ${c}`;
+    document.querySelectorAll(`.col-${c}`).forEach(td=>{ td.querySelector('input')?.setAttribute('placeholder',name); });
+  }
+  const sel = document.getElementById('bulkValForn');
+  sel.innerHTML = '<option value="">Escolher fornecedor...</option>';
+  for(let i=1;i<=colunas;i++){ const name=document.getElementById('nomeForn'+i)?.value || `Fornecedor ${i}`; sel.innerHTML += `<option value="${i}">${name}</option>`; }
+  const fsel = document.getElementById('filterForn');
+  fsel.innerHTML = '<option value="">Mostrar todos</option>';
+  for(let i=1;i<=colunas;i++){ const name=document.getElementById('nomeForn'+i)?.value || `Fornecedor ${i}`; fsel.innerHTML += `<option value="${i}">${name}</option>`; }
+}
+
+// ==========================
+// 🔹 Filtrar tabela
+// ==========================
+function applyFilter(){
+  const f = document.getElementById('filterForn').value;
+  const linhas = parseInt(document.getElementById('linhas').value)||0;
+  for(let r=1;r<=linhas;r++){
+    const best = document.getElementById(`best${r}`).textContent.replace('Fornecedor ','');
+    document.getElementById('row'+r).style.display = (!f || f===best) ? '' : 'none';
+  }
+}
+
+// ==========================
+//🔹 Exportação PDF modo Paisagem.
+// ==========================
+   Ajuste para permitir várias linhas sem cortar o resumo */
 function exportPDF(){
   const tableEl = document.getElementById('tableWrapper');
   const summaryEl = document.getElementById('summaryArea');
-  // create temporary container
+
+  // Criar container temporário que terá tamanho grande suficiente
   const temp = document.createElement('div');
   temp.style.padding = '20px';
   temp.style.background = '#fff';
+  temp.style.width = '210mm'; // tamanho aproximado A4 paisagem
+  temp.style.boxSizing = 'border-box';
   temp.appendChild(tableEl.cloneNode(true));
   temp.appendChild(summaryEl.cloneNode(true));
   document.body.appendChild(temp);
-  html2canvas(temp, {scale:2}).then(canvas=>{
+
+  html2canvas(temp, {scale:2, useCORS:true, scrollY:-window.scrollY}).then(canvas=>{
     const img = canvas.toDataURL('image/png');
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('l','mm','a4'); // landscape
     const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
     const imgProps = pdf.getImageProperties(img);
-    const h = (imgProps.height * pageWidth) / imgProps.width;
-    pdf.addImage(img,'PNG',0,0,pageWidth,h);
-    pdf.save('Batalha_Fornecedores_V4_Resumo.pdf');
+    const pdfHeight = (imgProps.height * pageWidth) / imgProps.width;
+
+    // Se a altura da imagem for maior que a página, quebrar em várias páginas
+    let heightLeft = pdfHeight;
+    let position = 0;
+    pdf.addImage(img, 'PNG', 0, position, pageWidth, pdfHeight);
+    heightLeft -= pageHeight;
+
+    while(heightLeft > 0){
+      position = heightLeft - pdfHeight;
+      pdf.addPage();
+      pdf.addImage(img, 'PNG', 0, position, pageWidth, pdfHeight);
+      heightLeft -= pageHeight;
+    }
+
+    pdf.save('Quadro_Concorrencia.pdf');
     document.body.removeChild(temp);
   }).catch(e=>{
-    alert('Erro ao gerar PDF: '+e.message);
+    alert('Erro ao gerar PDF: ' + e.message);
     document.body.removeChild(temp);
   });
 }
 
-/* initialize */
+// ==========================
+// 🔹 Funções novas para adicionar/remover linhas e colunas
+// ==========================
+
+function adicionarLinha(){
+  let linhas = parseInt(document.getElementById('linhas').value)||0;
+  document.getElementById('linhas').value = linhas + 1;
+  gerarTabela();
+}
+
+function adicionarColuna(){
+  let colunas = parseInt(document.getElementById('colunas').value)||0;
+  document.getElementById('colunas').value = colunas + 1;
+  gerarCamposFornecedores();
+}
+
+function removerLinha(){
+  let linhas = parseInt(document.getElementById('linhas').value)||0;
+  if(linhas <= 1){ alert('Não é possível remover todas as linhas'); return; }
+  let idx = parseInt(prompt(`Digite o número do item a remover (1 a ${linhas})`));
+  if(isNaN(idx) || idx<1 || idx>linhas) return;
+
+  const colunas = parseInt(document.getElementById('colunas').value)||0;
+  document.getElementById(`desc${idx}`).value = '';
+  document.getElementById(`unid${idx}`).value = '';
+  document.getElementById(`qtd${idx}`).value = '';
+  document.getElementById(`ipi${idx}`).value = '0';
+  for(let c=1;c<=colunas;c++){
+    const td = document.getElementById(`valor${idx}_${c}`);
+    if(td) td.value = '';
+  }
+  document.getElementById('linhas').value = linhas - 1;
+  gerarTabela();
+}
+
+function removerColuna(){
+  let colunas = parseInt(document.getElementById('colunas').value)||0;
+  if(colunas <= 1){ alert('Não é possível remover todos os fornecedores'); return; }
+  let idx = parseInt(prompt(`Digite o número do fornecedor a remover (1 a ${colunas})`));
+  if(isNaN(idx) || idx<1 || idx>colunas) return;
+
+  document.getElementById(`nomeForn${idx}`).value = '';
+  document.getElementById(`cond${idx}`).value = '';
+  document.getElementById(`prazo${idx}`).value = '';
+  document.getElementById(`difalVal${idx}`).value = '';
+  document.getElementById(`freteVal${idx}`).value = '';
+
+  const linhas = parseInt(document.getElementById('linhas').value)||0;
+  for(let r=1;r<=linhas;r++){
+    const td = document.getElementById(`valor${r}_${idx}`);
+    if(td) td.value = '';
+  }
+  document.getElementById('colunas').value = colunas - 1;
+}
+  
+// ==========================
+// 🔹 Inicializar
+// ==========================
 gerarCamposFornecedores();
+
 </script>
 
-<!-- Vercel Analytic -->
-<script defer src="https://vercel.com/analytics/script.js"></script>
 </body>
 </html>
-
-
