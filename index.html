@@ -11,38 +11,182 @@
 :root{
   --bg:#f0f4fb; --card:#ffffff; --primary:#1e3a8a; --accent:#e6f0ff; --muted:#6b7280;
   --success:#d1fae5; --danger:#fee2e2;
-}
+/* Reset de box model para evitar comportamento inconsistente */
 *{box-sizing:border-box}
-body{font-family:Inter, Arial, sans-serif;background:var(--bg);color:#111827;margin:0;padding:0}
-.header{background:linear-gradient(90deg,#0f3b73,#1e6fb5);color:#fff;padding:12px 18px;position:sticky;top:0;z-index:40}
-.header h1{margin:0;font-size:18px}
-.container{max-width:1400px;margin:18px auto;padding:12px}
-.block{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(16,24,40,0.04);margin-bottom:16px}
-.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.input{padding:8px;border-radius:8px;border:1px solid #e6edf6}
-.button{background:var(--primary);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
-.small{padding:6px 8px;font-size:13px}
-.tableWrapper{overflow:auto;border-radius:8px}
-table{border-collapse:collapse;width:100%;min-width:900px}
-th,td{border-bottom:1px solid #eef2ff;padding:10px;text-align:center;vertical-align:middle}
-th{background:var(--accent);color:var(--primary);font-weight:700;position:sticky;top:0;z-index:2}
-input.cell{width:100%;padding:6px;border-radius:6px;border:1px solid #eef2ff}
-.best{background:var(--success)!important}
-.summaryGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:12px}
-.card{background:linear-gradient(180deg,#fff,#f8fbff);padding:12px;border-radius:10px;border:1px solid #eef6ff;box-shadow:0 6px 18px rgba(16,24,40,0.04)}
-.btn-export{padding:10px 14px;border-radius:8px;border:none;color:#fff;font-weight:700;cursor:pointer}
-.btn-pdf{background:#d9534f}
-.btn-excel{background:#28a745}
-.legend{font-size:13px;color:var(--muted);margin-top:8px}
-.medalha{font-size:20px}
-.fornecedor-card input{font-size:13px} /* slightly smaller text for suppliers */
-.td-small{font-size:13px;padding:8px}
-.total-geral{margin-top:12px;padding:10px;border:2px solid #dbeafe;border-radius:8px;font-weight:700;background:linear-gradient(180deg,#fbfdff,#f7fbff);display:inline-block}
-.filterRow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
-</style>
-</head>
-<body>
-<header class="header"><h1>🛡️ Batalha de Fornecedores ⚔️ — Batalha_Fornecedores_V4</h1></header>
+
+/* Estilos gerais do body */
+body{
+  font-family:Inter, Arial, sans-serif;
+  background:var(--bg);
+  color:#111827;
+  margin:0;
+  padding:0;
+}
+/* Topo fixo do site com gradiente */
+.header{
+  background:linear-gradient(90deg,#0f3b73,#1e6fb5);
+  color:#fff;
+  padding:12px 18px;
+  position:sticky; /* mantém fixo no topo ao rolar */
+  top:0;
+  z-index:40;
+}
+/* Título dentro do header */
+.header h1{
+  margin:0;
+  font-size:18px;
+}
+/* Container principal que limita a largura do conteúdo */
+.container{
+  max-width:1400px;
+  margin:18px auto;
+  padding:12px;
+}
+/* Blocos de conteúdo (cards maiores) */
+.block{
+  background:var(--card);
+  padding:14px;
+  border-radius:10px;
+  box-shadow:0 6px 18px rgba(16,24,40,0.04);
+  margin-bottom:16px;
+}
+/* Linhas de inputs, alinhamento dos elementos */
+.row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+/* Inputs padrão */
+.input{
+  padding:8px;
+  border-radius:8px;
+  border:1px solid #e6edf6;
+}
+/* Botões gerais */
+.button{
+  background:var(--primary);
+  color:#fff;
+  padding:8px 12px;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  font-weight:600;
+}
+/* Botão menor */
+.small{
+  padding:6px 8px;
+  font-size:13px;
+}
+/* Wrapper que permite scroll horizontal na tabela */
+.tableWrapper{
+  overflow:auto;
+  border-radius:8px;
+}
+/* Estilos da tabela */
+table{
+  border-collapse:collapse;
+  width:100%;
+  min-width:900px;
+}
+/* Células (TH e TD) */
+th,td{
+  border-bottom:1px solid #eef2ff;
+  padding:10px;
+  text-align:center;
+  vertical-align:middle;
+}
+/* Cabeçalho fixo e destaque */
+th{
+  background:var(--accent);
+  color:var(--primary);
+  font-weight:700;
+  position:sticky;
+  top:0;
+  z-index:2;
+}
+/* Inputs dentro da tabela */
+input.cell{
+  width:100%;
+  padding:6px;
+  border-radius:6px;
+  border:1px solid #eef2ff;
+}
+/* Classe usada no "melhor fornecedor" para destacar a linha */
+.best{
+  background:var(--success)!important;
+}
+/* Cards de resumo (grid automática) */
+.summaryGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:12px;
+  margin-top:12px;
+}
+/* Aparência dos cards de resumo */
+.card{
+  background:linear-gradient(180deg,#fff,#f8fbff);
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #eef6ff;
+  box-shadow:0 6px 18px rgba(16,24,40,0.04);
+}
+/* Botão de exportar */
+.btn-export{
+  padding:10px 14px;
+  border-radius:8px;
+  border:none;
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
+/* Botão PDF */
+.btn-pdf{
+  background:#d9534f;
+}
+/* Botão Excel */
+.btn-excel{
+  background:#28a745;
+}
+/* Pequena legenda explicativa */
+.legend{
+  font-size:13px;
+  color:var(--muted);
+  margin-top:8px;
+}
+/* Ícone de medalha (melhor fornecedor) */
+.medalha{
+  font-size:20px;
+}
+/* 🔽 Texto menor dentro dos campos de fornecedor
+   (esses inputs aparecem no bloco onde você coloca os nomes e dados dos fornecedores) */
+.fornecedor-card input{
+  font-size:13px;
+}
+/* Células menores da tabela */
+.td-small{
+  font-size:13px;
+  padding:8px;
+}
+/* Total Geral (parte final do cálculo) */
+.total-geral{
+  margin-top:12px;
+  padding:10px;
+  border:2px solid #dbeafe;
+  border-radius:8px;
+  font-weight:700;
+  background:linear-gradient(180deg,#fbfdff,#f7fbff);
+  display:inline-block;
+}
+/* Linha de filtros de fornecedor (select + botões) */
+.filterRow{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+<header class="header"><h1>🛡️ Batalha de Fornecedores ⚔️ </h1></header>
 <div class="container">
 
   <div class="block">
@@ -144,17 +288,17 @@ function parseValorBR(str){
 </div>
 
 <script>
-/* Utility */
+/* Utilitário */
 function esc(s){ if(s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function parseBR(v){ if(v==null||v==='') return NaN; v=String(v).trim().replace(/\\./g,'').replace(',', '.'); const n=parseFloat(v); return isNaN(n)?NaN:n; }
 function parseBRzero(v){ if(v==null||v==='') return 0; v=String(v).trim().replace(/\\./g,'').replace(',', '.'); const n=parseFloat(v); return isNaN(n)?0:n; }
 function fmtBR(n){ if(n==null||isNaN(n)) return ''; return n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
-/* Init */
+/* Iniciar */
 document.getElementById('btnAvancar').addEventListener('click', gerarCamposFornecedores);
 document.getElementById('btnClearFilter').addEventListener('click', ()=>{ document.getElementById('filterForn').value=''; applyFilter(); });
 
-/* Build suppliers UI */
+/* Crie uma IU de fornecedores */
 function gerarCamposFornecedores(){
   const col = parseInt(document.getElementById('colunas').value)||1;
   const cont = document.getElementById('fornecedoresContainer');
@@ -172,7 +316,7 @@ function gerarCamposFornecedores(){
   html += '</div>';
   cont.innerHTML = html;
 
-  // populate bulkVal selector and filter select
+  // Preencher o seletor em massa e selecionar o filtro
   const sel = document.getElementById('bulkValForn');
   const fsel = document.getElementById('filterForn');
   sel.innerHTML = '<option value="">Escolher fornecedor...</option>';
@@ -186,7 +330,7 @@ function gerarCamposFornecedores(){
   gerarTabela();
 }
 
-/* Bulk apply */
+/* Aplicação em massa */
 document.getElementById('btnBulkValAplicar').addEventListener('click', ()=>{
   const sel = document.getElementById('bulkValForn').value;
   const raw = document.getElementById('bulkVal').value || '';
@@ -232,7 +376,7 @@ document.getElementById('btnBulkValAplicar').addEventListener('click', ()=>{
   calcular();
 });
 
-/* Generate table with IPI + Total-per-line (without freight/difal applied here) */
+/* Gere uma tabela com IPI + Total por linha (sem aplicar frete/diferenças). */
 function gerarTabela(){
   const linhas = parseInt(document.getElementById('linhas').value)||1;
   const colunas = parseInt(document.getElementById('colunas').value)||1;
@@ -256,26 +400,26 @@ function gerarTabela(){
   }
   html += `</tbody></table></div>`;
   document.getElementById('tableWrapper').innerHTML = html;
-  // update filter select options
+  // atualizar opções de seleção de filtro
   const fsel = document.getElementById('filterForn');
   fsel.innerHTML = '<option value="">Mostrar todos</option>';
   for(let i=1;i<=colunas;i++) fsel.innerHTML += `<option value="${i}">${document.getElementById('nomeForn'+i)?.value || 'Fornecedor '+i}</option>`;
-  // attach filter handler
+  // anexar manipulador de filtro
   fsel.onchange = applyFilter;
   calcular();
 }
 
-/* apply filter to hide columns except chosen supplier */
+/* Atualizar nomes de cabeçalho de fornecedores e seletor em massa */
 function applyFilter(){
   const val = document.getElementById('filterForn').value;
   const cols = document.querySelectorAll('.forncol');
   cols.forEach(el=> el.style.display = '');
   const inputs = document.querySelectorAll('[id^="valor"]');
   inputs.forEach(i=> i.parentElement.style.display = '');
-  // if empty -> show all
+  // Se estiver vazio -> mostrar tudo
   if(!val) return;
   const idx = parseInt(val);
-  // hide all supplier columns not idx
+  // ocultar todas as colunas de fornecedores, exceto o índice
   const colEls = document.querySelectorAll(`.forncol`);
   colEls.forEach(el=>{
     if(!el.classList.contains(`col-${idx}`)) el.style.display = 'none';
@@ -471,3 +615,4 @@ gerarCamposFornecedores();
 </script>
 </body>
 </html>
+
