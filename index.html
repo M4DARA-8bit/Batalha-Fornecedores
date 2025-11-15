@@ -8,13 +8,21 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
+/* 🔹 Variáveis globais de cores para fácil manutenção */
 :root{
-  --bg:#f0f4fb; --card:#ffffff; --primary:#1e3a8a; --accent:#e6f0ff; --muted:#6b7280;
-  --success:#d1fae5; --danger:#fee2e2;
-/* Reset de box model para evitar comportamento inconsistente */
+  --bg:#f0f4fb; 
+  --card:#ffffff; 
+  --primary:#1e3a8a; 
+  --accent:#e6f0ff; 
+  --muted:#6b7280;
+  --success:#d1fae5; 
+  --danger:#fee2e2;
+}
+
+/* 🔹 Reset do box model */
 *{box-sizing:border-box}
 
-/* Estilos gerais do body */
+/* 🔹 Estilo do corpo da página */
 body{
   font-family:Inter, Arial, sans-serif;
   background:var(--bg);
@@ -23,30 +31,30 @@ body{
   padding:0;
 }
 
-/* Topo fixo do site com gradiente */
+/* 🔹 Cabeçalho fixo */
 .header{
   background:linear-gradient(90deg,#0f3b73,#1e6fb5);
   color:#fff;
   padding:12px 18px;
-  position:sticky; /* mantém fixo no topo ao rolar */
+  position:sticky;
   top:0;
   z-index:40;
 }
 
-/* Título dentro do header */
+/* 🔹 Título do header */
 .header h1{
   margin:0;
   font-size:18px;
 }
 
-/* Container principal que limita a largura do conteúdo */
+/* 🔹 Container central com largura máxima */
 .container{
   max-width:1400px;
   margin:18px auto;
   padding:12px;
 }
 
-/* Blocos de conteúdo (cards maiores) */
+/* 🔹 Blocos de conteúdo (cards) */
 .block{
   background:var(--card);
   padding:14px;
@@ -55,7 +63,7 @@ body{
   margin-bottom:16px;
 }
 
-/* Linhas de inputs, alinhamento dos elementos */
+/* 🔹 Flex para organizar linhas de inputs */
 .row{
   display:flex;
   gap:12px;
@@ -63,14 +71,14 @@ body{
   align-items:center;
 }
 
-/* Inputs padrão */
+/* 🔹 Inputs padrão */
 .input{
   padding:8px;
   border-radius:8px;
   border:1px solid #e6edf6;
 }
 
-/* Botões gerais */
+/* 🔹 Botões padrão */
 .button{
   background:var(--primary);
   color:#fff;
@@ -81,26 +89,26 @@ body{
   font-weight:600;
 }
 
-/* Botão menor */
+/* 🔹 Botões pequenos */
 .small{
   padding:6px 8px;
   font-size:13px;
 }
 
-/* Wrapper que permite scroll horizontal na tabela */
+/* 🔹 Tabela com scroll horizontal */
 .tableWrapper{
   overflow:auto;
   border-radius:8px;
 }
 
-/* Estilos da tabela */
+/* 🔹 Tabela principal */
 table{
   border-collapse:collapse;
   width:100%;
   min-width:900px;
 }
 
-/* Células (TH e TD) */
+/* 🔹 Células da tabela */
 th,td{
   border-bottom:1px solid #eef2ff;
   padding:10px;
@@ -108,7 +116,7 @@ th,td{
   vertical-align:middle;
 }
 
-/* Cabeçalho fixo e destaque */
+/* 🔹 Cabeçalho fixo */
 th{
   background:var(--accent);
   color:var(--primary);
@@ -118,7 +126,7 @@ th{
   z-index:2;
 }
 
-/* Inputs dentro da tabela */
+/* 🔹 Inputs dentro da tabela */
 input.cell{
   width:100%;
   padding:6px;
@@ -126,12 +134,12 @@ input.cell{
   border:1px solid #eef2ff;
 }
 
-/* Classe usada no "melhor fornecedor" para destacar a linha */
+/* 🔹 Destaque de melhor fornecedor */
 .best{
   background:var(--success)!important;
 }
 
-/* Cards de resumo (grid automática) */
+/* 🔹 Cards de resumo */
 .summaryGrid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
@@ -139,7 +147,7 @@ input.cell{
   margin-top:12px;
 }
 
-/* Aparência dos cards de resumo */
+/* 🔹 Aparência dos cards */
 .card{
   background:linear-gradient(180deg,#fff,#f8fbff);
   padding:12px;
@@ -148,7 +156,7 @@ input.cell{
   box-shadow:0 6px 18px rgba(16,24,40,0.04);
 }
 
-/* Botão de exportar */
+/* 🔹 Botões de exportar */
 .btn-export{
   padding:10px 14px;
   border-radius:8px;
@@ -158,41 +166,27 @@ input.cell{
   cursor:pointer;
 }
 
-/* Botão PDF */
-.btn-pdf{
-  background:#d9534f;
-}
+/* 🔹 Botões específicos */
+.btn-pdf{ background:#d9534f }
+.btn-excel{ background:#28a745 }
 
-/* Botão Excel */
-.btn-excel{
-  background:#28a745;
-}
-
-/* Pequena legenda explicativa */
+/* 🔹 Legendas pequenas */
 .legend{
   font-size:13px;
   color:var(--muted);
   margin-top:8px;
 }
 
-/* Ícone de medalha (melhor fornecedor) */
-.medalha{
-  font-size:20px;
-}
+/* 🔹 Medalha (ranking) */
+.medalha{ font-size:20px }
 
-/* 🔽 Texto menor dentro dos campos de fornecedor
-   (esses inputs aparecem no bloco onde você coloca os nomes e dados dos fornecedores) */
-.fornecedor-card input{
-  font-size:13px;
-}
+/* 🔹 Inputs menores para fornecedores */
+.fornecedor-card input{ font-size:13px }
 
-/* Células menores da tabela */
-.td-small{
-  font-size:13px;
-  padding:8px;
-}
+/* 🔹 Células menores da tabela */
+.td-small{ font-size:13px; padding:8px }
 
-/* Total Geral (parte final do cálculo) */
+/* 🔹 Total geral */
 .total-geral{
   margin-top:12px;
   padding:10px;
@@ -203,7 +197,7 @@ input.cell{
   display:inline-block;
 }
 
-/* Linha de filtros de fornecedor (select + botões) */
+/* 🔹 Linha de filtros */
 .filterRow{
   display:flex;
   gap:12px;
@@ -451,7 +445,7 @@ function applyFilter(){
     if(!el.classList.contains(`col-${idx}`)) el.style.display = 'none';
     else el.style.display = '';
   });
-  // hide inputs in other columns
+  // ocultar entradas em outras colunas
   const rows = parseInt(document.getElementById('linhas').value)||0;
   const colCount = parseInt(document.getElementById('colunas').value)||0;
   for(let r=1;r<=rows;r++){
@@ -462,10 +456,10 @@ function applyFilter(){
       else td.style.display='none';
     }
   }
-  // also hide header cells corresponding (handled by class)
+  // ocultar também as células de cabeçalho correspondentes (gerenciadas pela classe)
 }
 
-/* update supplier header names and bulk selector */
+/* Atualizar nomes de cabeçalho de fornecedores e seletor em massa */
 function atualizarNomes(){
   const colunas = parseInt(document.getElementById('colunas').value)||1;
   for(let c=1;c<=colunas;c++){
@@ -485,12 +479,12 @@ function atualizarNomes(){
   }
 }
 
-/* Main calculate:
-   - Per-line comparisons use unit*qty with IPI applied (NO DIFAL, NO FRETE)
-   - Supplier totals are sum of those per-line values (no fret/difal)
-   - In summary, add DIFAL% (applied over supplier sum) and FRETE (once)
-   - Medalhas ordered by ascending total (after adding difal+frete)
-   - Valor Total Geral = sum of best (min) per line (without difal/frete)
+/* Cálculo principal:
+   - As comparações por linha usam unidade*quantidade com IPI aplicado (SEM DIFAL, SEM FRETE)
+   - Os totais do fornecedor são a soma desses valores por linha (sem frete/difal)
+   - Em resumo, adicione DIFAL% (aplicado sobre a soma do fornecedor) e FRETE (uma vez)
+   - Medalhas ordenadas por total crescente (após adicionar difal+frete)
+   - Valor Total Geral = soma do melhor (mínimo) por linha (sem difal/frete)
 */
 function calcular(){
   const linhas = parseInt(document.getElementById('linhas').value)||0;
@@ -499,7 +493,7 @@ function calcular(){
   const nomes = [];
   for(let c=1;c<=colunas;c++) nomes.push(document.getElementById('nomeForn'+c)?.value||`Fornecedor ${c}`);
 
-  // totals without freight/difal
+  // totais sem frete/difal
   const totalSemExtras = Array(colunas).fill(0);
   let sumBestLines = 0;
 
@@ -513,7 +507,7 @@ function calcular(){
       let val = parseBR(input?.value);
       if(isNaN(val) || val<=0){ input && input.classList.remove('best'); continue; }
 
-      // compute per-line total WITHOUT difal and freight:
+      // Calcular o total por linha SEM diferencial e frete:
       let totalItem = val * qtd;
       // apply IPI percent (on total item)
       totalItem = totalItem * (1 + ipiPerc/100);
@@ -536,11 +530,11 @@ function calcular(){
     }
   }
 
-  // show Valor Total Geral (sum of bests)
+  // mostrar Valor Total Geral (soma dos melhores)
   const vt = document.getElementById('valorTotalGeral');
   vt.innerHTML = `<div class="total-geral">Valor Total Geral (menores valores por item): R$ ${fmtBR(sumBestLines)}</div>`;
 
-  // Build summary totals including DIFAL (as % over supplier sum) and FRETE (once)
+  // Calcule os totais resumidos, incluindo DIFAL (como % em relação à soma do fornecedor) e FRETE (uma vez).
   const suppliers = [];
   for(let c=0;c<colunas;c++){
     const nome = nomes[c] || `Fornecedor ${c+1}`;
@@ -564,15 +558,15 @@ function calcular(){
     });
   }
 
-  // sort suppliers by total ascending (for medals)
+  // Classificar fornecedores por total crescente (for medals)
   const sorted = suppliers.slice().sort((a,b)=> a.total - b.total);
 
-  // prepare summary HTML ordered by sorted totals
+  // Prepare um resumo em HTML ordenado pelos totais classificados.
   const summary = document.getElementById('summaryArea');
   let html = '<h3>Resumo dos Fornecedores</h3><div class="summaryGrid">';
   for(let rank=0; rank<sorted.length; rank++){
     const s = sorted[rank];
-    // most overpriced item for supplier s.idx
+    // Item mais caro do fornecedor s.idx
     let maxDiff = 0, maxIdx = -1, maxVal = 0;
     for(let r=1;r<=linhas;r++){
       const valC = parseBR(document.getElementById(`valor${r}_${s.idx+1}`)?.value);
@@ -609,7 +603,7 @@ function calcular(){
   summary.style.display = 'block';
 }
 
-/* exports: PDF should include only tableWrapper and summaryArea, landscape */
+/* Exportações: O PDF deve incluir apenas tableWrapper e summaryArea, formato paisagem. */
 function exportPDF(){
   const tableEl = document.getElementById('tableWrapper');
   const summaryEl = document.getElementById('summaryArea');
@@ -640,9 +634,9 @@ function exportPDF(){
 gerarCamposFornecedores();
 </script>
 
-<!-- Vercel Analytics -->
+<!-- Vercel Analytic -->
 <script defer src="https://vercel.com/analytics/script.js"></script>
-
 </body>
 </html>
+
 
