@@ -52,6 +52,49 @@ input.cell{width:100%;padding:6px;border-radius:6px;border:1px solid #eef2ff}
       <button id="btnAvancar" class="button">Avançar</button>
     </div>
 
+  <!-- Botões de controle -->
+<div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:15px">
+
+  <!-- LINHAS -->
+  <button onclick="adicionarLinha()" class="btn btn-blue">
+    ➕ Adicionar Linha
+  </button>
+
+  <button onclick="removerLinha()" class="btn btn-red">
+    ➖ Remover Última Linha
+  </button>
+
+  <!-- COLUNAS -->
+  <button onclick="adicionarColuna()" class="btn btn-green">
+    ➕ Adicionar Fornecedor
+  </button>
+
+  <button onclick="removerColuna()" class="btn btn-red">
+    ➖ Remover Último Fornecedor
+  </button>
+
+</div>
+
+<style>
+  .btn {
+    padding: 8px 14px;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #fff;
+    transition: 0.15s ease;
+  }
+  .btn-blue { background: #3478f6; }
+  .btn-blue:hover { background: #2866d6; }
+
+  .btn-green { background: #2ecc71; }
+  .btn-green:hover { background: #27ae60; }
+
+  .btn-red { background: #e74c3c; }
+  .btn-red:hover { background: #c0392b; }
+</style>
+
     <hr style="margin:12px 0">
 
 <h3>Inserção em Massa (uma linha = um item)</h3>
@@ -446,45 +489,59 @@ function exportPDF(){
   const tableEl = document.getElementById('tableWrapper');
   const summaryEl = document.getElementById('summaryArea');
 
+  // container que captura TUDO sem cortar
   const temp = document.createElement('div');
   temp.style.padding = '20px';
   temp.style.background = '#fff';
 
-  // LARGURA CORRETA DO A4 PAISAGEM
-  temp.style.width = '297mm';
+  // fundamental: deixar o tamanho natural da tabela
+  temp.style.width = tableEl.scrollWidth + 'px';
+  temp.style.maxWidth = 'none';
+  temp.style.display = 'inline-block';
 
-  // ESCALA LEVE PARA EVITAR CORTES
-  temp.style.transform = 'scale(0.95)';
-  temp.style.transformOrigin = 'top left';
-
-  temp.style.boxSizing = 'border-box';
   temp.appendChild(tableEl.cloneNode(true));
   temp.appendChild(summaryEl.cloneNode(true));
   document.body.appendChild(temp);
 
-  html2canvas(temp, {scale:2, useCORS:true, scrollY:-window.scrollY}).then(canvas=>{
+  html2canvas(temp, {
+    scale: 2,
+    useCORS: true,
+    scrollY: 0,
+    windowWidth: temp.scrollWidth,
+    windowHeight: temp.scrollHeight
+  }).then(canvas => {
+
     const img = canvas.toDataURL('image/png');
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('l','mm','a4'); // landscape
+
+    const pdf = new jsPDF('p', 'mm', 'a4');  // retrato (mais conteúdo vertical)
+
     const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
     const imgProps = pdf.getImageProperties(img);
-    const pdfHeight = (imgProps.height * pageWidth) / imgProps.width;
+    const pdfWidth = pageWidth;
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
     let heightLeft = pdfHeight;
     let position = 0;
-    pdf.addImage(img, 'PNG', 0, position, pageWidth, pdfHeight);
-    heightLeft -= pdf.internal.pageSize.getHeight();
 
-    while(heightLeft > 0){
-      position = heightLeft - pdfHeight;
+    // primeira página
+    pdf.addImage(img, 'PNG', 0, position, pdfWidth, pdfHeight);
+    heightLeft -= pageHeight;
+
+    // páginas seguintes
+    while (heightLeft > 0) {
       pdf.addPage();
-      pdf.addImage(img, 'PNG', 0, position, pageWidth, pdfHeight);
-      heightLeft -= pdf.internal.pageSize.getHeight();
+      position = heightLeft - pdfHeight;
+      pdf.addImage(img, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
     }
 
-    pdf.save('Quadro Concorrencia.pdf');
+    pdf.save('Quadro_Concorrencia.pdf');
+
     document.body.removeChild(temp);
-  }).catch(e=>{
+  }).catch(e => {
     alert('Erro ao gerar PDF: ' + e.message);
     document.body.removeChild(temp);
   });
@@ -639,4 +696,5 @@ gerarCamposFornecedores();
 </script>
 </body>
 </html>
+
 
