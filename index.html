@@ -341,7 +341,7 @@
       <button class="nav-btn" data-page="acessos">👥 Acessos</button>
     </nav>
     <div class="sidebar-footer">
-      Dados sincronizados no Firestore. Use CSV como relatório e atualização em massa. 🗃️
+      Para mais informações e auxlio no uso, chame algum comprador. Para mais acessos fale com o Baldini 🗃️
     </div>
   </aside>
 
@@ -349,24 +349,23 @@
     <div class="topbar">
       <div class="title-block">
         <button class="ghost-btn mobile-toggle" id="menuToggle">☰ Abrir menu</button>
-        <h2>Painel de Cadastro e Homologação de Fornecedores</h2>
-        <p>Controle visual das etapas: escopo, documentação, negociação LPU, cadastro, formalização e passagem para operação.</p>
+        <h2>Painel de Controle de Fornecedores</h2>
       </div>
       <div class="top-actions">
         <span class="tag info" id="currentUserBadge">Não logado</span>
         <button class="ghost-btn" id="logoutBtn">Sair</button>
-        <select id="csvExportScope" class="top-select" title="Escolha a aba do relatório CSV">
-          <option value="dashboard">CSV - Dashboard filtrado</option>
-          <option value="baseCompleta">CSV - Base completa</option>
-          <option value="acompanhamento">CSV - Acompanhamento</option>
-          <option value="servicos">CSV - Tipos de Serviço</option>
-          <option value="acessos">CSV - Acessos</option>
-          <option value="checklist">CSV - Checklist</option>
+        <select id="csvExportScope" class="top-select" title="Escolha a aba do relatório Excel/CSV">
+          <option value="dashboard">Excel - Dashboard filtrado</option>
+          <option value="baseCompleta">Excel - Base completa</option>
+          <option value="acompanhamento">Excel - Acompanhamento Filtrado</option>
+          <option value="servicos">Excel - Tipos de Serviço</option>
+          <option value="acessos">Excel - Acessos</option>
+          <option value="checklist">Excel - Checklist</option>
         </select>
-        <button class="ghost-btn" id="downloadCsvBtn">Exportar CSV</button>
+        <button class="ghost-btn" id="downloadCsvBtn">Exportar Excel</button>
         <input type="file" id="bulkCsvUpdateInput" accept=".csv,text/csv" class="hidden">
         <button class="warning-btn" id="bulkCsvUpdateBtn">Atualizar por CSV</button>
-        <button class="danger-btn" id="resetBtn">Restaurar base no Firestore</button>
+        <button class="danger-btn" id="resetBtn">Restaurar base</button>
       </div>
     </div>
 
@@ -383,10 +382,9 @@
       <div class="card" style="margin-bottom:18px;">
         <div class="panel-title">
           <div><h3>Filtros de análise</h3><p>Filtre por fornecedor, estado (UF), escopo, etapa atual e situação.</p></div>
-          <div class="legend"><span>Hover na tabela</span><span>Dados locais</span></div>
         </div>
         <div class="filters">
-          <div class="field"><label>Buscar</label><input type="text" id="filterSearch" placeholder="Fornecedor, CNPJ, e-mail ou contato"></div>
+          <div class="field"><label>Buscar</label><input type="text" id="filterSearch" placeholder="Razão, Cnpj, email ou contato"></div>
           <div class="field"><label>Estado (UF)</label><select id="filterRegion"><option value="todos">Todas</option></select></div>
           <div class="field"><label>Categoria do escopo</label><select id="filterScope"><option value="todos">Todas</option></select></div>
           <div class="field"><label>Etapa atual</label><select id="filterStage"><option value="todos">Todas</option></select></div>
@@ -424,7 +422,7 @@
 
       <div class="card">
         <div class="panel-title">
-          <div><h3>Fornecedores filtrados</h3><p>Visão executiva do funil de cadastro.</p></div>
+          <div><h3>Fornecedores filtrados</h3><p>Visão resumida dos fornecedores. Para visualização completa vá na aba Acompanhamento</p></div>
           <span class="tag info" id="filteredCount">0 itens</span>
         </div>
         <div class="table-wrap">
@@ -661,13 +659,13 @@
     <section class="page" id="acompanhamento">
       <div class="card" style="margin-bottom:18px;">
         <div class="panel-title">
-          <div><h3>Acompanhamento completo</h3><p>Tabela operacional com todas as etapas, progresso e follow-up.</p></div>
+          <div><h3>Acompanhamento completo</h3><p>Tabela com todas as etapas, proxima ação e follow-up.</p></div>
           <span class="tag info" id="trackingCount">0 registros</span>
         </div>
         <div class="filters" style="grid-template-columns: 1fr; margin-bottom: 12px;">
           <div class="field">
             <label>Buscar no acompanhamento</label>
-            <input type="text" id="trackingSearch" placeholder="Fornecedor, CNPJ, segmento, etapa, responsável, próxima ação ou follow-up">
+            <input type="text" id="trackingSearch" placeholder="Fornecedor, CNPJ, segmento, etapa, responsável, próxima ação ou follow-up. OBS: Não necessita apertat ENTER.">
           </div>
         </div>
         <p class="tracking-scroll-hint">← Role horizontalmente para ver todas as colunas →</p>
@@ -998,6 +996,10 @@ const getCurrentUser = () => CURRENT_USER || JSON.parse(sessionStorage.getItem(A
 const setCurrentUser = user => { CURRENT_USER = user; sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user)); };
 const clearCurrentUser = () => { CURRENT_USER = null; sessionStorage.removeItem(AUTH_STORAGE_KEY); };
 const canFullEdit = () => !!getCurrentUser()?.full;
+const isComprasProfile = () => slugUsername(getCurrentUser()?.role || getCurrentUser()?.label || '') === 'compras';
+const isDanielRestoreAccess = () => slugUsername(getCurrentUser()?.user || '') === 'daniel';
+const canExportReports = () => isComprasProfile();
+const canRestoreEmbeddedBase = () => isDanielRestoreAccess();
 const canCreateAccess = () => canFullEdit();
 const isViewOnly = () => !!getCurrentUser()?.viewOnly;
 const approvalKeyForUser = () => getCurrentUser()?.approval || null;
@@ -1841,8 +1843,10 @@ const applyGlobalPermissions = () => {
   const full = canFullEdit();
   const approver = !!approvalKeyForUser();
   const viewOnly = isViewOnly();
-  ['importCnpjBtn','addServiceBtn','resetBtn','bulkCsvUpdateBtn','downloadCsvBtn'].forEach(id => { if($(id)) $(id).style.display = full ? 'inline-flex' : 'none'; });
-  if($('csvExportScope')) $('csvExportScope').style.display = full ? 'inline-block' : 'none';
+  ['importCnpjBtn','addServiceBtn','bulkCsvUpdateBtn'].forEach(id => { if($(id)) $(id).style.display = full ? 'inline-flex' : 'none'; });
+  ['downloadCsvBtn'].forEach(id => { if($(id)) $(id).style.display = canExportReports() ? 'inline-flex' : 'none'; });
+  if($('csvExportScope')) $('csvExportScope').style.display = canExportReports() ? 'inline-block' : 'none';
+  if($('resetBtn')) $('resetBtn').style.display = canRestoreEmbeddedBase() ? 'inline-flex' : 'none';
   document.querySelectorAll('[data-page="cadastro"], [data-page="servicos"]').forEach(btn => {
     btn.style.display = (full || approver) ? 'block' : 'none';
   });
@@ -2414,6 +2418,7 @@ const handleBulkCsvFile = file => {
   reader.readAsText(file, 'utf-8');
 };
 const exportCsvByScope = () => {
+  if(!canExportReports()) return alert('Seu perfil não possui permissão para exportar relatórios. Apenas usuários com função Compras podem exportar.');
   const scope = $('csvExportScope')?.value || 'dashboard';
   let filename = `relatorio_fornecedores_${exportDateKey()}.csv`;
   let content = '';
@@ -2442,7 +2447,7 @@ const exportCsvByScope = () => {
 $('downloadCsvBtn').addEventListener('click',exportCsvByScope);
 $('bulkCsvUpdateBtn')?.addEventListener('click',()=>$('bulkCsvUpdateInput').click());
 $('bulkCsvUpdateInput')?.addEventListener('change',e=>{ const file=e.target.files[0]; handleBulkCsvFile(file); e.target.value=''; });
-$('resetBtn').addEventListener('click',async()=>{ if(!confirm('Restaurar a base embutida neste HTML e substituir a coleção do Firestore?')) return; try{ const base=JSON.parse(JSON.stringify(BASE_DATA)); APP_STORE={...APP_STORE, ...base, suppliers:(base.suppliers||[]).map(normalizeSupplierForBusinessRules), serviceTypes:base.serviceTypes||[], restoredAt:todayKey()}; saveLocalCache(); clearForm(); renderAll(); const result=await bulkUploadToFirestore(APP_STORE.suppliers, APP_STORE.serviceTypes, {replace:true}); alert(`Base restaurada no Firestore: ${result.suppliers} fornecedores e ${result.services} serviços. Removidos fora da base: ${result.deletedSuppliers} fornecedores e ${result.deletedServices} serviços.`); }catch(err){ console.error(err); alert(`Não foi possível restaurar a base no Firestore: ${err.message || err}`); } });
+$('resetBtn').addEventListener('click',async()=>{ if(!canRestoreEmbeddedBase()) return alert('A restauração da base é permitida apenas para o acesso Daniel.'); if(!confirm('Restaurar a base embutida neste HTML e substituir a coleção do Firestore?')) return; try{ const base=JSON.parse(JSON.stringify(BASE_DATA)); APP_STORE={...APP_STORE, ...base, suppliers:(base.suppliers||[]).map(normalizeSupplierForBusinessRules), serviceTypes:base.serviceTypes||[], restoredAt:todayKey()}; saveLocalCache(); clearForm(); renderAll(); const result=await bulkUploadToFirestore(APP_STORE.suppliers, APP_STORE.serviceTypes, {replace:true}); alert(`Base restaurada no Firestore: ${result.suppliers} fornecedores e ${result.services} serviços. Removidos fora da base: ${result.deletedSuppliers} fornecedores e ${result.deletedServices} serviços.`); }catch(err){ console.error(err); alert(`Não foi possível restaurar a base no Firestore: ${err.message || err}`); } });
 $('copyTemplateBtn').addEventListener('click',async()=>{ try{ await navigator.clipboard.writeText($('templateMsg').value); }catch(err){ $('templateMsg').select(); document.execCommand('copy'); } alert('Texto copiado.'); });
 
 
