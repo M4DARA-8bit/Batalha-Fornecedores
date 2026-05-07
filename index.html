@@ -341,7 +341,7 @@
       <button class="nav-btn" data-page="acessos">👥 Acessos</button>
     </nav>
     <div class="sidebar-footer">
-      Dados sincronizados no Firestore. Use JSON como backup e CSV como relatório. 🗃️
+      Dados sincronizados no Firestore. Use CSV como relatório e atualização em massa. 🗃️
     </div>
   </aside>
 
@@ -355,7 +355,6 @@
       <div class="top-actions">
         <span class="tag info" id="currentUserBadge">Não logado</span>
         <button class="ghost-btn" id="logoutBtn">Sair</button>
-        <button class="ghost-btn" id="downloadJsonBtn">Baixar JSON</button>
         <select id="csvExportScope" class="top-select" title="Escolha a aba do relatório CSV">
           <option value="dashboard">CSV - Dashboard filtrado</option>
           <option value="baseCompleta">CSV - Base completa</option>
@@ -365,9 +364,9 @@
           <option value="checklist">CSV - Checklist</option>
         </select>
         <button class="ghost-btn" id="downloadCsvBtn">Exportar CSV</button>
+        <input type="file" id="bulkCsvUpdateInput" accept=".csv,text/csv" class="hidden">
+        <button class="warning-btn" id="bulkCsvUpdateBtn">Atualizar por CSV</button>
         <button class="danger-btn" id="resetBtn">Restaurar base no Firestore</button>
-        <input type="file" id="importJsonInput" accept="application/json" class="hidden">
-        <button class="ghost-btn" id="importJsonBtn">Importar JSON</button>
       </div>
     </div>
 
@@ -1046,6 +1045,27 @@ const formatPhone = (value, mode='auto') => {
   if(x.length <= 2) return x.length ? `(${x}` : '';
   if(x.length <= 7) return `(${x.slice(0,2)}) ${x.slice(2)}`;
   return `(${x.slice(0,2)}) ${x.slice(2,7)}-${x.slice(7,11)}`;
+};
+const formatPhoneList = value => {
+  const raw = String(value || '').trim();
+  if(!raw) return '';
+  const pieces = raw
+    .replace(/\s+e\s+/gi, ' / ')
+    .replace(/\s+ou\s+/gi, ' / ')
+    .split(/\s*(?:\/|;|\||,)\s*/g)
+    .map(part => part.trim())
+    .filter(Boolean);
+  const formatted = pieces.map(part => {
+    let digits = onlyDigits(part);
+    if(digits.startsWith('55') && digits.length > 11) digits = digits.slice(2);
+    if(digits.length > 11) {
+      const last11 = digits.slice(-11);
+      const last10 = digits.slice(-10);
+      digits = last11.length === 11 && last11[2] === '9' ? last11 : last10;
+    }
+    return formatPhone(digits, 'auto');
+  }).filter(Boolean);
+  return [...new Set(formatted)].join(' / ');
 };
 const displayContato = item => {
   const nome = item.nomeContato ? `<strong>${esc(item.nomeContato)}</strong><br>` : '';
@@ -1821,7 +1841,7 @@ const applyGlobalPermissions = () => {
   const full = canFullEdit();
   const approver = !!approvalKeyForUser();
   const viewOnly = isViewOnly();
-  ['importCnpjBtn','addServiceBtn','resetBtn','importJsonBtn','downloadJsonBtn','downloadCsvBtn'].forEach(id => { if($(id)) $(id).style.display = full ? 'inline-flex' : 'none'; });
+  ['importCnpjBtn','addServiceBtn','resetBtn','bulkCsvUpdateBtn','downloadCsvBtn'].forEach(id => { if($(id)) $(id).style.display = full ? 'inline-flex' : 'none'; });
   if($('csvExportScope')) $('csvExportScope').style.display = full ? 'inline-block' : 'none';
   document.querySelectorAll('[data-page="cadastro"], [data-page="servicos"]').forEach(btn => {
     btn.style.display = (full || approver) ? 'block' : 'none';
@@ -2231,6 +2251,168 @@ const supplierDetailedRows = rows => (rows || []).map(item => {
 const serviceCsv = () => rowsToCsv(['ID','Categoria','Subcategoria','Descrição'], getServices().map(i => [i.id,i.categoria,i.subcategoria,i.descricao]));
 const accessCsv = () => rowsToCsv(['Nome','Usuário','Perfil','Status','Email','Criado em','Observação'], (ACCESS_USERS || []).map(i => [i.nome,i.user || i.docId,i.label || i.role,i.ativo === false ? 'INATIVO' : 'ATIVO',i.email,i.criadoEmBr,i.observacao]));
 const checklistCsv = () => rowsToCsv(['Documento','Orientação'], DOCS_BASE.map(([doc,desc]) => [doc,desc]));
+const parseCsvText = text => {
+  const source = String(text || '').replace(/^\uFEFF/, '');
+  const firstLine = source.split(/\r?\n/).find(line => line.trim()) || '';
+  const delimiter = (firstLine.match(/;/g) || []).length >= (firstLine.match(/,/g) || []).length ? ';' : ',';
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let quoted = false;
+  for(let i = 0; i < source.length; i++) {
+    const ch = source[i];
+    const next = source[i + 1];
+    if(ch === '"') {
+      if(quoted && next === '"') { cell += '"'; i++; }
+      else quoted = !quoted;
+    } else if(ch === delimiter && !quoted) {
+      row.push(cell);
+      cell = '';
+    } else if((ch === '\n' || ch === '\r') && !quoted) {
+      if(ch === '\r' && next === '\n') i++;
+      row.push(cell);
+      if(row.some(v => String(v).trim() !== '')) rows.push(row);
+      row = [];
+      cell = '';
+    } else {
+      cell += ch;
+    }
+  }
+  row.push(cell);
+  if(row.some(v => String(v).trim() !== '')) rows.push(row);
+  if(rows.length < 2) return [];
+  const headers = rows[0].map(h => String(h || '').trim());
+  return rows.slice(1).map(values => {
+    const obj = {};
+    headers.forEach((header, index) => { obj[header] = String(values[index] || '').trim(); });
+    return obj;
+  });
+};
+
+const csvHeaderValue = (row, aliases=[]) => {
+  const normalized = Object.entries(row || {}).map(([key,value]) => [norm(key).replace(/[^A-Z0-9]/g, ''), value]);
+  const wanted = aliases.map(alias => norm(alias).replace(/[^A-Z0-9]/g, ''));
+  const found = normalized.find(([key]) => wanted.includes(key));
+  return found ? found[1] : '';
+};
+
+const normalizeSegmentFromCsv = value => {
+  const v = norm(value);
+  if(!v) return '';
+  if(v.includes('EXTERNA')) return 'Serviço PLEX';
+  if(v.includes('SERVICO') && v.includes('PLEX')) return 'Serviço PLEX';
+  if(v.includes('SERVIÇO') && v.includes('PLEX')) return 'Serviço PLEX';
+  if(v.includes('MATERIAL') && v.includes('PLEX')) return 'Material PLEX';
+  if(v.includes('SERVICO') && v.includes('PLIN')) return 'Serviço PLIN';
+  if(v.includes('SERVIÇO') && v.includes('PLIN')) return 'Serviço PLIN';
+  if(v.includes('MATERIAL') && v.includes('PLIN')) return 'Material PLIN';
+  return String(value || '').trim();
+};
+
+const parseSegmentosFromCsv = value => {
+  const text = String(value || '').trim();
+  if(!text) return [];
+  const parts = text.split(/\s*(?:,|;|\||\/)\s*/g).map(normalizeSegmentFromCsv).filter(Boolean);
+  return [...new Set(parts)].filter(seg => SEGMENTOS.includes(seg));
+};
+
+const ensurePlexDefaultStages = item => ({
+  ...(item.plexEtapas || {}),
+  plexRh: item.plexEtapas?.plexRh || 'PENDENTE',
+  plexSesmt: item.plexEtapas?.plexSesmt || 'PENDENTE',
+  plexJuridico: item.plexEtapas?.plexJuridico || 'PENDENTE',
+  plexDiretoria: item.plexEtapas?.plexDiretoria || 'PENDENTE'
+});
+
+const applyCsvBulkUpdate = async rows => {
+  if(!canFullEdit()) return alert('Seu perfil não possui permissão para atualização em massa.');
+  if(!rows.length) return alert('CSV sem linhas válidas.');
+  const suppliers = getSuppliers();
+  const byCnpj = new Map();
+  suppliers.forEach((item, index) => {
+    const key = onlyDigits(item.cnpj);
+    if(key) byCnpj.set(key, index);
+  });
+
+  const nextList = suppliers.map(item => deepClone(item));
+  const changedItems = [];
+  const notFound = [];
+  let ignored = 0;
+  let unchanged = 0;
+
+  rows.forEach(row => {
+    const cnpj = onlyDigits(csvHeaderValue(row, ['CNPJ', 'Cnpj']));
+    if(!cnpj) { ignored += 1; return; }
+    const index = byCnpj.get(cnpj);
+    if(index === undefined) { notFound.push(cnpj); return; }
+
+    const before = deepClone(nextList[index]);
+    let next = deepClone(nextList[index]);
+    const phone = formatPhoneList(csvHeaderValue(row, ['Telefone', 'Contato', 'Telefone/Contato']));
+    const segmentos = parseSegmentosFromCsv(csvHeaderValue(row, ['Segmento', 'Segmentos']));
+
+    if(phone) {
+      next.telefone = phone;
+      next.contato = phone;
+      next.telefoneDigitos = 'auto';
+    }
+    if(segmentos.length) next.segmentos = segmentos;
+
+    if(hasServicoPlexSegment(next.segmentos || [])) {
+      next.plexEtapas = ensurePlexDefaultStages(next);
+      next.plexEtapasDatas = next.plexEtapasDatas || {};
+    } else {
+      next.plexEtapas = {};
+      next.plexEtapasDatas = {};
+    }
+
+    next.ultimaAtualizacao = todayKey();
+    next.atualizadoEmIso = new Date().toISOString();
+    next = normalizeSupplierForBusinessRules(next);
+
+    const changes = compareForLog(before, next).filter(change => !String(change.campo || '').startsWith('Data PLEX'));
+    if(!changes.length) { unchanged += 1; return; }
+
+    next = addSupplierLog(next, 'Atualização em massa por CSV', changes.slice(0, 10));
+    nextList[index] = next;
+    changedItems.push(next);
+  });
+
+  if(!changedItems.length) {
+    return alert(`Nenhum fornecedor atualizado. Não encontrados: ${notFound.length}. Ignorados: ${ignored}. Sem alteração: ${unchanged}.`);
+  }
+
+  REMOTE_APPLY = true;
+  APP_STORE = {...APP_STORE, suppliers:nextList.map(normalizeSupplierForBusinessRules)};
+  saveLocalCache();
+  renderAll();
+  REMOTE_APPLY = false;
+
+  const ops = changedItems.map(item => batch => batch.set(doc(db, COLLECTION_SUPPLIERS, String(item.id)), sanitizeForFirebase({...item, atualizadoEmIso:new Date().toISOString()}), {merge:true}));
+  await commitFirestoreOps(ops);
+
+  alert(`Atualização em massa concluída.\n\nLinhas lidas: ${rows.length}\nFornecedores atualizados: ${changedItems.length}\nNão encontrados: ${notFound.length}\nIgnorados sem CNPJ: ${ignored}\nSem alteração: ${unchanged}`);
+};
+
+const handleBulkCsvFile = file => {
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      const rows = parseCsvText(reader.result);
+      if(!rows.length) throw new Error('CSV sem linhas válidas.');
+      const sampleCnpj = csvHeaderValue(rows[0], ['CNPJ', 'Cnpj']);
+      if(!sampleCnpj) throw new Error('Não encontrei a coluna CNPJ no CSV.');
+      const confirmText = `O CSV possui ${rows.length} linha(s).\n\nO sistema vai procurar fornecedores pelo CNPJ e atualizar somente Segmento e Telefone.\nPara Segmento EXTERNA, será aplicado Serviço PLEX.\n\nDeseja continuar?`;
+      if(!confirm(confirmText)) return;
+      await applyCsvBulkUpdate(rows);
+    } catch(err) {
+      console.error(err);
+      alert(`Não foi possível atualizar por CSV: ${err.message || err}`);
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+};
 const exportCsvByScope = () => {
   const scope = $('csvExportScope')?.value || 'dashboard';
   let filename = `relatorio_fornecedores_${exportDateKey()}.csv`;
@@ -2257,10 +2439,9 @@ const exportCsvByScope = () => {
   }
   download(filename, content, 'text/csv;charset=utf-8');
 };
-$('downloadJsonBtn').addEventListener('click',()=>download('cadastro_fornecedores_backup.json',JSON.stringify(getStore(),null,2),'application/json'));
 $('downloadCsvBtn').addEventListener('click',exportCsvByScope);
-$('importJsonBtn').addEventListener('click',()=>$('importJsonInput').click());
-$('importJsonInput').addEventListener('change',e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=async()=>{ try{ const d=JSON.parse(r.result); if(!Array.isArray(d.suppliers)) throw new Error('JSON sem lista suppliers'); APP_STORE={...APP_STORE, suppliers:(d.suppliers||[]).map(normalizeSupplierForBusinessRules), serviceTypes:d.serviceTypes||getServices(), importedAt:todayKey()}; saveLocalCache(); renderAll(); const result=await bulkUploadToFirestore(APP_STORE.suppliers, APP_STORE.serviceTypes, {replace:false}); alert(`Importação enviada ao Firestore: ${result.suppliers} fornecedores e ${result.services} serviços.`); }catch(err){ console.error(err); alert('Arquivo inválido ou falha ao enviar ao Firestore. Use um JSON exportado por este painel e confira as regras do banco.'); } }; r.readAsText(f); e.target.value=''; });
+$('bulkCsvUpdateBtn')?.addEventListener('click',()=>$('bulkCsvUpdateInput').click());
+$('bulkCsvUpdateInput')?.addEventListener('change',e=>{ const file=e.target.files[0]; handleBulkCsvFile(file); e.target.value=''; });
 $('resetBtn').addEventListener('click',async()=>{ if(!confirm('Restaurar a base embutida neste HTML e substituir a coleção do Firestore?')) return; try{ const base=JSON.parse(JSON.stringify(BASE_DATA)); APP_STORE={...APP_STORE, ...base, suppliers:(base.suppliers||[]).map(normalizeSupplierForBusinessRules), serviceTypes:base.serviceTypes||[], restoredAt:todayKey()}; saveLocalCache(); clearForm(); renderAll(); const result=await bulkUploadToFirestore(APP_STORE.suppliers, APP_STORE.serviceTypes, {replace:true}); alert(`Base restaurada no Firestore: ${result.suppliers} fornecedores e ${result.services} serviços. Removidos fora da base: ${result.deletedSuppliers} fornecedores e ${result.deletedServices} serviços.`); }catch(err){ console.error(err); alert(`Não foi possível restaurar a base no Firestore: ${err.message || err}`); } });
 $('copyTemplateBtn').addEventListener('click',async()=>{ try{ await navigator.clipboard.writeText($('templateMsg').value); }catch(err){ $('templateMsg').select(); document.execCommand('copy'); } alert('Texto copiado.'); });
 
