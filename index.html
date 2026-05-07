@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -221,6 +219,22 @@
     .checklist-section h4 { margin: 4px 0 12px; color: var(--text); }
     .approval-disabled-note { color: var(--muted); font-size: 12px; margin-top: 8px; }
 
+
+    .bulk-mode-card {
+      width: 100%; text-align: left; color: var(--text); cursor: pointer;
+      border: 1px solid var(--border); background: rgba(255,255,255,0.04);
+      border-radius: 18px; padding: 16px; transition: 0.22s ease;
+    }
+    .bulk-mode-card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.08); }
+    .bulk-mode-card.active { border-color: rgba(52,211,153,0.45); background: rgba(16,185,129,0.13); box-shadow: 0 0 0 3px rgba(52,211,153,0.10); }
+    .bulk-mode-card strong { display:block; margin-bottom:8px; }
+    .bulk-mode-card span { display:block; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .bulk-mode-info {
+      margin-top: 14px; padding: 14px; border-radius: 14px;
+      border: 1px solid rgba(96,165,250,0.22); background: rgba(96,165,250,0.08);
+      color: #bfdbfe; font-size: 12px; line-height: 1.65;
+    }
+
     @media (max-width: 1180px) {
       .grid-cards, .section-grid, .section-grid.equal, .filters, .form-grid, .cards-grid-2, .cards-grid-3, .service-grid, .checklist, .summary-grid, .add-service-form, .segment-dashboard-grid { grid-template-columns: 1fr; }
       .row-span-2 { grid-column: span 1; }
@@ -341,7 +355,7 @@
       <button class="nav-btn" data-page="acessos">👥 Acessos</button>
     </nav>
     <div class="sidebar-footer">
-      Para mais informações e auxlio no uso, chame algum comprador. Para mais acessos fale com o Baldini 🗃️
+      Dados sincronizados no Firestore. Use CSV como relatório e atualização em massa. 🗃️
     </div>
   </aside>
 
@@ -349,7 +363,8 @@
     <div class="topbar">
       <div class="title-block">
         <button class="ghost-btn mobile-toggle" id="menuToggle">☰ Abrir menu</button>
-        <h2>Painel de Controle de Fornecedores</h2>
+        <h2>Painel de Cadastro e Homologação de Fornecedores</h2>
+        <p>Controle visual das etapas: escopo, documentação, negociação LPU, cadastro, formalização e passagem para operação.</p>
       </div>
       <div class="top-actions">
         <span class="tag info" id="currentUserBadge">Não logado</span>
@@ -357,7 +372,7 @@
         <select id="csvExportScope" class="top-select" title="Escolha a aba do relatório Excel/CSV">
           <option value="dashboard">Excel - Dashboard filtrado</option>
           <option value="baseCompleta">Excel - Base completa</option>
-          <option value="acompanhamento">Excel - Acompanhamento Filtrado</option>
+          <option value="acompanhamento">Excel - Acompanhamento</option>
           <option value="servicos">Excel - Tipos de Serviço</option>
           <option value="acessos">Excel - Acessos</option>
           <option value="checklist">Excel - Checklist</option>
@@ -365,7 +380,7 @@
         <button class="ghost-btn" id="downloadCsvBtn">Exportar Excel</button>
         <input type="file" id="bulkCsvUpdateInput" accept=".csv,text/csv" class="hidden">
         <button class="warning-btn" id="bulkCsvUpdateBtn">Atualizar por CSV</button>
-        <button class="danger-btn" id="resetBtn">Restaurar base</button>
+        <button class="danger-btn" id="resetBtn">Restaurar base no Firestore</button>
       </div>
     </div>
 
@@ -382,9 +397,10 @@
       <div class="card" style="margin-bottom:18px;">
         <div class="panel-title">
           <div><h3>Filtros de análise</h3><p>Filtre por fornecedor, estado (UF), escopo, etapa atual e situação.</p></div>
+          <div class="legend"><span>Hover na tabela</span><span>Dados locais</span></div>
         </div>
         <div class="filters">
-          <div class="field"><label>Buscar</label><input type="text" id="filterSearch" placeholder="Razão, Cnpj, email ou contato"></div>
+          <div class="field"><label>Buscar</label><input type="text" id="filterSearch" placeholder="Fornecedor, CNPJ, e-mail ou contato"></div>
           <div class="field"><label>Estado (UF)</label><select id="filterRegion"><option value="todos">Todas</option></select></div>
           <div class="field"><label>Categoria do escopo</label><select id="filterScope"><option value="todos">Todas</option></select></div>
           <div class="field"><label>Etapa atual</label><select id="filterStage"><option value="todos">Todas</option></select></div>
@@ -422,7 +438,7 @@
 
       <div class="card">
         <div class="panel-title">
-          <div><h3>Fornecedores filtrados</h3><p>Visão resumida dos fornecedores. Para visualização completa vá na aba Acompanhamento</p></div>
+          <div><h3>Fornecedores filtrados</h3><p>Visão executiva do funil de cadastro.</p></div>
           <span class="tag info" id="filteredCount">0 itens</span>
         </div>
         <div class="table-wrap">
@@ -659,13 +675,13 @@
     <section class="page" id="acompanhamento">
       <div class="card" style="margin-bottom:18px;">
         <div class="panel-title">
-          <div><h3>Acompanhamento completo</h3><p>Tabela com todas as etapas, proxima ação e follow-up.</p></div>
+          <div><h3>Acompanhamento completo</h3><p>Tabela operacional com todas as etapas, progresso e follow-up.</p></div>
           <span class="tag info" id="trackingCount">0 registros</span>
         </div>
         <div class="filters" style="grid-template-columns: 1fr; margin-bottom: 12px;">
           <div class="field">
             <label>Buscar no acompanhamento</label>
-            <input type="text" id="trackingSearch" placeholder="Fornecedor, CNPJ, segmento, etapa, responsável, próxima ação ou follow-up. OBS: Não necessita apertat ENTER.">
+            <input type="text" id="trackingSearch" placeholder="Fornecedor, CNPJ, segmento, etapa, responsável, próxima ação ou follow-up">
           </div>
         </div>
         <p class="tracking-scroll-hint">← Role horizontalmente para ver todas as colunas →</p>
@@ -807,11 +823,44 @@
     </div>
     <div class="doc-check-list" id="docCheckList"></div>
     <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="ghost-btn" id="selectAllDocCheckBtn">Selecionar todos</button>
+      <button class="ghost-btn" id="clearAllDocCheckBtn">Limpar seleção</button>
       <button class="primary-btn" id="saveDocCheckBtn">Salvar documentação</button>
       <button class="ghost-btn" id="closeDocCheckBtn2">Cancelar</button>
     </div>
     <div style="margin-top:12px;padding:10px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:12px;">
       <p style="font-size:12px;color:var(--warning);">✅ = Recebido &nbsp; ⬜ = Pendente. O status da etapa "Documentação recebida" será atualizado automaticamente.</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL ATUALIZAÇÃO EM MASSA CSV -->
+<div class="modal-backdrop" id="bulkCsvModeModal">
+  <div class="modal modal-sm">
+    <div class="panel-title">
+      <div>
+        <h3>Atualização em massa por CSV</h3>
+        <p>Escolha o tipo de atualização antes de selecionar o arquivo.</p>
+      </div>
+      <button class="ghost-btn" id="closeBulkCsvModeBtn">Fechar</button>
+    </div>
+    <div class="cards-grid-2">
+      <button type="button" class="bulk-mode-card" data-mode="segmentoTelefone">
+        <strong>Segmento / Telefone</strong>
+        <span>Atualiza somente segmento, telefone, contato e etapas PLEX quando o segmento virar Serviço PLEX.</span>
+      </button>
+      <button type="button" class="bulk-mode-card" data-mode="andamentoConclusao">
+        <strong>Andamento / Conclusão</strong>
+        <span>Atualiza etapas do acompanhamento, datas, SLA, prazo final, responsável, próxima ação e follow-up.</span>
+      </button>
+    </div>
+    <div class="bulk-mode-info" id="bulkCsvModeInfo">
+      Selecione uma opção para ver o funcionamento. Use o modo de andamento com cautela: ele altera status e datas em massa pelo CNPJ.
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="primary-btn" id="chooseBulkCsvFileBtn" disabled>Selecionar CSV e continuar</button>
+      <button class="ghost-btn" id="cancelBulkCsvModeBtn">Cancelar</button>
     </div>
   </div>
 </div>
@@ -2087,6 +2136,15 @@ window.toggleDocCheck = (el,name) => {
 const closeDocCheck = () => { $('docCheckModal').classList.remove('show'); _docCheckId=null; };
 $('closeDocCheckBtn').addEventListener('click',closeDocCheck);
 $('closeDocCheckBtn2').addEventListener('click',closeDocCheck);
+const setAllDocChecks = checked => {
+  [...$('docCheckList').querySelectorAll('.doc-check-item')].forEach(el => {
+    el.classList.toggle('received', checked);
+    const input = el.querySelector('input');
+    if(input) input.checked = checked;
+  });
+};
+$('selectAllDocCheckBtn')?.addEventListener('click',()=>setAllDocChecks(true));
+$('clearAllDocCheckBtn')?.addEventListener('click',()=>setAllDocChecks(false));
 $('saveDocCheckBtn').addEventListener('click',()=>{
   if(!_docCheckId) return;
   if(!canFullEdit()) return alert('Seu perfil não possui permissão para salvar documentação.');
@@ -2328,7 +2386,46 @@ const ensurePlexDefaultStages = item => ({
   plexDiretoria: item.plexEtapas?.plexDiretoria || 'PENDENTE'
 });
 
-const applyCsvBulkUpdate = async rows => {
+const csvHasValue = (row, aliases=[]) => String(csvHeaderValue(row, aliases) || '').trim() !== '';
+const parseCsvDateKey = value => {
+  const raw = String(value || '').trim();
+  if(!raw) return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const matchBr = raw.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if(matchBr) {
+    let [, dd, mm, yyyy] = matchBr;
+    if(yyyy.length === 2) yyyy = `20${yyyy}`;
+    return `${yyyy.padStart(4,'0')}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
+  }
+  const serial = Number(raw.replace(',', '.'));
+  if(Number.isFinite(serial) && serial > 20000 && serial < 80000) {
+    const date = new Date(Math.round((serial - 25569) * 86400 * 1000));
+    if(!Number.isNaN(date.getTime())) return toDateKey(date);
+  }
+  return raw;
+};
+
+const normalizeCsvStatus = value => {
+  const raw = String(value || '').trim();
+  if(!raw) return '';
+  const v = norm(raw);
+  if(['CONCLUIDO','CONCLUIDA','CONCLUSAO','FINALIZADO','FINALIZADA','RECEBIDO','RECEBIDA','OK','SIM'].includes(v)) return 'CONCLUÍDO';
+  if(['APROVADO','APROVADA'].includes(v)) return 'APROVADO';
+  if(['REPROVADO','REPROVADA'].includes(v)) return 'REPROVADO';
+  if(['EM ANDAMENTO','ANDAMENTO','EM NEGOCIACAO','EM NEGOCIAÇÃO'].includes(v)) return v.includes('NEGOCI') ? 'EM NEGOCIAÇÃO' : 'EM ANDAMENTO';
+  if(['SOLICITADO','SOLICITADA'].includes(v)) return 'SOLICITADO';
+  if(['PENDENTE','NAO INICIADO','NÃO INICIADO','VAZIO'].includes(v)) return 'PENDENTE';
+  if(['N/A','NA','NAO APLICA','NÃO APLICA'].includes(v)) return 'N/A';
+  return raw.toUpperCase();
+};
+
+const applyDateFromCsv = (target, path, value) => {
+  const parsed = parseCsvDateKey(value);
+  if(!parsed) return;
+  target[path[0]] = {...(target[path[0]] || {}), [path[1]]:parsed};
+};
+
+const applyCsvSegmentPhoneUpdate = async rows => {
   if(!canFullEdit()) return alert('Seu perfil não possui permissão para atualização em massa.');
   if(!rows.length) return alert('CSV sem linhas válidas.');
   const suppliers = getSuppliers();
@@ -2377,13 +2474,13 @@ const applyCsvBulkUpdate = async rows => {
     const changes = compareForLog(before, next).filter(change => !String(change.campo || '').startsWith('Data PLEX'));
     if(!changes.length) { unchanged += 1; return; }
 
-    next = addSupplierLog(next, 'Atualização em massa por CSV', changes.slice(0, 10));
+    next = addSupplierLog(next, 'Atualização em massa: segmento/telefone', changes.slice(0, 10));
     nextList[index] = next;
     changedItems.push(next);
   });
 
   if(!changedItems.length) {
-    return alert(`Nenhum fornecedor atualizado. Não encontrados: ${notFound.length}. Ignorados: ${ignored}. Sem alteração: ${unchanged}.`);
+    return alert(`Nenhum fornecedor atualizado.\n\nLinhas lidas: ${rows.length}\nNão encontrados: ${notFound.length}\nIgnorados sem CNPJ: ${ignored}\nSem alteração: ${unchanged}`);
   }
 
   REMOTE_APPLY = true;
@@ -2395,11 +2492,128 @@ const applyCsvBulkUpdate = async rows => {
   const ops = changedItems.map(item => batch => batch.set(doc(db, COLLECTION_SUPPLIERS, String(item.id)), sanitizeForFirebase({...item, atualizadoEmIso:new Date().toISOString()}), {merge:true}));
   await commitFirestoreOps(ops);
 
-  alert(`Atualização em massa concluída.\n\nLinhas lidas: ${rows.length}\nFornecedores atualizados: ${changedItems.length}\nNão encontrados: ${notFound.length}\nIgnorados sem CNPJ: ${ignored}\nSem alteração: ${unchanged}`);
+  alert(`Atualização de segmento/telefone concluída.\n\nLinhas lidas: ${rows.length}\nFornecedores atualizados: ${changedItems.length}\nNão encontrados: ${notFound.length}\nIgnorados sem CNPJ: ${ignored}\nSem alteração: ${unchanged}`);
 };
 
+const applyCsvProgressUpdate = async rows => {
+  if(!canFullEdit()) return alert('Seu perfil não possui permissão para atualização em massa.');
+  if(!rows.length) return alert('CSV sem linhas válidas.');
+  const suppliers = getSuppliers();
+  const byCnpj = new Map();
+  suppliers.forEach((item, index) => {
+    const key = onlyDigits(item.cnpj);
+    if(key) byCnpj.set(key, index);
+  });
+
+  const nextList = suppliers.map(item => deepClone(item));
+  const changedItems = [];
+  const notFound = [];
+  let ignored = 0;
+  let unchanged = 0;
+
+  rows.forEach(row => {
+    const cnpj = onlyDigits(csvHeaderValue(row, ['CNPJ', 'Cnpj']));
+    if(!cnpj) { ignored += 1; return; }
+    const index = byCnpj.get(cnpj);
+    if(index === undefined) { notFound.push(cnpj); return; }
+
+    const before = deepClone(nextList[index]);
+    let next = deepClone(nextList[index]);
+    next.etapas = {...(next.etapas || {})};
+    next.etapasDatas = {...(next.etapasDatas || {})};
+
+    const stageAliases = {
+      apresentacaoEscopo: [['Apresentação Escopo','Apresentacao Escopo','Apres.','Apres'], ['Data Apresentação','Data Apresentacao','Data Apres.','Data Apres']],
+      documentacaoSolicitada: [['Documentação Solicitada','Documentacao Solicitada','Doc.Sol.','Doc Solicitada'], ['Data Doc. Solicitada','Data Documentação Solicitada','Data Documentacao Solicitada','Data Doc Solicitada']],
+      documentacaoRecebida: [['Documentação Recebida','Documentacao Recebida','Doc.Rec.','Doc Recebida'], ['Data Doc. Recebida','Data Documentação Recebida','Data Documentacao Recebida','Data Doc Recebida']],
+      negociacaoLpu: [['Negociação LPU','Negociacao LPU','LPU'], ['Data LPU','Data Negociação LPU','Data Negociacao LPU']],
+      cadastroMicro: [['Cadastro Micro','Micro'], ['Data Micro','Data Cadastro Micro']],
+      cadastroPainel: [['Cadastro Painel','Painel'], ['Data Painel','Data Cadastro Painel']],
+      formalizacaoAcordo: [['Formalização Acordo','Formalizacao Acordo','Acordo'], ['Data Formalização','Data Formalizacao','Data Acordo']],
+      passagemOperacao: [['Passagem Operação','Passagem Operacao','Operação','Operacao'], ['Data Operação','Data Operacao','Data Passagem Operação','Data Passagem Operacao']]
+    };
+
+    Object.entries(stageAliases).forEach(([key, [statusAliases, dateAliases]]) => {
+      if(csvHasValue(row, statusAliases)) next.etapas[key] = normalizeCsvStatus(csvHeaderValue(row, statusAliases));
+      if(csvHasValue(row, dateAliases)) applyDateFromCsv(next, ['etapasDatas', key], csvHeaderValue(row, dateAliases));
+    });
+
+    if(csvHasValue(row, ['Status Fiscal','Fiscal'])) next.statusFiscal = normalizeCsvStatus(csvHeaderValue(row, ['Status Fiscal','Fiscal']));
+    if(csvHasValue(row, ['Homologado','Homologação Ability','Homologacao Ability'])) {
+      const homologadoCsv = String(csvHeaderValue(row, ['Homologado','Homologação Ability','Homologacao Ability']) || '').trim();
+      const homologadoNorm = norm(homologadoCsv);
+      next.homologado = homologadoNorm.includes('SIM') ? 'SIM' : homologadoNorm.includes('NAO') || homologadoNorm.includes('NÃO') ? 'NÃO' : homologadoCsv.toUpperCase();
+    }
+    if(csvHasValue(row, ['SLA'])) next.leadTimeSla = String(csvHeaderValue(row, ['SLA'])).trim();
+    if(csvHasValue(row, ['Prazo Final','Tempo previsto','Tempo Previsto'])) next.tempoPrevisto = parseCsvDateKey(csvHeaderValue(row, ['Prazo Final','Tempo previsto','Tempo Previsto']));
+    if(csvHasValue(row, ['Responsável','Responsavel'])) next.responsavel = String(csvHeaderValue(row, ['Responsável','Responsavel'])).trim();
+    if(csvHasValue(row, ['Próxima Ação','Proxima Acao','Próxima ação','Proxima ação'])) next.proximaAcao = String(csvHeaderValue(row, ['Próxima Ação','Proxima Acao','Próxima ação','Proxima ação'])).trim();
+    if(csvHasValue(row, ['Follow-up','Followup','Observações','Observacoes'])) next.followUp = String(csvHeaderValue(row, ['Follow-up','Followup','Observações','Observacoes'])).trim();
+
+    if(hasServicoPlexSegment(next.segmentos || [])) {
+      next.plexEtapas = ensurePlexDefaultStages(next);
+      next.plexEtapasDatas = {...(next.plexEtapasDatas || {})};
+      const plexAliases = {
+        plexRh: [['RH','PLEX RH'], ['Data RH','Data PLEX RH']],
+        plexSesmt: [['SESMT','PLEX SESMT'], ['Data SESMT','Data PLEX SESMT']],
+        plexJuridico: [['Jurídico','Juridico','PLEX Jurídico','PLEX Juridico'], ['Data Jurídico','Data Juridico','Data PLEX Jurídico','Data PLEX Juridico']],
+        plexDiretoria: [['Diretoria','PLEX Diretoria'], ['Data Diretoria','Data PLEX Diretoria']]
+      };
+      Object.entries(plexAliases).forEach(([key, [statusAliases, dateAliases]]) => {
+        if(csvHasValue(row, statusAliases)) next.plexEtapas[key] = normalizeCsvStatus(csvHeaderValue(row, statusAliases));
+        if(csvHasValue(row, dateAliases)) applyDateFromCsv(next, ['plexEtapasDatas', key], csvHeaderValue(row, dateAliases));
+      });
+    } else {
+      next.plexEtapas = {};
+      next.plexEtapasDatas = {};
+    }
+
+    if(csvHasValue(row, ['Última Atualização','Ultima Atualizacao'])) next.ultimaAtualizacao = parseCsvDateKey(csvHeaderValue(row, ['Última Atualização','Ultima Atualizacao'])) || todayKey();
+    else next.ultimaAtualizacao = todayKey();
+    next.atualizadoEmIso = new Date().toISOString();
+    next = normalizeSupplierForBusinessRules(next);
+
+    const changes = compareForLog(before, next).filter(change => !['Prazo final SLA','SLA'].includes(change.campo) || displayValue(change.depois));
+    if(!changes.length) { unchanged += 1; return; }
+
+    next = addSupplierLog(next, 'Atualização em massa: andamento/conclusão', changes.slice(0, 10));
+    nextList[index] = next;
+    changedItems.push(next);
+  });
+
+  if(!changedItems.length) {
+    return alert(`Nenhum fornecedor atualizado.\n\nLinhas lidas: ${rows.length}\nNão encontrados: ${notFound.length}\nIgnorados sem CNPJ: ${ignored}\nSem alteração: ${unchanged}`);
+  }
+
+  REMOTE_APPLY = true;
+  APP_STORE = {...APP_STORE, suppliers:nextList.map(normalizeSupplierForBusinessRules)};
+  saveLocalCache();
+  renderAll();
+  REMOTE_APPLY = false;
+
+  const ops = changedItems.map(item => batch => batch.set(doc(db, COLLECTION_SUPPLIERS, String(item.id)), sanitizeForFirebase({...item, atualizadoEmIso:new Date().toISOString()}), {merge:true}));
+  await commitFirestoreOps(ops);
+
+  alert(`Atualização de andamento/conclusão concluída.\n\nLinhas lidas: ${rows.length}\nFornecedores atualizados: ${changedItems.length}\nNão encontrados: ${notFound.length}\nIgnorados sem CNPJ: ${ignored}\nSem alteração: ${unchanged}`);
+};
+
+const BULK_CSV_MODE_INFO = {
+  segmentoTelefone: 'Atualiza apenas Segmento e Telefone/Contato pelo CNPJ. Use para corrigir Serviço EXTERNA → Serviço PLEX e padronizar telefones. Não altera etapas, datas, SLA ou follow-up.',
+  andamentoConclusao: 'Atualiza andamento do acompanhamento pelo CNPJ: etapas, datas, status fiscal, homologação, SLA, prazo final, responsável, próxima ação e follow-up. Use apenas com CSV revisado, porque muda status em massa.'
+};
+let _bulkCsvMode = '';
+const openBulkCsvModeModal = () => {
+  if(!canFullEdit()) return alert('Seu perfil não possui permissão para atualização em massa.');
+  _bulkCsvMode = '';
+  document.querySelectorAll('.bulk-mode-card').forEach(btn => btn.classList.remove('active'));
+  $('bulkCsvModeInfo').textContent = 'Selecione uma opção para ver o funcionamento. Use o modo de andamento com cautela: ele altera status e datas em massa pelo CNPJ.';
+  $('chooseBulkCsvFileBtn').disabled = true;
+  $('bulkCsvModeModal').classList.add('show');
+};
+const closeBulkCsvModeModal = () => $('bulkCsvModeModal').classList.remove('show');
 const handleBulkCsvFile = file => {
   if(!file) return;
+  const mode = _bulkCsvMode || 'segmentoTelefone';
   const reader = new FileReader();
   reader.onload = async () => {
     try {
@@ -2407,9 +2621,12 @@ const handleBulkCsvFile = file => {
       if(!rows.length) throw new Error('CSV sem linhas válidas.');
       const sampleCnpj = csvHeaderValue(rows[0], ['CNPJ', 'Cnpj']);
       if(!sampleCnpj) throw new Error('Não encontrei a coluna CNPJ no CSV.');
-      const confirmText = `O CSV possui ${rows.length} linha(s).\n\nO sistema vai procurar fornecedores pelo CNPJ e atualizar somente Segmento e Telefone.\nPara Segmento EXTERNA, será aplicado Serviço PLEX.\n\nDeseja continuar?`;
+      const confirmText = mode === 'andamentoConclusao'
+        ? `O CSV possui ${rows.length} linha(s).\n\nModo escolhido: Andamento / Conclusão.\nO sistema vai procurar fornecedores pelo CNPJ e atualizar etapas, datas, SLA, prazo final, responsável, próxima ação e follow-up.\n\nEssa opção altera status em massa. Deseja continuar?`
+        : `O CSV possui ${rows.length} linha(s).\n\nModo escolhido: Segmento / Telefone.\nO sistema vai procurar fornecedores pelo CNPJ e atualizar somente Segmento, Telefone e Contato.\nPara Segmento EXTERNA, será aplicado Serviço PLEX.\n\nDeseja continuar?`;
       if(!confirm(confirmText)) return;
-      await applyCsvBulkUpdate(rows);
+      if(mode === 'andamentoConclusao') await applyCsvProgressUpdate(rows);
+      else await applyCsvSegmentPhoneUpdate(rows);
     } catch(err) {
       console.error(err);
       alert(`Não foi possível atualizar por CSV: ${err.message || err}`);
@@ -2417,6 +2634,7 @@ const handleBulkCsvFile = file => {
   };
   reader.readAsText(file, 'utf-8');
 };
+
 const exportCsvByScope = () => {
   if(!canExportReports()) return alert('Seu perfil não possui permissão para exportar relatórios. Apenas usuários com função Compras podem exportar.');
   const scope = $('csvExportScope')?.value || 'dashboard';
@@ -2445,7 +2663,23 @@ const exportCsvByScope = () => {
   download(filename, content, 'text/csv;charset=utf-8');
 };
 $('downloadCsvBtn').addEventListener('click',exportCsvByScope);
-$('bulkCsvUpdateBtn')?.addEventListener('click',()=>$('bulkCsvUpdateInput').click());
+$('bulkCsvUpdateBtn')?.addEventListener('click', openBulkCsvModeModal);
+$('closeBulkCsvModeBtn')?.addEventListener('click', closeBulkCsvModeModal);
+$('cancelBulkCsvModeBtn')?.addEventListener('click', closeBulkCsvModeModal);
+$('bulkCsvModeModal')?.addEventListener('click', e => { if(e.target === $('bulkCsvModeModal')) closeBulkCsvModeModal(); });
+document.querySelectorAll('.bulk-mode-card').forEach(btn => {
+  btn.addEventListener('click', () => {
+    _bulkCsvMode = btn.dataset.mode || '';
+    document.querySelectorAll('.bulk-mode-card').forEach(item => item.classList.toggle('active', item === btn));
+    $('bulkCsvModeInfo').textContent = BULK_CSV_MODE_INFO[_bulkCsvMode] || 'Selecione uma opção para continuar.';
+    $('chooseBulkCsvFileBtn').disabled = !_bulkCsvMode;
+  });
+});
+$('chooseBulkCsvFileBtn')?.addEventListener('click', () => {
+  if(!_bulkCsvMode) return alert('Selecione o tipo de atualização antes de continuar.');
+  closeBulkCsvModeModal();
+  $('bulkCsvUpdateInput').click();
+});
 $('bulkCsvUpdateInput')?.addEventListener('change',e=>{ const file=e.target.files[0]; handleBulkCsvFile(file); e.target.value=''; });
 $('resetBtn').addEventListener('click',async()=>{ if(!canRestoreEmbeddedBase()) return alert('A restauração da base é permitida apenas para o acesso Daniel.'); if(!confirm('Restaurar a base embutida neste HTML e substituir a coleção do Firestore?')) return; try{ const base=JSON.parse(JSON.stringify(BASE_DATA)); APP_STORE={...APP_STORE, ...base, suppliers:(base.suppliers||[]).map(normalizeSupplierForBusinessRules), serviceTypes:base.serviceTypes||[], restoredAt:todayKey()}; saveLocalCache(); clearForm(); renderAll(); const result=await bulkUploadToFirestore(APP_STORE.suppliers, APP_STORE.serviceTypes, {replace:true}); alert(`Base restaurada no Firestore: ${result.suppliers} fornecedores e ${result.services} serviços. Removidos fora da base: ${result.deletedSuppliers} fornecedores e ${result.deletedServices} serviços.`); }catch(err){ console.error(err); alert(`Não foi possível restaurar a base no Firestore: ${err.message || err}`); } });
 $('copyTemplateBtn').addEventListener('click',async()=>{ try{ await navigator.clipboard.writeText($('templateMsg').value); }catch(err){ $('templateMsg').select(); document.execCommand('copy'); } alert('Texto copiado.'); });
