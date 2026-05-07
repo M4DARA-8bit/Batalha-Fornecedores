@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -92,7 +93,7 @@
     .panel-title h3 { font-size: 18px; margin-bottom: 4px; }
     .panel-title p, .subtle, .footer-note { color: var(--muted); font-size: 12px; line-height: 1.6; }
     .filters, .form-grid, .summary-grid, .cards-grid-2, .cards-grid-3, .service-grid { display: grid; gap: 14px; }
-    .filters { grid-template-columns: 1.2fr repeat(4, minmax(130px, 1fr)); }
+    .filters { grid-template-columns: 1.2fr repeat(5, minmax(130px, 1fr)); }
     .form-grid { grid-template-columns: repeat(2, minmax(200px, 1fr)); }
     .summary-grid { grid-template-columns: repeat(2, minmax(140px, 1fr)); margin-top: 16px; }
     .cards-grid-2 { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
@@ -126,7 +127,7 @@
       overflow-x: auto; overflow-y: auto; width: 100%; max-width: 100%;
       border-radius: 18px; border: 1px solid var(--border); max-height: 600px;
     }
-    table { width: 100%; border-collapse: collapse; min-width: 1280px; }
+    table { width: 100%; border-collapse: collapse; min-width: 1420px; }
     th, td { padding: 13px 14px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 13px; vertical-align: middle; }
     th { position: sticky; top: 0; background: rgba(2,6,23,0.95); color: var(--muted); z-index: 1; }
     tbody tr:hover { background: rgba(255,255,255,0.03); }
@@ -355,7 +356,7 @@
       <button class="nav-btn" data-page="acessos">👥 Acessos</button>
     </nav>
     <div class="sidebar-footer">
-      Dados sincronizados no Firestore. Use CSV como relatório e atualização em massa. 🗃️
+      Dados sincronizados com banco de dados. Use CSV como relatório/atualização em massa. 🗃️
     </div>
   </aside>
 
@@ -363,8 +364,8 @@
     <div class="topbar">
       <div class="title-block">
         <button class="ghost-btn mobile-toggle" id="menuToggle">☰ Abrir menu</button>
-        <h2>Painel de Cadastro e Homologação de Fornecedores</h2>
-        <p>Controle visual das etapas: escopo, documentação, negociação LPU, cadastro, formalização e passagem para operação.</p>
+        <h2>Painel de Fornecedores ABILITY</h2>
+        <p>Painel para cadastro e consulta de fornecedores.</p>
       </div>
       <div class="top-actions">
         <span class="tag info" id="currentUserBadge">Não logado</span>
@@ -380,14 +381,14 @@
         <button class="ghost-btn" id="downloadCsvBtn">Exportar Excel</button>
         <input type="file" id="bulkCsvUpdateInput" accept=".csv,text/csv" class="hidden">
         <button class="warning-btn" id="bulkCsvUpdateBtn">Atualizar por CSV</button>
-        <button class="danger-btn" id="resetBtn">Restaurar base no Firestore</button>
+        <button class="danger-btn" id="resetBtn">Restaurar base</button>
       </div>
     </div>
 
     <!-- DASHBOARD -->
     <section class="page active" id="dashboard">
       <div class="grid-cards">
-        <div class="card"><div class="metric-label">Fornecedores na base</div><div class="metric-value" id="kpiTotal">0</div><div class="metric-note">Quantidade cadastrada.</div></div>
+        <div class="card"><div class="metric-label">Fornecedores na seleção</div><div class="metric-value" id="kpiTotal">0</div><div class="metric-note">Quantidade conforme filtros atuais.</div></div>
         <div class="card"><div class="metric-label">Homologados</div><div class="metric-value" id="kpiHomologados">0</div><div class="metric-note">Marcados como SIM / OK / aprovado.</div></div>
         <div class="card"><div class="metric-label">Em andamento</div><div class="metric-value" id="kpiAndamento">0</div><div class="metric-note">Com avanço, sem concluir todas as etapas.</div></div>
         <div class="card"><div class="metric-label">Passagem à operação</div><div class="metric-value" id="kpiOperacao">0</div><div class="metric-note">Prontos para atuação operacional.</div></div>
@@ -396,12 +397,13 @@
 
       <div class="card" style="margin-bottom:18px;">
         <div class="panel-title">
-          <div><h3>Filtros de análise</h3><p>Filtre por fornecedor, estado (UF), escopo, etapa atual e situação.</p></div>
+          <div><h3>Filtros de análise</h3><p>Filtre por fornecedor, UF do cadastro, estado de atuação, escopo, etapa atual e situação.</p></div>
           <div class="legend"><span>Hover na tabela</span><span>Dados locais</span></div>
         </div>
         <div class="filters">
           <div class="field"><label>Buscar</label><input type="text" id="filterSearch" placeholder="Fornecedor, CNPJ, e-mail ou contato"></div>
           <div class="field"><label>Estado (UF)</label><select id="filterRegion"><option value="todos">Todas</option></select></div>
+          <div class="field"><label>Estado de atuação</label><select id="filterAtuacaoEstado"><option value="todos">Todos</option></select></div>
           <div class="field"><label>Categoria do escopo</label><select id="filterScope"><option value="todos">Todas</option></select></div>
           <div class="field"><label>Etapa atual</label><select id="filterStage"><option value="todos">Todas</option></select></div>
           <div class="field"><label>Situação</label><select id="filterSituation">
@@ -443,7 +445,7 @@
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Fornecedor</th><th>CNPJ</th><th>Contato</th><th>Escopo</th><th>UF</th><th>Segmento</th><th>Etapa atual</th><th>Progresso</th><th>SLA</th><th>Ações</th></tr></thead>
+            <thead><tr><th>Fornecedor</th><th>CNPJ</th><th>Contato</th><th>Escopo</th><th>UF</th><th>Região atuação</th><th>Segmento</th><th>Etapa atual</th><th>Progresso</th><th>SLA</th><th>Ações</th></tr></thead>
             <tbody id="dashboardTable"></tbody>
           </table>
         </div>
@@ -556,6 +558,7 @@
                 <option value="EM NEGOCIAÇÃO">EM NEGOCIAÇÃO</option>
                 <option value="CONCLUÍDO">CONCLUÍDO</option>
                 <option value="N/A">N/A</option>
+                <option value="N/A">SPOT (PONTUAL)</option>
               </select>
             </div>
             <div class="field"><label>Data - Negociação LPU</label><input type="date" id="dtNegociacaoLpu"></div>
@@ -1521,6 +1524,36 @@ const getSupplierScopeText = item => [
   ...(item.catalogoServicos || []).map(s => `${s.categoria || ''} ${s.subcategoria || ''}`)
 ].join(' ');
 
+const UF_BRASIL = new Set(['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']);
+
+const getAtuacaoSourceText = item => [
+  item.regiaoAtuacao,
+  ...(item.servicosCatalogados || []).map(s => `${s.regiaoAtuacao || ''} ${s.regiao || ''}`),
+  ...(item.serviceCatalog || []).map(s => `${s.regiaoAtuacao || ''} ${s.regiao || ''}`),
+  ...(item.catalogoServicos || []).map(s => `${s.regiaoAtuacao || ''} ${s.regiao || ''}`)
+].join(' ');
+
+const extractEstadosAtuacao = value => {
+  const source = String(value || '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toUpperCase();
+  const found = new Set();
+  (source.match(/[A-Z]{2}/g) || []).forEach(sigla => {
+    if(UF_BRASIL.has(sigla)) found.add(sigla);
+  });
+  return [...found].sort((a,b)=>a.localeCompare(b));
+};
+
+const getAtuacaoEstados = item => extractEstadosAtuacao(getAtuacaoSourceText(item));
+
+const displayRegiaoAtuacao = item => {
+  const raw = String(item.regiaoAtuacao || '').trim();
+  if(raw && raw !== '0' && raw !== '#N/D') return raw.toUpperCase();
+  const estados = getAtuacaoEstados(item);
+  return estados.length ? estados.join(' / ') : '-';
+};
+
 const supplierHasScopeCategory = (item, category) => {
   if (category === 'todos') return true;
   return norm(getSupplierScopeText(item)).includes(norm(category));
@@ -1530,19 +1563,23 @@ const getFiltered = () => {
   const sup = getSuppliers();
   const search=norm($('filterSearch')?.value||'');
   const region=$('filterRegion')?.value||'todos';
+  const atuacaoEstado=$('filterAtuacaoEstado')?.value||'todos';
   const scope=$('filterScope')?.value||'todos';
   const stage=$('filterStage')?.value||'todos';
   const sit=$('filterSituation')?.value||'todos';
   return sup.filter(item=>{
-    const hay=norm([item.razao,item.cnpj,item.email,item.nomeContato,item.telefone,item.contato,item.escopo,item.regiaoAtuacao,getSupplierScopeText(item)].join(' '));
+    const estadosAtuacao=getAtuacaoEstados(item);
+    const hay=norm([item.razao,item.cnpj,item.email,item.nomeContato,item.telefone,item.contato,item.escopo,item.regiaoAtuacao,estadosAtuacao.join(' '),getSupplierScopeText(item)].join(' '));
     const okS=!search||hay.includes(search);
     // filtro por UF (estado onde o fornecedor está localizado)
     const okR=region==='todos'||item.uf===region;
+    // filtro por estado de atuação. Ex.: SP/RJ/RS entra como SP, RJ e RS no filtro.
+    const okAt=atuacaoEstado==='todos'||estadosAtuacao.includes(atuacaoEstado);
     // filtro por categoria dentro do escopo/catálogo. Ex.: GMG retorna todo fornecedor que tenha GMG em qualquer combinação.
     const okSc=supplierHasScopeCategory(item, scope);
     const okSt=stage==='todos'||getCurrentStage(item)===stage;
     const okSit=sit==='todos'||situationOf(item)===sit;
-    return okS&&okR&&okSc&&okSt&&okSit;
+    return okS&&okR&&okAt&&okSc&&okSt&&okSit;
   });
 };
 
@@ -1596,9 +1633,11 @@ const getScopeCategories = () => {
 const renderFilterOptions = () => {
   const sup=getSuppliers();
   const ufs=[...new Set(sup.map(i=>i.uf).filter(Boolean))].sort();
+  const estadosAtuacao=[...new Set(sup.flatMap(getAtuacaoEstados))].sort((a,b)=>a.localeCompare(b));
   const scopes=getScopeCategories();
   const stages=['Concluído',...STAGES.map(i=>i[1])];
   fillSelect($('filterRegion'),ufs,'Todas');
+  fillSelect($('filterAtuacaoEstado'),estadosAtuacao,'Todos');
   fillSelect($('filterScope'),scopes,'Todas');
   fillSelect($('filterStage'),stages,'Todas');
   const dl=$('scopeList'); dl.innerHTML='';
@@ -1608,41 +1647,64 @@ const renderFilterOptions = () => {
 const renderDashboard = () => {
   renderFilterOptions();
   const sup=getSuppliers(), fil=getFiltered();
-  const hom=sup.filter(i=>isDone(i.homologado)||isDone(i.statusAbility)).length;
-  const and=sup.filter(i=>situationOf(i)==='andamento').length;
-  const op=sup.filter(i=>isDone(i.etapas?.passagemOperacao)).length;
-  const atr=sup.filter(isOverdue).length;
-  const avg=sup.length?Math.round(sup.reduce((a,i)=>a+getProgress(i),0)/sup.length):0;
-  $('kpiTotal').textContent=sup.length;
+  const base=fil;
+  const hom=base.filter(i=>isDone(i.homologado)||isDone(i.statusAbility)).length;
+  const and=base.filter(i=>situationOf(i)==='andamento').length;
+  const op=base.filter(i=>isDone(i.etapas?.passagemOperacao)).length;
+  const atr=base.filter(isOverdue).length;
+  const avg=base.length?Math.round(base.reduce((a,i)=>a+getProgress(i),0)/base.length):0;
+  $('kpiTotal').textContent=base.length;
   $('kpiHomologados').textContent=hom;
   $('kpiAndamento').textContent=and;
   $('kpiOperacao').textContent=op;
   $('kpiAtraso').textContent=atr;
   $('progressoMedio').textContent=`${avg}%`;
-  $('docRecebidaResumo').textContent=sup.filter(i=>isDone(i.etapas?.documentacaoRecebida)).length;
-  $('lpuResumo').textContent=sup.filter(i=>isDone(i.etapas?.negociacaoLpu)).length;
+  $('docRecebidaResumo').textContent=base.filter(i=>isDone(i.etapas?.documentacaoRecebida)).length;
+  $('lpuResumo').textContent=base.filter(i=>isDone(i.etapas?.negociacaoLpu)).length;
   $('filteredCount').textContent=`${fil.length} itens`;
-  renderStageBars(sup);
-  renderSegmentCharts(sup);
+  renderStageBars(base);
+  renderSegmentCharts(base);
   renderDashboardTable(fil);
-  renderInsight(sup);
+  renderInsight(base);
   renderTrackingTable(getTrackingFiltered());
 };
 
 const renderStageBars = sup => {
   const wrap=$('stageBars'); wrap.innerHTML='';
   const total=Math.max(sup.length,1);
-  const rows=STAGES.map(([k,l])=>{ const done=sup.filter(i=>isDone(i.etapas?.[k])).length; return {label:l,done,pct:Math.round(done/total*100)}; });
+  const rows=getStageSummaryRows(sup);
   const sm=rows.reduce((a,b)=>a.pct<=b.pct?a:b,rows[0]);
   $('maiorGargalo').textContent=sm?sm.label:'-';
   rows.forEach(r=>{ const d=document.createElement('div'); d.className='stage-row'; d.innerHTML=`<div class="stage-label">${esc(r.label)}</div><div class="bar-track"><div class="bar-fill" style="width:${r.pct}%"></div></div><div class="muted-cell">${r.done}/${sup.length}</div>`; wrap.appendChild(d); });
 };
 
 
+const DASHBOARD_SEGMENTS = ['Serviço PLIN','Material PLIN','Serviço PLEX','Material PLEX'];
+
+const getStageSummaryRows = sup => {
+  const total = sup.length;
+  return STAGES.map(([key,label]) => {
+    const done = sup.filter(item => isDone(item.etapas?.[key])).length;
+    const pct = total ? Math.round(done / total * 100) : 0;
+    return {key, label, done, total, pct};
+  });
+};
+
+const getSegmentSummaryRows = sup => DASHBOARD_SEGMENTS.map(segmento => {
+  const rows = sup.filter(item => (item.segmentos || []).includes(segmento));
+  const total = rows.length;
+  const homologados = rows.filter(item => isDone(item.homologado) || isDone(item.statusAbility)).length;
+  const andamento = rows.filter(item => situationOf(item) === 'andamento').length;
+  const atraso = rows.filter(isOverdue).length;
+  const concluidos = rows.filter(item => getProgress(item) >= 100).length;
+  const pctConcluidos = total ? Math.round(concluidos / total * 100) : 0;
+  return {segmento, total, homologados, andamento, atraso, concluidos, pctConcluidos};
+});
+
 const renderSegmentCharts = sup => {
   const wrap = $('segmentCharts');
   if(!wrap) return;
-  const segments = ['Serviço PLIN','Material PLIN','Serviço PLEX','Material PLEX'];
+  const segments = DASHBOARD_SEGMENTS;
   const maxTotal = Math.max(1, ...segments.map(seg => sup.filter(i => (i.segmentos||[]).includes(seg)).length));
   wrap.innerHTML = segments.map(seg => {
     const rows = sup.filter(i => (i.segmentos||[]).includes(seg));
@@ -1684,6 +1746,7 @@ const renderDashboardTable = sup => {
     tr.innerHTML=`<td><div class="supplier-name">${esc(item.razao)}</div><div class="muted-cell">${esc(item.email||'Sem e-mail')}</div></td>
       <td>${esc(item.cnpj||'-')}</td><td>${displayContato(item)}</td>
       <td>${esc(item.escopo||'-')}</td><td>${esc(item.uf||'-')}</td>
+      <td>${esc(displayRegiaoAtuacao(item))}</td>
       <td>${segBadges(item.segmentos)}</td>
       <td>${chip(getCurrentStage(item))}</td>
       <td>${progressHtml(p)}</td>
@@ -2289,7 +2352,7 @@ document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>
 $('menuToggle').addEventListener('click',()=>$('sidebar').classList.add('open'));
 document.addEventListener('click',e=>{ if(window.innerWidth<=900&&!$('sidebar').contains(e.target)&&e.target!==$('menuToggle')) $('sidebar').classList.remove('open'); });
 
-['filterSearch','filterRegion','filterScope','filterStage','filterSituation'].forEach(id=>$(id).addEventListener('input',renderDashboard));
+['filterSearch','filterRegion','filterAtuacaoEstado','filterScope','filterStage','filterSituation'].forEach(id=>$(id)?.addEventListener('input',renderDashboard));
 $('trackingSearch')?.addEventListener('input',()=>renderTrackingTable(getTrackingFiltered()));
 ['serviceSearch','serviceCategory'].forEach(id=>$(id).addEventListener('input',renderServices));
 $('clearServiceFilters').addEventListener('click',()=>{ $('serviceSearch').value=''; $('serviceCategory').value='todos'; renderServices(); });
@@ -2310,6 +2373,48 @@ const supplierDetailedRows = rows => (rows || []).map(item => {
   const e=item.etapas||{}, d=item.etapasDatas||{}, pe=item.plexEtapas||{}, pd=item.plexEtapasDatas||{}, sla=calcSla(item);
   return [item.razao,item.cnpj,item.nomeContato,item.telefone||item.contato,item.email,item.uf,item.regiaoAtuacao,item.escopo,(item.segmentos||[]).join(', '),item.statusFiscal,item.homologado||item.statusAbility,e.apresentacaoEscopo,d.apresentacaoEscopo,e.documentacaoSolicitada,d.documentacaoSolicitada,e.documentacaoRecebida,d.documentacaoRecebida,e.negociacaoLpu,d.negociacaoLpu,e.cadastroMicro,d.cadastroMicro,e.cadastroPainel,d.cadastroPainel,e.formalizacaoAcordo,d.formalizacaoAcordo,e.passagemOperacao,d.passagemOperacao,pe.plexRh,pd.plexRh,pe.plexSesmt,pd.plexSesmt,pe.plexJuridico,pd.plexJuridico,pe.plexDiretoria,pd.plexDiretoria,`${getProgress(item)}%`,sla.status,sla.due,item.responsavel,item.proximaAcao,item.followUp,item.ultimaAtualizacao];
 });
+
+const csvTable = (headers, rows) => [headers, ...rows].map(row => row.map(csvCell).join(';')).join('\n');
+const dashboardFilterSummaryRows = () => [
+  ['Buscar', $('filterSearch')?.value || 'Todos'],
+  ['UF cadastral', $('filterRegion')?.value === 'todos' ? 'Todas' : $('filterRegion')?.value],
+  ['Estado de atuação', $('filterAtuacaoEstado')?.value === 'todos' ? 'Todos' : $('filterAtuacaoEstado')?.value],
+  ['Categoria do escopo', $('filterScope')?.value === 'todos' ? 'Todas' : $('filterScope')?.value],
+  ['Etapa atual', $('filterStage')?.value === 'todos' ? 'Todas' : $('filterStage')?.value],
+  ['Situação', $('filterSituation')?.value === 'todos' ? 'Todas' : $('filterSituation')?.selectedOptions?.[0]?.textContent || $('filterSituation')?.value]
+];
+const dashboardQuickRows = rows => {
+  const avg = rows.length ? Math.round(rows.reduce((acc,item) => acc + getProgress(item), 0) / rows.length) : 0;
+  const stages = getStageSummaryRows(rows);
+  const gargalo = stages.length ? stages.reduce((a,b) => a.pct <= b.pct ? a : b, stages[0]) : null;
+  return [
+    ['Fornecedores filtrados', rows.length],
+    ['Maior gargalo', gargalo ? gargalo.label : '-'],
+    ['Progresso médio', `${avg}%`],
+    ['Documentação recebida', rows.filter(i => isDone(i.etapas?.documentacaoRecebida)).length],
+    ['LPU concluída', rows.filter(i => isDone(i.etapas?.negociacaoLpu)).length],
+    ['Possível atraso', rows.filter(isOverdue).length]
+  ];
+};
+const dashboardExportCsv = () => {
+  const rows = getFiltered();
+  const stageRows = getStageSummaryRows(rows).map(r => [r.label, r.done, r.total, `${r.pct}%`]);
+  const segmentRows = getSegmentSummaryRows(rows).map(r => [r.segmento, r.total, r.homologados, r.andamento, r.atraso, r.concluidos, `${r.pctConcluidos}%`]);
+  return '\ufeff' + [
+    csvTable(['DASHBOARD FILTRADO'], [[`Gerado em ${new Date().toLocaleString('pt-BR')}`]]),
+    '',
+    csvTable(['FILTROS APLICADOS','Valor'], dashboardFilterSummaryRows()),
+    '',
+    csvTable(['LEITURA RÁPIDA','Valor'], dashboardQuickRows(rows)),
+    '',
+    csvTable(['AVANÇO POR ETAPA','Concluídos','Total filtrado','Percentual'], stageRows),
+    '',
+    csvTable(['DISTRIBUIÇÃO DOS SEGMENTOS','Total','Homologados','Em andamento','Atraso','Concluídos','Concluídos %'], segmentRows),
+    '',
+    csvTable(['FORNECEDORES FILTRADOS'], []),
+    csvTable(supplierDetailedHeaders, supplierDetailedRows(rows))
+  ].join('\n');
+};
 const serviceCsv = () => rowsToCsv(['ID','Categoria','Subcategoria','Descrição'], getServices().map(i => [i.id,i.categoria,i.subcategoria,i.descricao]));
 const accessCsv = () => rowsToCsv(['Nome','Usuário','Perfil','Status','Email','Criado em','Observação'], (ACCESS_USERS || []).map(i => [i.nome,i.user || i.docId,i.label || i.role,i.ativo === false ? 'INATIVO' : 'ATIVO',i.email,i.criadoEmBr,i.observacao]));
 const checklistCsv = () => rowsToCsv(['Documento','Orientação'], DOCS_BASE.map(([doc,desc]) => [doc,desc]));
@@ -2642,7 +2747,7 @@ const exportCsvByScope = () => {
   let content = '';
   if(scope === 'dashboard') {
     filename = `dashboard_fornecedores_filtrado_${exportDateKey()}.csv`;
-    content = rowsToCsv(supplierDetailedHeaders, supplierDetailedRows(getFiltered()));
+    content = dashboardExportCsv();
   } else if(scope === 'baseCompleta') {
     filename = `base_completa_fornecedores_${exportDateKey()}.csv`;
     content = rowsToCsv(supplierDetailedHeaders, supplierDetailedRows(getSuppliers()));
