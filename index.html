@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -277,6 +278,30 @@
       <div class="access-note">
         Neste momento o login usa usuários cadastrados no Firestore. O usuário raiz temporário existe apenas para liberar a primeira configuração.
       </div>
+      <div class="access-note">
+        <strong>Primeiro acesso?</strong><br>
+        Crie seu acesso inicial como Solicitante. Esse perfil é limitado para visualização e acompanhamento.
+        <div style="margin-top:12px;">
+          <button type="button" class="ghost-btn" id="toggleSelfAccessBtn">Criar meu acesso limitado</button>
+        </div>
+        <form id="selfAccessForm" class="form-grid hidden" style="margin-top:12px;">
+          <div class="field row-span-2">
+            <label>Nome completo</label>
+            <input type="text" id="selfAccessName" placeholder="Seu nome completo">
+          </div>
+          <div class="field">
+            <label>Usuário</label>
+            <input type="text" id="selfAccessUser" placeholder="Ex.: joao.silva">
+          </div>
+          <div class="field">
+            <label>Senha</label>
+            <input type="password" id="selfAccessPass" minlength="6" placeholder="Mínimo 6 caracteres">
+          </div>
+          <div class="field row-span-2">
+            <button type="submit" class="primary-btn">Salvar acesso limitado</button>
+          </div>
+        </form>
+      </div>
     </div>
     <div class="card">
       <div class="panel-title">
@@ -292,7 +317,7 @@
         <div class="login-user-row"><strong>Controle</strong><span>Acessos gerenciados pela aba Acessos</span></div>
       </div>
       <div class="access-note">
-        Os logins não são listados nesta tela. Novos acessos devem ser criados apenas por Compras ou Diretoria.
+        Os logins não são listados nesta tela. Novos acessos administrativos devem ser criados apenas por Compras.
       </div>
     </div>
   </div>
@@ -640,6 +665,12 @@
           <div><h3>Acompanhamento completo</h3><p>Tabela operacional com todas as etapas, progresso e follow-up.</p></div>
           <span class="tag info" id="trackingCount">0 registros</span>
         </div>
+        <div class="filters" style="grid-template-columns: 1fr; margin-bottom: 12px;">
+          <div class="field">
+            <label>Buscar no acompanhamento</label>
+            <input type="text" id="trackingSearch" placeholder="Fornecedor, CNPJ, segmento, etapa, responsável, próxima ação ou follow-up">
+          </div>
+        </div>
         <p class="tracking-scroll-hint">← Role horizontalmente para ver todas as colunas →</p>
         <div class="table-wrap" style="overflow-x:auto; max-height:70vh;">
           <table style="min-width:1600px;">
@@ -738,8 +769,8 @@
             <div><h3>Regras de perfil</h3><p>Permissões aplicadas na interface e registradas no banco.</p></div>
           </div>
           <div class="mini-card"><strong>Compras</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Cria e edita fornecedores, serviços, documentação e acessos.</span></div>
-          <div class="mini-card"><strong>RH / SESMT / Jurídico</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Aprova somente a etapa correspondente em Serviço PLEX.</span></div>
-          <div class="mini-card"><strong>Diretoria</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Acesso total neste modelo. Pode ser reduzido depois.</span></div>
+          <div class="mini-card"><strong>RH / SESMT / Jurídico / Diretoria</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Aprova somente a etapa correspondente em Serviço PLEX.</span></div>
+          <div class="mini-card"><strong>Diretoria</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Sem acesso total. Atua apenas na aprovação de Diretoria para Serviço PLEX.</span></div>
           <div class="mini-card"><strong>Solicitante</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Visualização sem edição estrutural.</span></div>
         </div>
       </div>
@@ -845,6 +876,10 @@ const COLLECTION_USERS = "usuarios";
 const COLLECTION_USERS_UID = "usuariosUid";
 const COLLECTION_LOGS = "logs";
 
+const MAX_SUPPLIER_LOGS = 25;
+const MAX_LOG_CHANGES = 10;
+const ENABLE_GLOBAL_AUDIT_LOG = false;
+
 const STORAGE_KEY = 'cadastro_fornecedores_v5_perfis_logs';
 const DOCS_BASE = [
   ['Cartão CNPJ', 'Conferir CNAE correspondente e versão atualizada.'],
@@ -881,13 +916,14 @@ const DOCS_SERVICO_PLEX = [
   ['Aprovação Diretoria', 'Autorização final quando o fluxo PLEX exigir alçada superior.']
 ];
 
+const hasServicoPlexSegment = segs => (segs || []).some(seg => {
+  const value = norm(seg);
+  return value === 'SERVICO PLEX' || value === 'SERVIÇO PLEX';
+});
+
 const getDocsForSegments = segs => {
   const list = [...DOCS_BASE];
-  const normalized = (segs || []).map(norm).join(' ');
-  const hasServico = normalized.includes('SERVICO') || normalized.includes('SERVIÇO');
-  const hasServicoPlex = normalized.includes('SERVICO PLEX') || normalized.includes('SERVIÇO PLEX');
-  if(hasServico) list.push(...DOCS_EMPREITEIRO);
-  if(hasServicoPlex) list.push(...DOCS_SERVICO_PLEX);
+  if(hasServicoPlexSegment(segs)) list.push(...DOCS_SERVICO_PLEX);
   const seen = new Set();
   return list.filter(([title]) => {
     const key = norm(title);
@@ -897,7 +933,7 @@ const getDocsForSegments = segs => {
   });
 };
 
-const DOCS = [...DOCS_BASE, ...DOCS_EMPREITEIRO, ...DOCS_SERVICO_PLEX];
+const DOCS = [...DOCS_BASE];
 
 const STAGES = [
   ['apresentacaoEscopo','Apresentação escopo'],
@@ -930,7 +966,7 @@ const ROLE_PROFILES = {
   RH: {role:'RH', label:'RH', approval:'plexRh'},
   SESMT: {role:'SESMT', label:'SESMT', approval:'plexSesmt'},
   Juridico: {role:'Juridico', label:'Jurídico', approval:'plexJuridico'},
-  Diretoria: {role:'Diretoria', label:'Diretoria', full:true},
+  Diretoria: {role:'Diretoria', label:'Diretoria', approval:'plexDiretoria'},
   Solicitante: {role:'Solicitante', label:'Solicitante', viewOnly:true}
 };
 
@@ -1164,7 +1200,7 @@ const replaceCollectionWithList = async (collectionName, list=[], idGetter=item=
 
 const bulkUploadToFirestore = async (suppliers=[], services=[], options={}) => {
   if(!getCurrentUser()) throw new Error('Faça login antes de enviar a base ao Firestore.');
-  const cleanSuppliers = (suppliers || []).filter(item => item?.id);
+  const cleanSuppliers = (suppliers || []).filter(item => item?.id).map(normalizeSupplierForBusinessRules);
   const cleanServices = (services || []).filter(item => item?.id !== undefined && item?.id !== null);
   let deletedSuppliers = 0;
   let deletedServices = 0;
@@ -1188,15 +1224,18 @@ const bulkUploadToFirestore = async (suppliers=[], services=[], options={}) => {
     await commitFirestoreOps(ops);
   }
 
-  await addDoc(collection(db, COLLECTION_LOGS), sanitizeForFirebase({
-    supplierId:null,
-    action: options.replace === true ? 'RESTAURAR_BASE_COMPLETA' : 'UPLOAD_BASE_COMPLETA',
-    changes:[`Fornecedores enviados: ${cleanSuppliers.length}`, `Serviços enviados: ${cleanServices.length}`, `Fornecedores removidos: ${deletedSuppliers}`, `Serviços removidos: ${deletedServices}`],
-    user:getCurrentUser()?.user || 'sistema',
-    role:getCurrentUser()?.label || getCurrentUser()?.role || 'Sistema',
-    createdAtIso:new Date().toISOString(),
-    createdAtBr:new Date().toLocaleString('pt-BR')
-  }));
+  if(ENABLE_GLOBAL_AUDIT_LOG) {
+    await addDoc(collection(db, COLLECTION_LOGS), sanitizeForFirebase({
+      supplierId:null,
+      action: options.replace === true ? 'RESTAURAR_BASE_COMPLETA' : 'UPLOAD_BASE_COMPLETA',
+      changes:[`Fornecedores enviados: ${cleanSuppliers.length}`, `Serviços enviados: ${cleanServices.length}`, `Fornecedores removidos: ${deletedSuppliers}`, `Serviços removidos: ${deletedServices}`],
+      user:getCurrentUser()?.user || 'sistema',
+      userName:getCurrentUser()?.nome || getCurrentUser()?.label || getCurrentUser()?.user || 'Sistema',
+      role:getCurrentUser()?.label || getCurrentUser()?.role || 'Sistema',
+      createdAtIso:new Date().toISOString(),
+      createdAtBr:new Date().toLocaleString('pt-BR')
+    }));
+  }
   return {suppliers:cleanSuppliers.length, services:cleanServices.length, deletedSuppliers, deletedServices};
 };
 const syncSuppliersDelta = (nextList, oldList=[]) => {
@@ -1232,10 +1271,25 @@ const saveStore = d => {
   syncSuppliersDelta(APP_STORE.suppliers, oldSuppliers);
   syncServicesDelta(APP_STORE.serviceTypes, oldServices);
 };
-const getSuppliers = () => getStore().suppliers || [];
+const normalizeSupplierForBusinessRules = item => {
+  const supplier = {...(item || {})};
+  const segs = Array.isArray(supplier.segmentos) ? supplier.segmentos : [];
+  const validDocNames = getDocsForSegments(segs).map(([title]) => title);
+  supplier.docsRecebidos = Array.isArray(supplier.docsRecebidos)
+    ? supplier.docsRecebidos.filter(doc => validDocNames.includes(doc))
+    : [];
+  if(!hasServicoPlexSegment(segs)) {
+    supplier.plexEtapas = {};
+    supplier.plexEtapasDatas = {};
+  }
+  return supplier;
+};
+
+const getSuppliers = () => (getStore().suppliers || []).map(normalizeSupplierForBusinessRules);
 const setSuppliers = list => {
-  const oldList = APP_STORE.suppliers || [];
-  APP_STORE = {...APP_STORE, suppliers:list || []};
+  const oldList = (APP_STORE.suppliers || []).map(normalizeSupplierForBusinessRules);
+  const normalizedList = (list || []).map(normalizeSupplierForBusinessRules);
+  APP_STORE = {...APP_STORE, suppliers:normalizedList};
   saveLocalCache();
   syncSuppliersDelta(APP_STORE.suppliers, oldList);
 };
@@ -1247,13 +1301,15 @@ const setServices = list => {
   syncServicesDelta(APP_STORE.serviceTypes, oldList);
 };
 const writeAuditLog = (supplierId, action, changes=[]) => {
+  if(!ENABLE_GLOBAL_AUDIT_LOG) return;
   if(!FIREBASE_SYNC_READY || REMOTE_APPLY || !getCurrentUser()) return;
   const user = getCurrentUser() || {};
   const payload = sanitizeForFirebase({
     supplierId:supplierId || null,
     action,
-    changes,
+    changes:(changes || []).slice(0, MAX_LOG_CHANGES),
     user:user.user || 'sistema',
+    userName:user.nome || user.nomeCompleto || user.label || user.user || 'Sistema',
     role:user.label || user.role || 'Sistema',
     createdAtIso:new Date().toISOString(),
     createdAtBr:new Date().toLocaleString('pt-BR')
@@ -1288,18 +1344,21 @@ const startFirebaseListeners = () => {
 const deepClone = value => JSON.parse(JSON.stringify(value || {}));
 const displayValue = value => Array.isArray(value) ? value.join(', ') : String(value ?? '');
 const addSupplierLog = (supplier, action, changes=[]) => {
-  const user = getCurrentUser() || {user:'sistema', label:'Sistema', role:'Sistema'};
+  const user = getCurrentUser() || {user:'sistema', nome:'Sistema', label:'Sistema', role:'Sistema'};
   const logs = Array.isArray(supplier.logs) ? supplier.logs : [];
+  const compactChanges = (changes || []).slice(0, MAX_LOG_CHANGES);
   const entry = {
     id: uid(),
     when: new Date().toLocaleString('pt-BR'),
     user: user.user,
+    userName: user.nome || user.nomeCompleto || user.label || user.user || 'Sistema',
+    nomeCompleto: user.nome || user.nomeCompleto || user.label || user.user || 'Sistema',
     role: user.label || user.role,
     action,
-    changes
+    changes: compactChanges
   };
-  writeAuditLog(supplier.id, action, changes);
-  return {...supplier, logs:[entry, ...logs].slice(0, 80)};
+  writeAuditLog(supplier.id, action, compactChanges);
+  return {...supplier, logs:[entry, ...logs].slice(0, MAX_SUPPLIER_LOGS)};
 };
 const compareForLog = (before={}, after={}) => {
   const fields = [
@@ -1318,10 +1377,12 @@ const compareForLog = (before={}, after={}) => {
     if(displayValue(before.etapas?.[key]) !== displayValue(after.etapas?.[key])) changes.push({campo:label, antes:displayValue(before.etapas?.[key]), depois:displayValue(after.etapas?.[key])});
     if(displayValue(before.etapasDatas?.[key]) !== displayValue(after.etapasDatas?.[key])) changes.push({campo:`Data ${label}`, antes:displayValue(before.etapasDatas?.[key]), depois:displayValue(after.etapasDatas?.[key])});
   });
-  PLEX_STAGES.forEach(([key,label,dtKey]) => {
-    if(displayValue(before.plexEtapas?.[key]) !== displayValue(after.plexEtapas?.[key])) changes.push({campo:`PLEX ${label}`, antes:displayValue(before.plexEtapas?.[key]), depois:displayValue(after.plexEtapas?.[key])});
-    if(displayValue(before.plexEtapasDatas?.[key]) !== displayValue(after.plexEtapasDatas?.[key])) changes.push({campo:`Data PLEX ${label}`, antes:displayValue(before.plexEtapasDatas?.[key]), depois:displayValue(after.plexEtapasDatas?.[key])});
-  });
+  if(hasServicoPlexSegment(after.segmentos || before.segmentos || [])) {
+    PLEX_STAGES.forEach(([key,label,dtKey]) => {
+      if(displayValue(before.plexEtapas?.[key]) !== displayValue(after.plexEtapas?.[key])) changes.push({campo:`PLEX ${label}`, antes:displayValue(before.plexEtapas?.[key]), depois:displayValue(after.plexEtapas?.[key])});
+      if(displayValue(before.plexEtapasDatas?.[key]) !== displayValue(after.plexEtapasDatas?.[key])) changes.push({campo:`Data PLEX ${label}`, antes:displayValue(before.plexEtapasDatas?.[key]), depois:displayValue(after.plexEtapasDatas?.[key])});
+    });
+  }
   return changes;
 };
 const applyApprovalUpdate = (oldItem, formPayload) => {
@@ -1414,6 +1475,27 @@ const getFiltered = () => {
   });
 };
 
+const getTrackingFiltered = () => {
+  const search = norm($('trackingSearch')?.value || '');
+  const rows = getSuppliers();
+  if(!search) return rows;
+  return rows.filter(item => {
+    const e = item.etapas || {};
+    const d = item.etapasDatas || {};
+    const pe = item.plexEtapas || {};
+    const pd = item.plexEtapasDatas || {};
+    const hay = norm([
+      item.razao, item.cnpj, item.email, item.nomeContato, item.telefone, item.contato,
+      item.escopo, item.regiaoAtuacao, item.responsavel, item.proximaAcao, item.followUp,
+      (item.segmentos || []).join(' '),
+      Object.values(e).join(' '), Object.values(d).join(' '),
+      Object.values(pe).join(' '), Object.values(pd).join(' ')
+    ].join(' '));
+    return hay.includes(search);
+  });
+};
+
+
 const fillSelect = (sel,vals,first=null) => {
   const cur=sel.value;
   sel.innerHTML=first?`<option value="todos">${first}</option>`:'';
@@ -1473,7 +1555,7 @@ const renderDashboard = () => {
   renderSegmentCharts(sup);
   renderDashboardTable(fil);
   renderInsight(sup);
-  renderTrackingTable(fil);
+  renderTrackingTable(getTrackingFiltered());
 };
 
 const renderStageBars = sup => {
@@ -1616,19 +1698,29 @@ const renderDocs = () => {
       </div>
       <div class="checklist">${docs.map(([t,d])=>`<div class="doc-card"><strong>${esc(t)}</strong><p>${esc(d)}</p></div>`).join('')}</div>
     </div>`;
+  const processCards = `
+    <div class="checklist-section">
+      <div class="panel-title" style="margin-bottom:10px;">
+        <div><h4>Como anda o processo de homologação</h4><p>Leitura rápida para orientar a cobrança sem misturar documentos extras no checklist base.</p></div>
+        <span class="tag positive">Fluxo</span>
+      </div>
+      <div class="checklist">
+        <div class="doc-card"><strong>1. Cadastro e escopo</strong><p>Primeiro valide razão social, CNPJ, contato, UF, segmento e escopo do fornecedor. Sem escopo claro, a homologação vira labirinto.</p></div>
+        <div class="doc-card"><strong>2. Documentação base</strong><p>Solicite apenas os documentos obrigatórios abaixo para iniciar a análise cadastral. Documentos extras devem ser tratados no fluxo específico.</p></div>
+        <div class="doc-card"><strong>3. Validação e homologação</strong><p>Após receber a documentação, avance as etapas de cadastro, negociação e passagem à operação conforme o segmento do fornecedor.</p></div>
+      </div>
+    </div>`;
   $('docsList').innerHTML = `
-    ${sectionHtml('Documentação base', 'Documentos cadastrais obrigatórios para qualquer fornecedor.', DOCS_BASE)}
-    ${sectionHtml('Documentação adicional para empreiteiros / serviços', 'Aplicável quando houver execução de serviço operacional, campo, altura, energia, obras ou atividade com risco.', DOCS_EMPREITEIRO)}
-    ${sectionHtml('Documentação adicional - Serviço PLEX', 'Bloco separado para fluxos PLEX com aprovações de RH, SESMT, Jurídico e Diretoria.', DOCS_SERVICO_PLEX)}
+    ${sectionHtml('Documentação base obrigatória', 'Documentos cadastrais obrigatórios para qualquer fornecedor.', DOCS_BASE)}
+    ${processCards}
   `;
-  const allDocs = [...DOCS_BASE, ...DOCS_EMPREITEIRO, ...DOCS_SERVICO_PLEX];
   $('templateMsg').value=`Bom dia, tudo bem?
 
-Para seguir com o cadastro do fornecedor, solicito o envio da documentação abaixo em versão atualizada:
+Para seguir com o cadastro do fornecedor, solicito o envio da documentação base obrigatória abaixo em versão atualizada:
 
-${allDocs.map((i,n)=>`${String(n+1).padStart(2,'0')} - ${i[0]}`).join('\n')}
+${DOCS_BASE.map((i,n)=>`${String(n+1).padStart(2,'0')} - ${i[0]}`).join('\n')}
 
-Assim que receber os documentos, sigo com a validação cadastral.
+Assim que receber os documentos, sigo com a validação cadastral e retorno em caso de qualquer pendência.
 
 Obrigado.`;
 };
@@ -1766,14 +1858,19 @@ const clearForm = () => {
 
 const readForm = () => {
   const segs=[...document.querySelectorAll('#segmentoWrap input:checked')].map(i=>i.value);
+  const hasPlex = hasServicoPlexSegment(segs);
   const etapasDatas={};
   Object.entries(STAGE_DATES).forEach(([k,id])=>{ const v=$(id)?.value; if(v) etapasDatas[k]=v; });
   const plexEtapas={}, plexEtapasDatas={};
-  PLEX_STAGES.forEach(([k,,dtId])=>{
-    const v=$(k)?.value; if(v) plexEtapas[k]=v;
-    const dv=$(dtId)?.value; if(dv) plexEtapasDatas[k]=dv;
-  });
+  if(hasPlex) {
+    PLEX_STAGES.forEach(([k,,dtId])=>{
+      const v=$(k)?.value; if(v) plexEtapas[k]=v;
+      const dv=$(dtId)?.value; if(dv) plexEtapasDatas[k]=dv;
+    });
+  }
   const old = getSuppliers().find(i=>i.id===$('supplierId').value)||{};
+  const validDocNames = getDocsForSegments(segs).map(([title]) => title);
+  const rawDocsRecebidos = $('supplierId').value ? (old.docsRecebidos||[]) : _pendingDocsRecebidos;
   const basePayload = {
     id:$('supplierId').value||uid(),
     razao:$('razao').value.trim(),
@@ -1795,7 +1892,7 @@ const readForm = () => {
       cadastroMicro:$('cadastroMicro').value, cadastroPainel:$('cadastroPainel').value,
       formalizacaoAcordo:$('formalizacaoAcordo').value, passagemOperacao:$('passagemOperacao').value },
     etapasDatas, plexEtapas, plexEtapasDatas,
-    docsRecebidos: $('supplierId').value ? (old.docsRecebidos||[]) : _pendingDocsRecebidos,
+    docsRecebidos: (rawDocsRecebidos || []).filter(doc => validDocNames.includes(doc)),
     prazoNegociacao:$('prazoNegociacao').value,
     tempoPrevisto:$('tempoPrevisto').value,
     leadTimeSla:'SEM SLA',
@@ -1838,7 +1935,7 @@ window.editSupplier = id => {
   $('homologado').value=cleanStatus(item.homologado||item.statusAbility)||'PENDENTE';
   // segmentos
   document.querySelectorAll('#segmentoWrap input').forEach(cb=>{ cb.checked=(item.segmentos||[]).includes(cb.value); });
-  const hasPlex=(item.segmentos||[]).includes('Serviço PLEX');
+  const hasPlex=hasServicoPlexSegment(item.segmentos||[]);
   $('plexExtrasContainer').style.display=hasPlex?'block':'none';
   // etapas
   STAGES.forEach(([k])=>{ $(k).value=cleanStatus(item.etapas?.[k])||'PENDENTE'; });
@@ -1846,8 +1943,8 @@ window.editSupplier = id => {
   Object.entries(STAGE_DATES).forEach(([k,id])=>{ $(id).value=item.etapasDatas?.[k]||''; });
   // plex etapas
   PLEX_STAGES.forEach(([k,,dtId])=>{
-    $(k).value=cleanStatus(item.plexEtapas?.[k])||'PENDENTE';
-    $(dtId).value=item.plexEtapasDatas?.[k]||'';
+    $(k).value=hasPlex ? (cleanStatus(item.plexEtapas?.[k])||'PENDENTE') : 'N/A';
+    $(dtId).value=hasPlex ? (item.plexEtapasDatas?.[k]||'') : '';
   });
   $('prazoNegociacao').value=item.prazoNegociacao&&String(item.prazoNegociacao).includes('-')?item.prazoNegociacao:'';
   $('tempoPrevisto').value=item.tempoPrevisto&&String(item.tempoPrevisto).includes('-')?item.tempoPrevisto:'';
@@ -1855,7 +1952,8 @@ window.editSupplier = id => {
   updateSlaPreview();
   $('proximaAcao').value=item.proximaAcao||'';
   $('followUp').value=item.followUp||item.observacoes||'';
-  _pendingDocsRecebidos = item.docsRecebidos || [];
+  const validDocNames = getDocsForSegments(item.segmentos || []).map(([title]) => title);
+  _pendingDocsRecebidos = (item.docsRecebidos || []).filter(doc => validDocNames.includes(doc));
   updateDateLabels();
   applyFormPermissions(item);
 };
@@ -1873,9 +1971,10 @@ window.openDetail = id => {
   $('detailTitle').textContent=item.razao;
   $('detailSubtitle').textContent=`${item.cnpj||'Sem CNPJ'} • ${item.escopo||'Sem escopo'} • ${getProgress(item)}% concluído`;
   const e=item.etapas||{}, d=item.etapasDatas||{}, pe=item.plexEtapas||{}, pd=item.plexEtapasDatas||{};
-  const docsRec=item.docsRecebidos||[];
   const docsForItem=getDocsForSupplierOrForm(item);
-  const plexBlock=(item.segmentos||[]).includes('Serviço PLEX')?`
+  const validDocNames = docsForItem.map(([title]) => title);
+  const docsRec=(item.docsRecebidos||[]).filter(doc => validDocNames.includes(doc));
+  const plexBlock=hasServicoPlexSegment(item.segmentos||[])?`
     <div class="card" style="margin-top:14px;border-color:rgba(96,165,250,0.3);">
       <div class="panel-title"><div><h3>Etapas PLEX</h3></div></div>
       <div class="cards-grid-2">
@@ -1899,7 +1998,7 @@ window.openDetail = id => {
   const logsBlock = `<div class="card" style="margin-top:14px;">
     <div class="panel-title"><div><h3>Log individual do cadastro</h3><p>${logs.length} alteração(ões) registradas neste fornecedor.</p></div></div>
     <div class="log-list">
-      ${logs.length ? logs.slice(0,12).map(log=>`<div class="log-item"><strong>${esc(log.when || '-')} • ${esc(log.role || log.user || '-')}</strong><br>${esc(log.action || 'Alteração')}<br>${(log.changes||[]).slice(0,6).map(c=>`<span class="muted-cell">• ${esc(c.campo)}: ${esc(c.antes || '-')} → ${esc(c.depois || '-')}</span>`).join('<br>')}</div>`).join('') : '<div class="empty-state">Sem alterações registradas ainda.</div>'}
+      ${logs.length ? logs.slice(0,12).map(log=>`<div class="log-item"><strong>${esc(log.when || '-')} • ${esc(log.nomeCompleto || log.userName || log.nome || log.user || '-')} ${log.role ? `(${esc(log.role)})` : ''}</strong><br>${esc(log.action || 'Alteração')}<br>${(log.changes||[]).slice(0,6).map(c=>`<span class="muted-cell">• ${esc(c.campo)}: ${esc(c.antes || '-')} → ${esc(c.depois || '-')}</span>`).join('<br>')}</div>`).join('') : '<div class="empty-state">Sem alterações registradas ainda.</div>'}
     </div>
   </div>`;
   $('detailBody').innerHTML=`
@@ -2109,6 +2208,7 @@ $('menuToggle').addEventListener('click',()=>$('sidebar').classList.add('open'))
 document.addEventListener('click',e=>{ if(window.innerWidth<=900&&!$('sidebar').contains(e.target)&&e.target!==$('menuToggle')) $('sidebar').classList.remove('open'); });
 
 ['filterSearch','filterRegion','filterScope','filterStage','filterSituation'].forEach(id=>$(id).addEventListener('input',renderDashboard));
+$('trackingSearch')?.addEventListener('input',()=>renderTrackingTable(getTrackingFiltered()));
 ['serviceSearch','serviceCategory'].forEach(id=>$(id).addEventListener('input',renderServices));
 $('clearServiceFilters').addEventListener('click',()=>{ $('serviceSearch').value=''; $('serviceCategory').value='todos'; renderServices(); });
 
@@ -2130,7 +2230,7 @@ const supplierDetailedRows = rows => (rows || []).map(item => {
 });
 const serviceCsv = () => rowsToCsv(['ID','Categoria','Subcategoria','Descrição'], getServices().map(i => [i.id,i.categoria,i.subcategoria,i.descricao]));
 const accessCsv = () => rowsToCsv(['Nome','Usuário','Perfil','Status','Email','Criado em','Observação'], (ACCESS_USERS || []).map(i => [i.nome,i.user || i.docId,i.label || i.role,i.ativo === false ? 'INATIVO' : 'ATIVO',i.email,i.criadoEmBr,i.observacao]));
-const checklistCsv = () => rowsToCsv(['Documento','Orientação'], DOCS.map(([doc,desc]) => [doc,desc]));
+const checklistCsv = () => rowsToCsv(['Documento','Orientação'], DOCS_BASE.map(([doc,desc]) => [doc,desc]));
 const exportCsvByScope = () => {
   const scope = $('csvExportScope')?.value || 'dashboard';
   let filename = `relatorio_fornecedores_${exportDateKey()}.csv`;
@@ -2143,7 +2243,7 @@ const exportCsvByScope = () => {
     content = rowsToCsv(supplierDetailedHeaders, supplierDetailedRows(getSuppliers()));
   } else if(scope === 'acompanhamento') {
     filename = `acompanhamento_fornecedores_${exportDateKey()}.csv`;
-    content = rowsToCsv(supplierDetailedHeaders, supplierDetailedRows(getSuppliers()));
+    content = rowsToCsv(supplierDetailedHeaders, supplierDetailedRows(getTrackingFiltered()));
   } else if(scope === 'servicos') {
     filename = `tipos_servico_${exportDateKey()}.csv`;
     content = serviceCsv();
@@ -2160,8 +2260,8 @@ const exportCsvByScope = () => {
 $('downloadJsonBtn').addEventListener('click',()=>download('cadastro_fornecedores_backup.json',JSON.stringify(getStore(),null,2),'application/json'));
 $('downloadCsvBtn').addEventListener('click',exportCsvByScope);
 $('importJsonBtn').addEventListener('click',()=>$('importJsonInput').click());
-$('importJsonInput').addEventListener('change',e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=async()=>{ try{ const d=JSON.parse(r.result); if(!Array.isArray(d.suppliers)) throw new Error('JSON sem lista suppliers'); APP_STORE={...APP_STORE, suppliers:d.suppliers, serviceTypes:d.serviceTypes||getServices(), importedAt:todayKey()}; saveLocalCache(); renderAll(); const result=await bulkUploadToFirestore(APP_STORE.suppliers, APP_STORE.serviceTypes, {replace:false}); alert(`Importação enviada ao Firestore: ${result.suppliers} fornecedores e ${result.services} serviços.`); }catch(err){ console.error(err); alert('Arquivo inválido ou falha ao enviar ao Firestore. Use um JSON exportado por este painel e confira as regras do banco.'); } }; r.readAsText(f); e.target.value=''; });
-$('resetBtn').addEventListener('click',async()=>{ if(!confirm('Restaurar a base embutida neste HTML e substituir a coleção do Firestore?')) return; try{ const base=JSON.parse(JSON.stringify(BASE_DATA)); APP_STORE={...APP_STORE, ...base, restoredAt:todayKey()}; saveLocalCache(); clearForm(); renderAll(); const result=await bulkUploadToFirestore(APP_STORE.suppliers, APP_STORE.serviceTypes, {replace:true}); alert(`Base restaurada no Firestore: ${result.suppliers} fornecedores e ${result.services} serviços. Removidos fora da base: ${result.deletedSuppliers} fornecedores e ${result.deletedServices} serviços.`); }catch(err){ console.error(err); alert(`Não foi possível restaurar a base no Firestore: ${err.message || err}`); } });
+$('importJsonInput').addEventListener('change',e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=async()=>{ try{ const d=JSON.parse(r.result); if(!Array.isArray(d.suppliers)) throw new Error('JSON sem lista suppliers'); APP_STORE={...APP_STORE, suppliers:(d.suppliers||[]).map(normalizeSupplierForBusinessRules), serviceTypes:d.serviceTypes||getServices(), importedAt:todayKey()}; saveLocalCache(); renderAll(); const result=await bulkUploadToFirestore(APP_STORE.suppliers, APP_STORE.serviceTypes, {replace:false}); alert(`Importação enviada ao Firestore: ${result.suppliers} fornecedores e ${result.services} serviços.`); }catch(err){ console.error(err); alert('Arquivo inválido ou falha ao enviar ao Firestore. Use um JSON exportado por este painel e confira as regras do banco.'); } }; r.readAsText(f); e.target.value=''; });
+$('resetBtn').addEventListener('click',async()=>{ if(!confirm('Restaurar a base embutida neste HTML e substituir a coleção do Firestore?')) return; try{ const base=JSON.parse(JSON.stringify(BASE_DATA)); APP_STORE={...APP_STORE, ...base, suppliers:(base.suppliers||[]).map(normalizeSupplierForBusinessRules), serviceTypes:base.serviceTypes||[], restoredAt:todayKey()}; saveLocalCache(); clearForm(); renderAll(); const result=await bulkUploadToFirestore(APP_STORE.suppliers, APP_STORE.serviceTypes, {replace:true}); alert(`Base restaurada no Firestore: ${result.suppliers} fornecedores e ${result.services} serviços. Removidos fora da base: ${result.deletedSuppliers} fornecedores e ${result.deletedServices} serviços.`); }catch(err){ console.error(err); alert(`Não foi possível restaurar a base no Firestore: ${err.message || err}`); } });
 $('copyTemplateBtn').addEventListener('click',async()=>{ try{ await navigator.clipboard.writeText($('templateMsg').value); }catch(err){ $('templateMsg').select(); document.execCommand('copy'); } alert('Texto copiado.'); });
 
 
@@ -2169,9 +2269,18 @@ $('copyTemplateBtn').addEventListener('click',async()=>{ try{ await navigator.cl
 const normalizeLoginProfile = (profile={}) => {
   const username = slugUsername(profile.user || profile.username || profile.nome || '');
   const roleBase = getRoleProfile(profile.role || profile.label || 'Solicitante');
+  const stored = profileForFirestore({...profile, user:username});
   return {
+    ...stored,
     ...roleBase,
-    ...profileForFirestore({...roleBase, ...profile, user:username}),
+    user: username,
+    nome: stored.nome || profile.nome || profile.nomeCompleto || profile.label || username,
+    role: roleBase.role,
+    label: roleBase.label,
+    full: !!roleBase.full,
+    viewOnly: !!roleBase.viewOnly,
+    approval: roleBase.approval || null,
+    ativo: profile.ativo !== false,
     uid: profile.uid || `local-${username}`,
     email: profile.email || usernameToEmail(username),
     localAuth: true
@@ -2228,6 +2337,45 @@ const bootAuth = () => {
   $('loginScreen').classList.remove('hidden');
   $('appShell').style.display = 'none';
 };
+
+const SELF_ACCESS_WHATSAPP = '11 94173-0621';
+
+$('toggleSelfAccessBtn')?.addEventListener('click', () => {
+  $('selfAccessForm')?.classList.toggle('hidden');
+});
+
+$('selfAccessForm')?.addEventListener('submit', async e => {
+  e.preventDefault();
+  const nome = $('selfAccessName')?.value.trim() || '';
+  const username = slugUsername($('selfAccessUser')?.value || '');
+  const senha = $('selfAccessPass')?.value || '';
+  if(!nome || !username || !senha) return alert('Preencha nome completo, usuário e senha.');
+  if(senha.length < 6) return alert('A senha precisa ter pelo menos 6 caracteres.');
+  try {
+    const existing = await getDoc(doc(db, COLLECTION_USERS, username));
+    if(existing.exists()) return alert('Este usuário já existe. Escolha outro nome de usuário ou faça login.');
+    const profile = normalizeLoginProfile({...getRoleProfile('Solicitante'), user:username, nome, ativo:true});
+    const userProfileDoc = sanitizeForFirebase({
+      ...profile,
+      uid:`local-${username}`,
+      senha,
+      criadoPor:'auto cadastro',
+      criadoEmIso:new Date().toISOString(),
+      criadoEmBr:new Date().toLocaleString('pt-BR'),
+      observacao:`Acesso criado pelo próprio usuário. Perfil limitado. Para ampliar acesso, solicitar no WhatsApp ${SELF_ACCESS_WHATSAPP}.`
+    });
+    await setDoc(doc(db, COLLECTION_USERS, username), userProfileDoc, {merge:false});
+    await setDoc(doc(db, COLLECTION_USERS_UID, `local-${username}`), userProfileDoc, {merge:false});
+    $('loginUser').value = username;
+    $('loginPass').value = senha;
+    $('selfAccessForm').reset();
+    $('selfAccessForm').classList.add('hidden');
+    alert(`Acesso criado com sucesso. Seu perfil é Solicitante e possui acesso limitado. Para solicitar um acesso maior, fale com Daniel pelo WhatsApp ${SELF_ACCESS_WHATSAPP}.`);
+  } catch(err) {
+    console.error(err);
+    alert(`Não foi possível criar seu acesso: ${err.message || err}`);
+  }
+});
 
 $('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
