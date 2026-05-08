@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -7,19 +6,20 @@
   <title>Painel de Cadastro de Fornecedores</title>
   <style>
     :root {
-      --bg: #07111f; --bg-2: #0b1628; --surface: rgba(255,255,255,0.08);
-      --surface-2: rgba(255,255,255,0.12); --border: rgba(255,255,255,0.1);
-      --text: #eef6ff; --muted: #99aac4; --primary: #34d399; --primary-2: #10b981;
-      --danger: #f87171; --warning: #fbbf24; --info: #60a5fa; --violet: #a78bfa;
-      --shadow: 0 18px 45px rgba(0,0,0,0.35); --radius: 22px; --radius-sm: 16px;
+      --bg: #07111f; --bg-2: #0b1628; --surface: rgba(255,255,255,0.105);
+      --surface-2: rgba(255,255,255,0.16); --border: rgba(255,255,255,0.14);
+      --text: #f4fbff; --muted: #b2c3dc; --primary: #22f48d; --primary-2: #14b8a6;
+      --danger: #fb7185; --warning: #facc15; --info: #38bdf8; --violet: #c084fc;
+      --shadow: 0 20px 52px rgba(0,0,0,0.38); --radius: 22px; --radius-sm: 16px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; }
     html { scroll-behavior: smooth; }
     body {
       min-height: 100vh; color: var(--text);
-      background: radial-gradient(circle at top left, rgba(16,185,129,0.16), transparent 24%),
-        radial-gradient(circle at right bottom, rgba(96,165,250,0.14), transparent 26%),
-        linear-gradient(135deg, #020617, #07111f 46%, #0b1628);
+      background: radial-gradient(circle at top left, rgba(34,244,141,0.24), transparent 26%),
+        radial-gradient(circle at top right, rgba(192,132,252,0.18), transparent 24%),
+        radial-gradient(circle at right bottom, rgba(56,189,248,0.22), transparent 30%),
+        linear-gradient(135deg, #020617, #07111f 44%, #0b1628);
       overflow-x: auto;
     }
     .app { min-height: 100vh; display: grid; grid-template-columns: 280px 1fr; }
@@ -82,7 +82,7 @@
     .section-grid { display: grid; grid-template-columns: 1.18fr 0.82fr; gap: 16px; margin-bottom: 18px; }
     .section-grid.equal { grid-template-columns: 1fr 1fr; }
     .card {
-      position: relative; background: var(--surface); border: 1px solid var(--border);
+      position: relative; background: linear-gradient(180deg, rgba(255,255,255,0.115), rgba(255,255,255,0.075)); border: 1px solid rgba(255,255,255,0.16);
       border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); backdrop-filter: blur(18px); overflow: hidden;
     }
     .card::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent 35%); pointer-events: none; }
@@ -236,6 +236,284 @@
       color: #bfdbfe; font-size: 12px; line-height: 1.65;
     }
 
+
+
+    .welcome-choice-grid { display:grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); gap: 12px; margin-top: 14px; }
+    .welcome-choice {
+      border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--text);
+      border-radius: 18px; padding: 16px; cursor: pointer; text-align: left; transition: .22s ease;
+    }
+    .welcome-choice:hover { transform: translateY(-2px); background: rgba(255,255,255,0.09); border-color: rgba(52,211,153,.3); }
+    .welcome-choice strong { display:block; margin-bottom: 6px; font-size: 15px; }
+    .welcome-choice span { display:block; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .tutorial-layer { position: fixed; inset: 0; z-index: 260; pointer-events: none; }
+    .tutorial-layer.hidden { display:none; }
+    .tutorial-layer.free-mode .tutorial-spotlight { opacity: 0; box-shadow: none; border-color: transparent; }
+    .tutorial-layer.free-mode .tutorial-card {
+      width: min(430px, calc(100vw - 28px));
+      cursor: grab;
+      user-select: none;
+    }
+    .tutorial-layer.free-mode .tutorial-card.dragging { cursor: grabbing; }
+    .tutorial-spotlight {
+      position: fixed; border: 2px solid rgba(34,244,141,0.98); border-radius: 18px;
+      box-shadow: 0 0 0 9999px rgba(2,6,23,0.76), 0 0 34px rgba(34,244,141,0.42);
+      transition: all .25s ease; pointer-events: none; z-index: 261;
+      animation: tutorialPulse 1.55s ease-in-out infinite;
+    }
+    .tutorial-card {
+      position: fixed; z-index: 262; width: min(440px, calc(100vw - 28px));
+      background: rgba(7,17,31,0.985); border: 1px solid rgba(52,211,153,0.28);
+      border-radius: 24px; padding: 18px; box-shadow: 0 22px 55px rgba(0,0,0,0.48);
+      pointer-events: auto;
+    }
+    .tutorial-header { display:flex; align-items:flex-start; gap: 12px; margin-bottom: 10px; }
+    .tutorial-bot {
+      width: 52px; height: 52px; border-radius: 18px; display:grid; place-items:center; flex-shrink:0;
+      background: linear-gradient(135deg, rgba(52,211,153,.22), rgba(96,165,250,.22));
+      border: 1px solid rgba(52,211,153,0.28); font-size: 28px; box-shadow: 0 10px 24px rgba(52,211,153,0.14);
+    }
+    .tutorial-progress { color: #bbf7d0; font-size: 12px; margin-bottom: 6px; }
+    .tutorial-page-badge {
+      display:inline-flex; align-items:center; gap:6px; color:#bfdbfe; font-size:11px; padding:6px 10px;
+      border-radius:999px; background: rgba(96,165,250,0.10); border:1px solid rgba(96,165,250,0.2);
+    }
+    .tutorial-card h3 { font-size: 18px; margin-bottom: 8px; }
+    .tutorial-card p { color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .tutorial-details {
+      margin: 12px 0 0; padding-left: 18px; display:flex; flex-direction:column; gap: 8px;
+      color: #dbeafe; font-size: 12px; line-height: 1.55;
+    }
+    .tutorial-details li::marker { color: #34d399; }
+    .tutorial-tip { margin-top: 12px; color: #bfdbfe; background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.2); border-radius: 14px; padding: 10px; font-size: 12px; line-height: 1.55; }
+    .tutorial-practice { margin-top: 10px; color: #bbf7d0; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); border-radius: 14px; padding: 10px; font-size: 12px; line-height: 1.55; }
+    .tutorial-helper { margin-top: 10px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .tutorial-arrow {
+      position: fixed; z-index: 263; width: 42px; height: 42px; border-radius: 999px;
+      display: grid; place-items: center; color: #052013; font-size: 24px; font-weight: 900;
+      background: linear-gradient(135deg, #22f48d, #38bdf8); border: 1px solid rgba(255,255,255,0.24);
+      box-shadow: 0 12px 30px rgba(34,244,141,0.38); pointer-events: none;
+      animation: tutorialArrowBounce 1s ease-in-out infinite;
+    }
+    .tutorial-layer.free-mode .tutorial-arrow { display: none; }
+    .tutorial-reopen-btn {
+      position: fixed; left: 18px; bottom: 18px; z-index: 150; border: 1px solid rgba(34,244,141,0.32);
+      background: linear-gradient(135deg, rgba(34,244,141,0.22), rgba(56,189,248,0.22));
+      color: var(--text); border-radius: 999px; padding: 12px 16px; font-weight: 800; cursor: pointer;
+      box-shadow: 0 18px 42px rgba(0,0,0,0.32), 0 0 24px rgba(34,244,141,0.16); backdrop-filter: blur(16px);
+      transition: .22s ease;
+    }
+    .tutorial-reopen-btn:hover { transform: translateY(-2px); border-color: rgba(34,244,141,0.55); background: linear-gradient(135deg, rgba(34,244,141,0.32), rgba(56,189,248,0.30)); }
+    .tutorial-reopen-btn.hidden { display: none; }
+    @keyframes tutorialPulse {
+      0%, 100% { transform: scale(1); filter: brightness(1); }
+      50% { transform: scale(1.012); filter: brightness(1.16); }
+    }
+    @keyframes tutorialArrowBounce {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-8px) scale(1.06); }
+    }
+    .tutorial-actions { display:flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    .tutorial-actions button { flex: 1; min-width: 120px; }
+    .tutorial-actions #tutorialCloseBtn { flex: 0.9; }
+
+
+
+
+    /* === TEMA VIVO POR ABA, PROFISSIONAL E COM IDENTIDADE === */
+    body {
+      --page-accent: #22f48d;
+      --page-accent-2: #38bdf8;
+      --page-rgb: 34,244,141;
+      --page-rgb-2: 56,189,248;
+      --page-soft: rgba(34,244,141,0.12);
+      --page-glow: rgba(34,244,141,0.22);
+      --page-bg-1: #02120d;
+      --page-bg-2: #07111f;
+      --page-bg-3: #082238;
+      --page-wash: rgba(34,244,141,0.10);
+      transition: background 0.45s ease;
+    }
+    body[data-active-page="dashboard"] {
+      --page-accent:#22f48d; --page-accent-2:#38bdf8; --page-rgb:34,244,141; --page-rgb-2:56,189,248;
+      --page-soft:rgba(34,244,141,0.13); --page-glow:rgba(34,244,141,0.28);
+      --page-bg-1:#01140d; --page-bg-2:#061a24; --page-bg-3:#072b3c; --page-wash:rgba(34,244,141,0.10);
+    }
+    body[data-active-page="cadastro"] {
+      --page-accent:#f59e0b; --page-accent-2:#fb7185; --page-rgb:245,158,11; --page-rgb-2:251,113,133;
+      --page-soft:rgba(245,158,11,0.14); --page-glow:rgba(245,158,11,0.30);
+      --page-bg-1:#160b03; --page-bg-2:#201019; --page-bg-3:#351020; --page-wash:rgba(245,158,11,0.11);
+    }
+    body[data-active-page="acompanhamento"] {
+      --page-accent:#06b6d4; --page-accent-2:#60a5fa; --page-rgb:6,182,212; --page-rgb-2:96,165,250;
+      --page-soft:rgba(6,182,212,0.14); --page-glow:rgba(6,182,212,0.30);
+      --page-bg-1:#03121a; --page-bg-2:#061727; --page-bg-3:#08254b; --page-wash:rgba(6,182,212,0.11);
+    }
+    body[data-active-page="servicos"] {
+      --page-accent:#a78bfa; --page-accent-2:#ec4899; --page-rgb:167,139,250; --page-rgb-2:236,72,153;
+      --page-soft:rgba(167,139,250,0.15); --page-glow:rgba(167,139,250,0.31);
+      --page-bg-1:#100a24; --page-bg-2:#17102e; --page-bg-3:#311036; --page-wash:rgba(167,139,250,0.12);
+    }
+    body[data-active-page="checklist"] {
+      --page-accent:#facc15; --page-accent-2:#fb923c; --page-rgb:250,204,21; --page-rgb-2:251,146,60;
+      --page-soft:rgba(250,204,21,0.15); --page-glow:rgba(250,204,21,0.28);
+      --page-bg-1:#171006; --page-bg-2:#211806; --page-bg-3:#3a1b07; --page-wash:rgba(250,204,21,0.11);
+    }
+    body[data-active-page="acessos"] {
+      --page-accent:#f43f5e; --page-accent-2:#8b5cf6; --page-rgb:244,63,94; --page-rgb-2:139,92,246;
+      --page-soft:rgba(244,63,94,0.14); --page-glow:rgba(244,63,94,0.30);
+      --page-bg-1:#190711; --page-bg-2:#1a102c; --page-bg-3:#2a1248; --page-wash:rgba(244,63,94,0.11);
+    }
+
+    body[data-active-page] {
+      background:
+        radial-gradient(ellipse at 8% 4%, rgba(var(--page-rgb),0.42), transparent 28%),
+        radial-gradient(ellipse at 96% 12%, rgba(var(--page-rgb-2),0.34), transparent 30%),
+        radial-gradient(ellipse at 78% 92%, rgba(var(--page-rgb),0.22), transparent 28%),
+        linear-gradient(135deg, var(--page-bg-1), var(--page-bg-2) 42%, var(--page-bg-3));
+    }
+    body[data-active-page]::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        linear-gradient(120deg, rgba(var(--page-rgb),0.08), transparent 34%, rgba(var(--page-rgb-2),0.08)),
+        repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 24px);
+      mask-image: radial-gradient(circle at 52% 38%, black, transparent 78%);
+      opacity: .85;
+      transition: background .45s ease, opacity .45s ease;
+    }
+    body[data-active-page]::after {
+      content: "";
+      position: fixed;
+      width: 52vw;
+      height: 52vw;
+      right: -22vw;
+      bottom: -28vw;
+      border-radius: 999px;
+      pointer-events: none;
+      z-index: 0;
+      background: radial-gradient(circle, rgba(var(--page-rgb-2),0.22), rgba(var(--page-rgb),0.11) 38%, transparent 67%);
+      filter: blur(10px);
+      animation: pageAuraDrift 12s ease-in-out infinite alternate;
+      transition: background .45s ease;
+    }
+    @keyframes pageAuraDrift {
+      from { transform: translate3d(0,0,0) scale(1); opacity:.72; }
+      to { transform: translate3d(-4vw,-3vw,0) scale(1.08); opacity:.95; }
+    }
+    .app { position: relative; z-index: 1; }
+    body[data-active-page] .content::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 280px;
+      right: 0;
+      height: 220px;
+      pointer-events: none;
+      z-index: -1;
+      background: linear-gradient(180deg, rgba(var(--page-rgb),0.13), transparent 82%);
+      transition: background .45s ease;
+    }
+    body[data-active-page] .sidebar {
+      background:
+        radial-gradient(circle at top left, rgba(var(--page-rgb),0.16), transparent 32%),
+        linear-gradient(180deg, rgba(2,6,23,0.92), rgba(2,6,23,0.74));
+      border-right-color: rgba(var(--page-rgb),0.26);
+      box-shadow: 16px 0 46px rgba(0,0,0,0.20), inset -1px 0 0 rgba(var(--page-rgb),0.10);
+    }
+    body[data-active-page] .topbar {
+      background: linear-gradient(135deg, rgba(var(--page-rgb),0.085), rgba(255,255,255,0.025));
+      border: 1px solid rgba(var(--page-rgb),0.12);
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow: 0 18px 42px rgba(0,0,0,0.22), 0 0 34px rgba(var(--page-rgb),0.06);
+    }
+    body[data-active-page] .brand-badge,
+    body[data-active-page] .primary-btn {
+      background: linear-gradient(135deg, var(--page-accent), var(--page-accent-2));
+      box-shadow: 0 14px 30px var(--page-glow);
+    }
+    body[data-active-page] .title-block h2 {
+      background: linear-gradient(135deg, #eef6ff 18%, var(--page-accent) 58%, var(--page-accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 24px rgba(var(--page-rgb),0.10);
+    }
+    body[data-active-page] .card {
+      border-color: rgba(var(--page-rgb),0.15);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.105), rgba(255,255,255,0.065)),
+        linear-gradient(135deg, rgba(var(--page-rgb),0.035), rgba(var(--page-rgb-2),0.025));
+      box-shadow: 0 18px 48px rgba(0,0,0,0.36), 0 0 0 1px rgba(var(--page-rgb),0.04), 0 0 34px rgba(var(--page-rgb),0.055);
+    }
+    body[data-active-page] .card::before {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.055), transparent 34%),
+        radial-gradient(circle at top right, rgba(var(--page-rgb),0.14), transparent 38%),
+        radial-gradient(circle at bottom left, rgba(var(--page-rgb-2),0.08), transparent 44%);
+    }
+    body[data-active-page] .page.active {
+      animation: fadeSlide .32s ease, pageChromaticBreath .7s ease;
+    }
+    @keyframes pageChromaticBreath {
+      from { filter: saturate(.88) brightness(.96); }
+      to { filter: saturate(1) brightness(1); }
+    }
+    body[data-active-page] .menu button.active {
+      background: linear-gradient(135deg, var(--page-soft), rgba(255,255,255,0.06));
+      border-color: var(--page-accent);
+      box-shadow: inset 3px 0 0 var(--page-accent), 0 14px 26px rgba(0,0,0,0.18), 0 0 26px rgba(var(--page-rgb),0.11);
+    }
+    .menu button::before {
+      content: ""; display:inline-block; width:8px; height:8px; border-radius:999px; margin-right:8px;
+      background: rgba(255,255,255,0.22); box-shadow:0 0 12px rgba(255,255,255,0.08);
+    }
+    .menu button[data-page="dashboard"]::before { background:#22f48d; box-shadow:0 0 14px rgba(34,244,141,0.45); }
+    .menu button[data-page="cadastro"]::before { background:#f59e0b; box-shadow:0 0 14px rgba(245,158,11,0.45); }
+    .menu button[data-page="acompanhamento"]::before { background:#06b6d4; box-shadow:0 0 14px rgba(6,182,212,0.45); }
+    .menu button[data-page="servicos"]::before { background:#a78bfa; box-shadow:0 0 14px rgba(167,139,250,0.45); }
+    .menu button[data-page="checklist"]::before { background:#facc15; box-shadow:0 0 14px rgba(250,204,21,0.45); }
+    .menu button[data-page="acessos"]::before { background:#f43f5e; box-shadow:0 0 14px rgba(244,63,94,0.45); }
+    body[data-active-page] .bar-fill,
+    body[data-active-page] .progress > div,
+    body[data-active-page] .segment-bar {
+      background: linear-gradient(90deg, var(--page-accent), var(--page-accent-2));
+      box-shadow: 0 8px 18px var(--page-glow);
+    }
+    body[data-active-page] .tag.info,
+    body[data-active-page] .chip.info {
+      color: #eef6ff;
+      border-color: color-mix(in srgb, var(--page-accent) 45%, transparent);
+      background: var(--page-soft);
+    }
+
+    .segment-mini-chart.segment-clickable { cursor: pointer; transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease, background .22s ease; }
+    .segment-mini-chart.segment-clickable:hover {
+      transform: translateY(-4px);
+      border-color: var(--page-accent);
+      box-shadow: 0 22px 54px rgba(0,0,0,0.42), 0 0 34px var(--page-glow);
+    }
+    .segment-mini-chart.segment-active {
+      border-color: var(--page-accent);
+      background: linear-gradient(180deg, var(--page-soft), rgba(255,255,255,0.055));
+      box-shadow: 0 22px 54px rgba(0,0,0,0.42), 0 0 0 1px var(--page-accent), 0 0 34px var(--page-glow);
+    }
+    .segment-mini-chart .segment-click-hint { margin-top:10px; color:var(--muted); font-size:11px; line-height:1.45; }
+    .segment-mini-chart.segment-active .segment-click-hint { color:#bbf7d0; }
+    .segment-bar-box { cursor:pointer; border-radius:14px; padding:6px 4px; transition: transform .18s ease, background .18s ease, box-shadow .18s ease; }
+    .segment-bar-box:hover { background:rgba(255,255,255,0.06); transform:translateY(-2px); }
+    .segment-bar-box.segment-slice-active { background:var(--page-soft); box-shadow:0 0 0 1px var(--page-accent), 0 0 18px var(--page-glow); }
+    .segment-status-note { display:block; margin-top:8px; color:#dbeafe; font-size:11px; line-height:1.45; }
+    .segment-clear-pill {
+      display:inline-flex; align-items:center; gap:6px; margin-left:8px; padding:7px 10px; border-radius:999px;
+      border:1px solid var(--page-accent); background:var(--page-soft); color:#eef6ff; font-size:12px; cursor:pointer;
+    }
+    .segment-clear-pill:hover { filter:brightness(1.15); transform:translateY(-1px); }
+
     @media (max-width: 1180px) {
       .grid-cards, .section-grid, .section-grid.equal, .filters, .form-grid, .cards-grid-2, .cards-grid-3, .service-grid, .checklist, .summary-grid, .add-service-form, .segment-dashboard-grid { grid-template-columns: 1fr; }
       .row-span-2 { grid-column: span 1; }
@@ -265,7 +543,7 @@
     }
   </style>
 </head>
-<body>
+<body data-active-page="dashboard">
 
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
@@ -389,8 +667,8 @@
     <section class="page active" id="dashboard">
       <div class="grid-cards">
         <div class="card"><div class="metric-label">Fornecedores na seleção</div><div class="metric-value" id="kpiTotal">0</div><div class="metric-note">Quantidade conforme filtros atuais.</div></div>
-        <div class="card"><div class="metric-label">Homologados</div><div class="metric-value" id="kpiHomologados">0</div><div class="metric-note">Marcados como SIM / OK / aprovado.</div></div>
-        <div class="card"><div class="metric-label">Em andamento</div><div class="metric-value" id="kpiAndamento">0</div><div class="metric-note">Com avanço, sem concluir todas as etapas.</div></div>
+        <div class="card"><div class="metric-label">Homologados</div><div class="metric-value" id="kpiHomologados">0</div><div class="metric-note">Todos os status concluídos e progresso 100%.</div></div>
+        <div class="card"><div class="metric-label">Em andamento</div><div class="metric-value" id="kpiAndamento">0</div><div class="metric-note">Não concluídos com alguma evolução.</div></div>
         <div class="card"><div class="metric-label">Passagem à operação</div><div class="metric-value" id="kpiOperacao">0</div><div class="metric-note">Prontos para atuação operacional.</div></div>
         <div class="card"><div class="metric-label">Possível atraso</div><div class="metric-value" id="kpiAtraso">0</div><div class="metric-note">SLA fora do prazo ou prazo vencido.</div></div>
       </div>
@@ -807,6 +1085,82 @@
     </section>
 
   </main>
+</div>
+
+<button type="button" class="tutorial-reopen-btn hidden" id="tutorialReopenBtn">🤖 Ver tutorial novamente</button>
+
+
+<!-- MODAL PRIMEIRO ACESSO -->
+<div class="modal-backdrop" id="firstAccessModal">
+  <div class="modal modal-sm">
+    <div class="panel-title">
+      <div>
+        <h3>👋 Boas-vindas ao Painel de Fornecedores</h3>
+        <p>Antes de começar, só uma pergunta rápida para ajustar a rota.</p>
+      </div>
+    </div>
+    <div class="welcome-choice-grid">
+      <button type="button" class="welcome-choice" id="firstAccessYesBtn">
+        <strong>Sim, é meu primeiro acesso</strong>
+        <span>Quero entender as abas, filtros, gráficos e funções disponíveis para meu perfil.</span>
+      </button>
+      <button type="button" class="welcome-choice" id="firstAccessNoBtn">
+        <strong>Não, já conheço</strong>
+        <span>Fechar este aviso e ir direto para o painel.</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR TUTORIAL -->
+<div class="modal-backdrop" id="tutorialConfirmModal">
+  <div class="modal modal-sm">
+    <div class="panel-title">
+      <div>
+        <h3>🧭 Quer ver um tutorial guiado?</h3>
+        <p>O tutorial destaca cada área da tela e mostra apenas funções disponíveis para o seu perfil.</p>
+      </div>
+    </div>
+    <div class="welcome-choice-grid">
+      <button type="button" class="welcome-choice" id="startTutorialBtn">
+        <strong>Ver tutorial agora</strong>
+        <span>Passo a passo pelas abas, filtros, cards, gráficos e ações permitidas.</span>
+      </button>
+      <button type="button" class="welcome-choice" id="skipTutorialBtn">
+        <strong>Agora não</strong>
+        <span>Entrar no painel sem iniciar o guia.</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CAMADA DO TUTORIAL -->
+<div class="tutorial-layer hidden" id="tutorialLayer">
+  <div class="tutorial-spotlight" id="tutorialSpotlight"></div>
+  <div class="tutorial-arrow" id="tutorialArrow">➜</div>
+  <div class="tutorial-card" id="tutorialCard">
+    <div class="tutorial-header">
+      <div class="tutorial-bot">🤖</div>
+      <div style="flex:1;min-width:0;">
+        <div class="tutorial-progress" id="tutorialProgress">Etapa 1/1</div>
+        <div class="tutorial-page-badge" id="tutorialPageBadge">Aba: Dashboard</div>
+      </div>
+    </div>
+    <h3 id="tutorialTitle">Tutorial</h3>
+    <p id="tutorialText">Descrição da etapa.</p>
+    <ul class="tutorial-details" id="tutorialDetails"></ul>
+    <div class="tutorial-tip" id="tutorialTip">Dica: use os botões para avançar ou sair.</div>
+    <div class="tutorial-practice" id="tutorialPractice">Teste sugerido: experimente clicar, filtrar e navegar. O painel continua interativo durante o tutorial.</div>
+    <div class="tutorial-helper" id="tutorialHelper">💡 Dica do Newt Bot: você pode deixar o tutorial em modo teste para experimentar a tela e depois voltar ao foco guiado.</div>
+    <div class="tutorial-actions">
+      <button type="button" class="ghost-btn" id="tutorialPrevBtn">Voltar</button>
+      <button type="button" class="ghost-btn" id="tutorialFocusToggleBtn">Modo teste</button>
+      <button type="button" class="ghost-btn" id="tutorialCloseBtn">Sair</button>
+      <button type="button" class="primary-btn" id="tutorialNextBtn">Próximo</button>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <!-- MODAL DETALHE -->
@@ -1493,23 +1847,39 @@ const getProgress = item => {
   }
   return Math.round(stages.reduce((a,b)=>a+b,0)/stages.length*100);
 };
+const getRequiredStageEntries = item => {
+  const entries = STAGES.map(([key,label]) => ({key, label, group:'etapas'}));
+  if((item.segmentos || []).includes('Serviço PLEX')) {
+    entries.push(...PLEX_STAGES.map(([key,label]) => ({key, label, group:'plexEtapas'})));
+  }
+  return entries;
+};
+const isRequiredStageDone = (item, entry) => isDone((item?.[entry.group] || {})[entry.key]);
+const isSupplierFullyConcluded = item => {
+  const entries = getRequiredStageEntries(item);
+  return entries.length > 0 && entries.every(entry => isRequiredStageDone(item, entry)) && getProgress(item) >= 100;
+};
 const getCurrentStage = item => {
-  const found = STAGES.find(([k])=>!isDone(item.etapas?.[k]));
-  return found ? found[1] : 'Concluído';
+  const found = getRequiredStageEntries(item).find(entry => !isRequiredStageDone(item, entry));
+  return found ? found.label : 'Concluído';
 };
 const isOverdue = item => {
   const info = calcSla(item);
   if(info.status === 'ATRASO') return true;
   if(norm(item.leadTimeSla).includes('FORA')) return true;
   const p = item.tempoPrevisto||item.prazoNegociacao;
-  return !!(p&&String(p).includes('-')&&p<todayKey()&&getProgress(item)<100);
+  return !!(p&&String(p).includes('-')&&p<todayKey()&&!isSupplierFullyConcluded(item));
 };
 const situationOf = item => {
-  if(isOverdue(item)) return 'atrasado';
+  if(isSupplierFullyConcluded(item)) return 'concluido';
   const p=getProgress(item);
-  if(p>=100) return 'concluido';
-  if(p>0) return 'andamento';
-  return 'pendente';
+  if(p<=0) return 'pendente';
+  return 'andamento';
+};
+const matchesDashboardSituation = (item, key='todos') => {
+  if(key === 'todos') return true;
+  if(key === 'atrasado') return isOverdue(item);
+  return situationOf(item) === key;
 };
 const chipClass = v => { if(isDone(v)) return 'done'; if(norm(v).includes('AVISO')) return 'work'; if(isWorking(v)) return 'work'; if(norm(v).includes('ATRASO')||norm(v).includes('FORA')||norm(v).includes('NAO')||norm(v).includes('DESOMOLOGADO')||norm(v).includes('REPROVADO')) return 'bad'; return 'info'; };
 const chip = v => `<span class="chip ${chipClass(v)}">${esc(cleanStatus(v))}</span>`;
@@ -1559,7 +1929,10 @@ const supplierHasScopeCategory = (item, category) => {
   return norm(getSupplierScopeText(item)).includes(norm(category));
 };
 
-const getFiltered = () => {
+let ACTIVE_DASHBOARD_SEGMENT_FILTER = 'todos';
+let ACTIVE_DASHBOARD_SEGMENT_STATUS_FILTER = 'todos';
+
+const getFiltered = (includeSegmentFilter = true) => {
   const sup = getSuppliers();
   const search=norm($('filterSearch')?.value||'');
   const region=$('filterRegion')?.value||'todos';
@@ -1578,8 +1951,10 @@ const getFiltered = () => {
     // filtro por categoria dentro do escopo/catálogo. Ex.: GMG retorna todo fornecedor que tenha GMG em qualquer combinação.
     const okSc=supplierHasScopeCategory(item, scope);
     const okSt=stage==='todos'||getCurrentStage(item)===stage;
-    const okSit=sit==='todos'||situationOf(item)===sit;
-    return okS&&okR&&okAt&&okSc&&okSt&&okSit;
+    const okSit=sit==='todos'||matchesDashboardSituation(item, sit);
+    const okSeg = !includeSegmentFilter || ACTIVE_DASHBOARD_SEGMENT_FILTER === 'todos' || (item.segmentos || []).includes(ACTIVE_DASHBOARD_SEGMENT_FILTER);
+    const okQuickSit = !includeSegmentFilter || ACTIVE_DASHBOARD_SEGMENT_STATUS_FILTER === 'todos' || matchesDashboardSituation(item, ACTIVE_DASHBOARD_SEGMENT_STATUS_FILTER);
+    return okS&&okR&&okAt&&okSc&&okSt&&okSit&&okSeg&&okQuickSit;
   });
 };
 
@@ -1646,10 +2021,10 @@ const renderFilterOptions = () => {
 
 const renderDashboard = () => {
   renderFilterOptions();
-  const sup=getSuppliers(), fil=getFiltered();
+  const sup=getSuppliers(), segmentBase=getFiltered(false), fil=getFiltered(true);
   const base=fil;
-  const hom=base.filter(i=>isDone(i.homologado)||isDone(i.statusAbility)).length;
-  const and=base.filter(i=>situationOf(i)==='andamento').length;
+  const hom=base.filter(isSupplierFullyConcluded).length;
+  const and=base.filter(item => situationOf(item) === 'andamento').length;
   const op=base.filter(i=>isDone(i.etapas?.passagemOperacao)).length;
   const atr=base.filter(isOverdue).length;
   const avg=base.length?Math.round(base.reduce((a,i)=>a+getProgress(i),0)/base.length):0;
@@ -1663,7 +2038,7 @@ const renderDashboard = () => {
   $('lpuResumo').textContent=base.filter(i=>isDone(i.etapas?.negociacaoLpu)).length;
   $('filteredCount').textContent=`${fil.length} itens`;
   renderStageBars(base);
-  renderSegmentCharts(base);
+  renderSegmentCharts(segmentBase);
   renderDashboardTable(fil);
   renderInsight(base);
   renderTrackingTable(getTrackingFiltered());
@@ -1690,44 +2065,94 @@ const getStageSummaryRows = sup => {
   });
 };
 
+const isSupplierDocumentationComplete = item => {
+  if(!item) return false;
+  const requiredDocs = getDocsForSegments(item.segmentos || []);
+  const received = new Set((item.docsRecebidos || []).map(doc => norm(doc)));
+  return requiredDocs.length > 0 && requiredDocs.every(([title]) => received.has(norm(title)));
+};
+
+const isSupplierHomologadoDashboard = item => isSupplierFullyConcluded(item);
+
+const DASHBOARD_STATUS_FILTERS = {
+  todos: 'Todos',
+  concluido: 'Homologados',
+  andamento: 'Em andamento',
+  pendente: 'Sem avanço',
+  atrasado: 'Possível atraso'
+};
+
 const getSegmentSummaryRows = sup => DASHBOARD_SEGMENTS.map(segmento => {
   const rows = sup.filter(item => (item.segmentos || []).includes(segmento));
   const total = rows.length;
-  const homologados = rows.filter(item => isDone(item.homologado) || isDone(item.statusAbility)).length;
+  const homologados = rows.filter(isSupplierFullyConcluded).length;
+  const semAvanco = rows.filter(item => situationOf(item) === 'pendente').length;
   const andamento = rows.filter(item => situationOf(item) === 'andamento').length;
   const atraso = rows.filter(isOverdue).length;
-  const concluidos = rows.filter(item => getProgress(item) >= 100).length;
+  const concluidos = homologados;
   const pctConcluidos = total ? Math.round(concluidos / total * 100) : 0;
-  return {segmento, total, homologados, andamento, atraso, concluidos, pctConcluidos};
+  return {segmento, total, homologados, andamento, semAvanco, atraso, concluidos, pctConcluidos};
 });
+
+const setDashboardQuickFilter = (segmento='todos', status='todos') => {
+  const same = ACTIVE_DASHBOARD_SEGMENT_FILTER === segmento && ACTIVE_DASHBOARD_SEGMENT_STATUS_FILTER === status;
+  ACTIVE_DASHBOARD_SEGMENT_FILTER = same ? 'todos' : segmento;
+  ACTIVE_DASHBOARD_SEGMENT_STATUS_FILTER = same ? 'todos' : status;
+  renderDashboard();
+};
 
 const renderSegmentCharts = sup => {
   const wrap = $('segmentCharts');
   if(!wrap) return;
-  const segments = DASHBOARD_SEGMENTS;
-  const maxTotal = Math.max(1, ...segments.map(seg => sup.filter(i => (i.segmentos||[]).includes(seg)).length));
-  wrap.innerHTML = segments.map(seg => {
-    const rows = sup.filter(i => (i.segmentos||[]).includes(seg));
-    const total = rows.length;
-    const hom = rows.filter(i => isDone(i.homologado)||isDone(i.statusAbility)).length;
-    const andamento = rows.filter(i => situationOf(i)==='andamento').length;
-    const atraso = rows.filter(isOverdue).length;
-    const concluidos = rows.filter(i => getProgress(i)>=100).length;
-    const localMax = Math.max(1, total, hom, andamento, atraso);
+  const summaryRows = getSegmentSummaryRows(sup);
+  const activeSeg = ACTIVE_DASHBOARD_SEGMENT_FILTER;
+  const activeStatus = ACTIVE_DASHBOARD_SEGMENT_STATUS_FILTER;
+  const statusLabel = DASHBOARD_STATUS_FILTERS[activeStatus] || activeStatus;
+  const activeNote = activeSeg !== 'todos' || activeStatus !== 'todos'
+    ? `<button type="button" class="segment-clear-pill" id="clearSegmentFilterBtn">Filtro ativo: ${esc(activeSeg === 'todos' ? 'Todos segmentos' : activeSeg)}${activeStatus !== 'todos' ? ` • ${esc(statusLabel)}` : ''} ✕</button>`
+    : `<span class="tag info">Clique no segmento ou em uma barra para filtrar</span>`;
+
+  wrap.innerHTML = summaryRows.map(row => {
+    const total = row.total;
+    const localMax = Math.max(1, row.total, row.homologados, row.andamento, row.semAvanco, row.atraso);
+    const isActiveCard = activeSeg === row.segmento;
     const bars = [
-      ['Total', total],
-      ['Homol.', hom],
-      ['And.', andamento],
-      ['Atraso', atraso]
-    ].map(([label,val]) => `<div class="segment-bar-box"><div class="segment-bar" title="${label}: ${val}" style="height:${Math.max(5, Math.round((val/localMax)*100))}%"></div><div class="segment-bar-label">${label}<br><strong>${val}</strong></div></div>`).join('');
-    const pct = total ? Math.round(concluidos/total*100) : 0;
-    return `<div class="card segment-mini-chart">
-      <div class="panel-title"><div><h3>${esc(seg)}</h3><p>Distribuição do segmento.</p></div><span class="tag info">${total}</span></div>
+      ['Total', row.total, 'todos'],
+      ['Homol.', row.homologados, 'concluido'],
+      ['And.', row.andamento, 'andamento'],
+      ['Sem av.', row.semAvanco, 'pendente'],
+      ['Atraso', row.atraso, 'atrasado']
+    ].map(([label,val,status]) => {
+      const isSliceActive = activeSeg === row.segmento && activeStatus === status;
+      return `<div class="segment-bar-box ${isSliceActive ? 'segment-slice-active' : ''}" data-segment-filter="${esc(row.segmento)}" data-segment-status="${esc(status)}" title="${esc(row.segmento)} • ${label}: ${val}">
+        <div class="segment-bar" style="height:${Math.max(5, Math.round((val/localMax)*100))}%"></div>
+        <div class="segment-bar-label">${label}<br><strong>${val}</strong></div>
+      </div>`;
+    }).join('');
+    return `<div class="card segment-mini-chart segment-clickable ${isActiveCard ? 'segment-active' : ''}" data-segment-filter="${esc(row.segmento)}" data-segment-status="todos" title="Clique no card para filtrar o total de ${esc(row.segmento)}">
+      <div class="panel-title"><div><h3>${esc(row.segmento)}</h3><p>Homologado = todos os status concluídos e progresso 100%.</p><span class="segment-status-note">Clique em Homol., And., Sem av. ou Atraso para ver a coluna escolhida na tabela.</span></div><span class="tag ${isActiveCard ? 'positive' : 'info'}">${isActiveCard ? 'Filtro' : total}</span></div>
       <div class="segment-bars">${bars}</div>
-      <div class="segment-total-line"><span>Concluídos</span><strong>${pct}%</strong></div>
-      <div class="progress"><div style="width:${pct}%"></div></div>
+      <div class="segment-total-line"><span>Homologados / concluídos</span><strong>${row.pctConcluidos}%</strong></div>
+      <div class="progress"><div style="width:${row.pctConcluidos}%"></div></div>
+      <div class="segment-click-hint">${isActiveCard ? 'Filtro rápido aplicado. Clique novamente no mesmo recorte para limpar.' : 'Clique no card para ver o total do segmento ou clique em uma barra para filtrar aquela situação.'}</div>
     </div>`;
-  }).join('');
+  }).join('') + `<div class="card" style="grid-column:1/-1;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><span class="subtle">Filtro rápido por segmento e situação</span>${activeNote}</div>`;
+
+  wrap.querySelectorAll('.segment-bar-box[data-segment-filter]').forEach(box => {
+    box.addEventListener('click', event => {
+      event.stopPropagation();
+      setDashboardQuickFilter(box.dataset.segmentFilter || 'todos', box.dataset.segmentStatus || 'todos');
+    });
+  });
+  wrap.querySelectorAll('.segment-mini-chart[data-segment-filter]').forEach(card => {
+    card.addEventListener('click', () => setDashboardQuickFilter(card.dataset.segmentFilter || 'todos', 'todos'));
+  });
+  $('clearSegmentFilterBtn')?.addEventListener('click', event => {
+    event.stopPropagation();
+    ACTIVE_DASHBOARD_SEGMENT_FILTER = 'todos';
+    ACTIVE_DASHBOARD_SEGMENT_STATUS_FILTER = 'todos';
+    renderDashboard();
+  });
 };
 
 const renderInsight = sup => {
@@ -2341,6 +2766,7 @@ $('clearFormBtn').addEventListener('click',clearForm);
 
 // --- NAV ---
 const switchPage = page => {
+  document.body.dataset.activePage = page;
   document.querySelectorAll('.page').forEach(i=>i.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(i=>i.classList.toggle('active',i.dataset.page===page));
   $(page).classList.add('active');
@@ -2381,7 +2807,9 @@ const dashboardFilterSummaryRows = () => [
   ['Estado de atuação', $('filterAtuacaoEstado')?.value === 'todos' ? 'Todos' : $('filterAtuacaoEstado')?.value],
   ['Categoria do escopo', $('filterScope')?.value === 'todos' ? 'Todas' : $('filterScope')?.value],
   ['Etapa atual', $('filterStage')?.value === 'todos' ? 'Todas' : $('filterStage')?.value],
-  ['Situação', $('filterSituation')?.value === 'todos' ? 'Todas' : $('filterSituation')?.selectedOptions?.[0]?.textContent || $('filterSituation')?.value]
+  ['Situação', $('filterSituation')?.value === 'todos' ? 'Todas' : $('filterSituation')?.selectedOptions?.[0]?.textContent || $('filterSituation')?.value],
+  ['Segmento rápido ativo', ACTIVE_DASHBOARD_SEGMENT_FILTER === 'todos' ? 'Todos' : ACTIVE_DASHBOARD_SEGMENT_FILTER],
+  ['Situação rápida ativa', ACTIVE_DASHBOARD_SEGMENT_STATUS_FILTER === 'todos' ? 'Todas' : (DASHBOARD_STATUS_FILTERS[ACTIVE_DASHBOARD_SEGMENT_STATUS_FILTER] || ACTIVE_DASHBOARD_SEGMENT_STATUS_FILTER)]
 ];
 const dashboardQuickRows = rows => {
   const avg = rows.length ? Math.round(rows.reduce((acc,item) => acc + getProgress(item), 0) / rows.length) : 0;
@@ -2399,7 +2827,7 @@ const dashboardQuickRows = rows => {
 const dashboardExportCsv = () => {
   const rows = getFiltered();
   const stageRows = getStageSummaryRows(rows).map(r => [r.label, r.done, r.total, `${r.pct}%`]);
-  const segmentRows = getSegmentSummaryRows(rows).map(r => [r.segmento, r.total, r.homologados, r.andamento, r.atraso, r.concluidos, `${r.pctConcluidos}%`]);
+  const segmentRows = getSegmentSummaryRows(rows).map(r => [r.segmento, r.total, r.homologados, r.andamento, r.semAvanco, r.atraso, r.concluidos, `${r.pctConcluidos}%`]);
   return '\ufeff' + [
     csvTable(['DASHBOARD FILTRADO'], [[`Gerado em ${new Date().toLocaleString('pt-BR')}`]]),
     '',
@@ -2409,7 +2837,7 @@ const dashboardExportCsv = () => {
     '',
     csvTable(['AVANÇO POR ETAPA','Concluídos','Total filtrado','Percentual'], stageRows),
     '',
-    csvTable(['DISTRIBUIÇÃO DOS SEGMENTOS','Total','Homologados','Em andamento','Atraso','Concluídos','Concluídos %'], segmentRows),
+    csvTable(['DISTRIBUIÇÃO DOS SEGMENTOS','Total','Homologados','Em andamento','Sem avanço','Atraso','Concluídos','Concluídos %'], segmentRows),
     '',
     csvTable(['FORNECEDORES FILTRADOS'], []),
     csvTable(supplierDetailedHeaders, supplierDetailedRows(rows))
@@ -2831,10 +3259,12 @@ const showLoggedInApp = profile => {
   setCurrentUser(profile);
   $('loginScreen').classList.add('hidden');
   $('appShell').style.display = 'grid';
+  $('tutorialReopenBtn')?.classList.remove('hidden');
   startFirebaseListeners();
   applyGlobalPermissions();
   clearForm();
   renderAll();
+  maybeShowFirstAccessPrompt();
 };
 
 const doLogin = async (user, pass) => {
@@ -2861,6 +3291,7 @@ const bootAuth = () => {
   }
   $('loginScreen').classList.remove('hidden');
   $('appShell').style.display = 'none';
+  $('tutorialReopenBtn')?.classList.add('hidden');
 };
 
 const SELF_ACCESS_WHATSAPP = '11 94173-0621';
@@ -2917,6 +3348,7 @@ $('logoutBtn').addEventListener('click', () => {
   $('loginUser').value = '';
   $('loginPass').value = '';
   $('appShell').style.display = 'none';
+  $('tutorialReopenBtn')?.classList.add('hidden');
   $('loginScreen').classList.remove('hidden');
 });
 
@@ -3003,10 +3435,480 @@ const renderAll = () => {
   applyGlobalPermissions();
 };
 
+
+
+const escapeHtml = value => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+// --- TUTORIAL DE PRIMEIRO ACESSO ---
+const FIRST_ACCESS_SESSION_KEY = 'cadastro_fornecedores_first_access_prompt_v2';
+let TUTORIAL_STEPS = [];
+let TUTORIAL_INDEX = 0;
+let TUTORIAL_FREE_MODE = false;
+let TUTORIAL_MANUAL_POS = null;
+let TUTORIAL_DRAGGING = false;
+let TUTORIAL_DRAG_OFFSET = {x:0, y:0};
+
+const isPageVisibleForUser = page => {
+  const btn = document.querySelector(`[data-page="${page}"]`);
+  return !!btn && btn.style.display !== 'none';
+};
+
+const getVisibleRoleLabel = () => {
+  const role = getCurrentUser()?.role || 'Solicitante';
+  if(role === 'Compras') return 'Compras';
+  if(role === 'RH') return 'RH';
+  if(role === 'SESMT') return 'SESMT';
+  if(role === 'Juridico' || role === 'Jurídico') return 'Jurídico';
+  if(role === 'Diretoria') return 'Diretoria';
+  return 'Solicitante';
+};
+
+const step = (page, selector, title, text, details=[], tip='', practice='') => ({ page, selector, title, text, details, tip, practice });
+
+const buildTutorialSteps = () => {
+  const steps = [
+    step('dashboard', '[data-page="dashboard"]', 'Bem-vindo ao painel',
+      `Olá! Eu sou o robozinho guia do painel. Vou te mostrar apenas o que faz sentido para o seu perfil ${getVisibleRoleLabel()}.`,
+      [
+        'Este guia é interativo e acompanha as abas principais do sistema.',
+        'Você pode testar os filtros, cliques e buscas enquanto aprende.',
+        'Se quiser explorar mais livremente, use o botão “Modo teste”.'
+      ],
+      'Sempre que eu destacar uma área, observe para que ela serve e como se relaciona com o restante da tela.',
+      'Teste sugerido: clique nas abas do menu lateral e volte quando quiser. O tutorial continuará disponível.'
+    ),
+    step('dashboard', '.grid-cards', 'Cards principais do Dashboard',
+      'Esses cards resumem a seleção atual e mudam conforme os filtros aplicados.',
+      [
+        'Fornecedores na seleção: total da base filtrada no momento.',
+        'Homologados: somente fornecedores com todos os status concluídos e progresso em 100%.',
+        'Em andamento: todo fornecedor ainda não concluído.',
+        'Passagem à operação: indica quem já chegou ao fim do fluxo operacional.',
+        'Possível atraso: mostra casos fora do prazo ou com SLA vencido.'
+      ],
+      'Olhe para esses cards sempre que aplicar um filtro. Eles funcionam como leitura executiva da base.',
+      'Teste sugerido: altere um filtro e veja os números recalcularem automaticamente.'
+    ),
+    step('dashboard', '#filterSearch', 'Filtros de análise',
+      'Aqui você recorta a visão do Dashboard por fornecedor, localização, escopo, etapa e situação.',
+      [
+        'Buscar: procura fornecedor, CNPJ, e-mail e contato.',
+        'Estado (UF): considera o cadastro principal do fornecedor.',
+        'Estado de atuação: quebra campos como SP/RJ/RS em opções separadas.',
+        'Categoria do escopo: ajuda a focar no tipo de serviço ou material.',
+        'Etapa atual e Situação: filtram o estágio operacional do cadastro.'
+      ],
+      'Os gráficos e a tabela abaixo seguem exatamente os filtros aplicados aqui.',
+      'Teste sugerido: filtre por estado de atuação, depois troque a situação para ver a tela reagir.'
+    ),
+    step('dashboard', '#stageBars', 'Avanço por etapa',
+      'Este bloco mostra quantos fornecedores avançaram em cada marco do processo.',
+      [
+        'Serve para localizar gargalos com rapidez.',
+        'Barras menores costumam denunciar etapas travadas.',
+        'É muito útil em reuniões de acompanhamento.'
+      ],
+      'Se a documentação recebida estiver baixa, por exemplo, esse é um sinal claro de onde cobrar o time ou o fornecedor.',
+      'Teste sugerido: aplique um filtro e compare como o gargalo muda para aquela seleção.'
+    ),
+    step('dashboard', '.summary-grid', 'Leitura rápida',
+      'A leitura rápida resume sinais importantes sem precisar abrir a tabela completa.',
+      [
+        'Maior gargalo: aponta a etapa com menor avanço.',
+        'Progresso médio: média do andamento da base filtrada.',
+        'Doc. recebida: total de fornecedores com documentação recebida/concluída.',
+        'LPU concluída: total com a etapa de negociação comercial já finalizada.'
+      ],
+      'Use essa área quando quiser um diagnóstico direto, rápido e com pouca leitura.',
+      'Teste sugerido: filtre por um grupo específico e veja como a leitura rápida muda.'
+    ),
+    step('dashboard', '#segmentCharts', 'Distribuição dos segmentos',
+      'Aqui você compara a situação de cada segmento da base.',
+      [
+        'Cada card mostra total, homologados, em andamento e atrasos do segmento.',
+        'Homologado considera todos os status concluídos e progresso em 100%.',
+        'O que não estiver 100% concluído entra como em andamento ou sem avanço, evitando “sumidos” no gráfico.'
+      ],
+      'Essa leitura é ótima para comparar Serviço PLIN, Material PLIN, Serviço PLEX e Material PLEX.',
+      'Teste sugerido: aplique um filtro por UF ou atuação e confira como a distribuição por segmento muda.'
+    ),
+    step('dashboard', '#dashboardTable', 'Fornecedores filtrados',
+      'A tabela detalha quem está dentro da seleção atual e mostra o status operacional de cada fornecedor.',
+      [
+        'Veja fornecedor, CNPJ, contato, escopo, UF, região de atuação, segmento, etapa, progresso e SLA.',
+        'O botão Ver abre um detalhamento completo com dados, etapas, documentação e histórico.',
+        'É a ponte entre a visão executiva e a operação.'
+      ],
+      'Quando alguém questionar um número do Dashboard, normalmente a resposta está aqui.',
+      'Teste sugerido: use os filtros e depois abra um fornecedor para validar o detalhe.'
+    ),
+    step('acompanhamento', '[data-page="acompanhamento"]', 'Aba Acompanhamento',
+      'Essa é a visão operacional mais completa do painel.',
+      [
+        'Ela tem busca própria e não depende dos filtros do Dashboard.',
+        'Mostra as etapas do fluxo com datas, progresso e próxima ação.',
+        'É a melhor tela para follow-up de fornecedor.'
+      ],
+      'Quando o objetivo é acompanhar o dia a dia, esta aba costuma ser a mais usada.',
+      'Teste sugerido: abra a aba e pesquise um fornecedor, CNPJ ou responsável.'
+    ),
+    step('acompanhamento', '#trackingSearch', 'Busca do acompanhamento',
+      'A busca desta aba procura em campos operacionais relevantes.',
+      [
+        'Fornecedor e CNPJ.',
+        'Segmento e etapa atual.',
+        'Responsável, próxima ação e último follow-up.'
+      ],
+      'Use essa busca quando quiser localizar casos específicos sem mexer nos filtros executivos do Dashboard.',
+      'Teste sugerido: digite um segmento, um responsável ou parte de uma observação.'
+    ),
+    step('acompanhamento', '#trackingTable', 'Tabela operacional',
+      'Aqui está o acompanhamento completo, com as etapas lado a lado.',
+      [
+        'Você pode analisar avanço, datas, aprovações e progresso do fornecedor.',
+        'É uma visão ideal para cobrar pendências ou preparar reuniões.',
+        'A rolagem horizontal ajuda a ver todas as colunas.'
+      ],
+      'Pense nessa tabela como a visão de controle fino do processo.',
+      'Teste sugerido: role a tabela para os lados e observe como as etapas e datas se complementam.'
+    )
+  ];
+
+  if(canFullEdit()) {
+    steps.push(
+      step('cadastro', '[data-page="cadastro"]', 'Aba Cadastro',
+        'Aqui o time de Compras cria, revisa e atualiza fornecedores.',
+        [
+          'Dados básicos: razão social, CNPJ, contato, telefone, e-mail e região.',
+          'Classificação: segmento, escopo, responsável e situação fiscal.',
+          'Fluxo operacional: etapas, datas, follow-up, SLA e prazo final.'
+        ],
+        'Tudo o que alimenta Dashboard e Acompanhamento nasce ou é corrigido aqui.',
+        'Teste sugerido: clique em um fornecedor no Dashboard e veja como os dados aparecem no formulário.'
+      ),
+      step('cadastro', '#segmentoWrap', 'Segmentos e enquadramento',
+        'Os segmentos definem o comportamento do fornecedor dentro do painel.',
+        [
+          'Serviço PLIN, Material PLIN, Serviço PLEX e Material PLEX podem ser marcados.',
+          'Serviço PLEX habilita etapas adicionais de aprovação.',
+          'Segmento correto melhora o filtro, os gráficos e a governança.'
+        ],
+        'Se o segmento estiver errado, o resto da leitura do painel também fica torto.',
+        'Teste sugerido: observe como o segmento impacta filtros, cards e aprovações.'
+      ),
+      step('cadastro', '#openDocCheckBtn', 'Gerenciar documentação',
+        'Esse botão abre o controle detalhado dos documentos recebidos.',
+        [
+          'Você pode marcar item por item ou usar “Selecionar todos”.',
+          'Ao completar os documentos relevantes, a etapa documental se atualiza automaticamente.',
+          'Isso ajuda a padronizar a cobrança e a conferência.'
+        ],
+        'A documentação é um dos pilares do processo. Sem ela, o fornecedor não deve ser tratado como pronto.',
+        'Teste sugerido: abra o gerenciador de docs e veja como ele organiza a conferência.'
+      ),
+      step('cadastro', '#slaPreview', 'Lead Time e SLA',
+        'Este campo ajuda a controlar prazo e saúde do cadastro.',
+        [
+          'A data de início alimenta o cálculo de SLA.',
+          'O preview mostra se o fornecedor está no prazo, em alerta ou atrasado.',
+          'Serve para gestão e priorização.'
+        ],
+        'Sempre que possível, mantenha as datas corretas para não distorcer o controle.',
+        'Teste sugerido: repare como o preview conversa com o card de possível atraso no Dashboard.'
+      ),
+      step('dashboard', '#bulkCsvUpdateBtn', 'Atualização em massa por CSV',
+        'Essa função acelera correções e cargas em lote pelo CNPJ.',
+        [
+          'Modo Segmento/Telefone: corrige classificação e dados básicos.',
+          'Modo Andamento/Conclusão: atualiza etapas, datas, responsável e follow-up.',
+          'É um recurso poderoso e deve ser usado com arquivo validado.'
+        ],
+        'Use essa ferramenta quando a alteração for grande demais para o cadastro manual.',
+        'Teste sugerido: clique no botão e leia com calma a explicação de cada modo.'
+      ),
+      step('dashboard', '#csvExportScope', 'Exportar Excel',
+        'Compras pode exportar relatórios escolhendo a aba desejada.',
+        [
+          'Dashboard filtrado inclui filtros, leitura rápida, avanço por etapa e segmentos.',
+          'Base completa e acompanhamento ajudam em análises operacionais.',
+          'Use o seletor ao lado do botão para escolher o tipo de saída.'
+        ],
+        'A exportação serve tanto para análise quanto para evidência e repasse.',
+        'Teste sugerido: altere a opção do seletor para ver os tipos de export disponíveis.'
+      ),
+      step('servicos', '[data-page="servicos"]', 'Tipos de Serviço',
+        'Essa aba padroniza o catálogo de escopos que a base utiliza.',
+        [
+          'Ajuda a manter o cadastro organizado.',
+          'Facilita filtros, pesquisas e preenchimento consistente do escopo.',
+          'Também reduz descrição solta ou bagunçada.'
+        ],
+        'Uma base com escopos padronizados vira um painel muito mais confiável.',
+        'Teste sugerido: pesquise um serviço e veja como o catálogo está estruturado.'
+      )
+    );
+  } else if(approvalKeyForUser()) {
+    steps.push(
+      step('cadastro', '[data-page="cadastro"]', `Fluxo de aprovação de ${roleName()}`,
+        `Seu perfil ${getVisibleRoleLabel()} tem foco em aprovação da etapa correspondente, especialmente em Serviço PLEX.`,
+        [
+          'Você não precisa editar o cadastro completo para atuar.',
+          'O objetivo é validar ou reprovar a sua etapa com responsabilidade.',
+          'A leitura do Dashboard e do Acompanhamento ajuda a entender o contexto antes da aprovação.'
+        ],
+        'Seu papel é garantir a qualidade da validação da sua área, sem bagunçar o restante do cadastro.',
+        'Teste sugerido: consulte Dashboard e Acompanhamento antes de aprovar sua etapa.'
+      )
+    );
+  }
+
+  if(isPageVisibleForUser('checklist')) {
+    steps.push(
+      step('checklist', '#docsList', 'Checklist documental',
+        'Aqui fica a lista base dos documentos obrigatórios para cobrança inicial ao fornecedor.',
+        [
+          'A aba funciona como guia de conferência.',
+          'Ajuda a manter o padrão documental.',
+          'Evita que o cadastro volte por falta de documento básico.'
+        ],
+        'Use essa aba como referência rápida durante a cobrança e a validação.',
+        'Teste sugerido: confira a lista e compare com o que é pedido no fluxo documental.'
+      ),
+      step('checklist', '#templateMsg', 'Texto rápido de cobrança',
+        'Esse campo entrega uma mensagem pronta para cobrar a documentação base.',
+        [
+          'Funciona bem para e-mail, Teams ou WhatsApp.',
+          'Ganha tempo e ajuda a padronizar a comunicação.',
+          'Pode ser copiado com um clique.'
+        ],
+        'Padronização na cobrança reduz retrabalho e dúvidas do fornecedor.',
+        'Teste sugerido: clique em copiar e veja como o texto pode ser usado no dia a dia.'
+      )
+    );
+  }
+
+  if(canCreateAccess()) {
+    steps.push(
+      step('acessos', '[data-page="acessos"]', 'Aba Acessos',
+        'Compras controla usuários e permissões por aqui.',
+        [
+          'Você cria nome, usuário, perfil e senha inicial.',
+          'Perfis limitam o que cada pessoa pode visualizar ou editar.',
+          'Quem cria acesso sozinho entra como Solicitante.'
+        ],
+        'Governança de acesso é importante para evitar bagunça no painel.',
+        'Teste sugerido: veja as regras de perfil e depois observe a tabela de acessos cadastrados.'
+      ),
+      step('acessos', '#accessTable', 'Lista de acessos',
+        'Esta tabela exibe os usuários já cadastrados no painel.',
+        [
+          'Você vê nome, usuário, perfil, status e criação.',
+          'Também consegue gerenciar a ativação dos acessos.',
+          'É a área de conferência administrativa dos usuários.'
+        ],
+        'Sempre revise essa tabela quando houver dúvida sobre permissão ou bloqueio de acesso.',
+        'Teste sugerido: observe como os perfis refletem as permissões vistas no tutorial.'
+      )
+    );
+  }
+
+  return steps.filter(item => isPageVisibleForUser(item.page) && document.querySelector(item.selector));
+};
+
+const setTutorialMode = (freeMode=false) => {
+  TUTORIAL_FREE_MODE = !!freeMode;
+  const layer = $('tutorialLayer');
+  const card = $('tutorialCard');
+  layer?.classList.toggle('free-mode', TUTORIAL_FREE_MODE);
+  card?.classList.remove('dragging');
+  $('tutorialFocusToggleBtn').textContent = TUTORIAL_FREE_MODE ? 'Reforçar foco' : 'Modo teste';
+  $('tutorialHelper').textContent = TUTORIAL_FREE_MODE
+    ? '🤖 Modo teste ativado: arraste este card pela tela e teste filtros, abas e botões com liberdade. Quando quiser voltar ao destaque, clique em “Reforçar foco”.'
+    : '💡 Dica do Newt Bot: você pode clicar, filtrar e navegar com o tutorial aberto. Se quiser mover este card pela tela, ative o modo teste.';
+  if(TUTORIAL_FREE_MODE && !TUTORIAL_MANUAL_POS && card) {
+    TUTORIAL_MANUAL_POS = {
+      left: Math.max(14, window.innerWidth - Math.min(430, window.innerWidth - 28) - 18),
+      top: Math.max(14, window.innerHeight - Math.min(card.offsetHeight || 360, window.innerHeight - 28) - 18)
+    };
+  }
+  if(!TUTORIAL_FREE_MODE) TUTORIAL_MANUAL_POS = null;
+  positionTutorial();
+};
+
+const clampTutorialCard = () => {
+  const card = $('tutorialCard');
+  if(!card || !TUTORIAL_MANUAL_POS) return;
+  const maxLeft = Math.max(14, window.innerWidth - card.offsetWidth - 14);
+  const maxTop = Math.max(14, window.innerHeight - card.offsetHeight - 14);
+  TUTORIAL_MANUAL_POS.left = Math.min(maxLeft, Math.max(14, TUTORIAL_MANUAL_POS.left));
+  TUTORIAL_MANUAL_POS.top = Math.min(maxTop, Math.max(14, TUTORIAL_MANUAL_POS.top));
+};
+
+const positionTutorial = () => {
+  if($('tutorialLayer')?.classList.contains('hidden')) return;
+  const step = TUTORIAL_STEPS[TUTORIAL_INDEX];
+  const target = step ? document.querySelector(step.selector) : null;
+  const spotlight = $('tutorialSpotlight');
+  const arrow = $('tutorialArrow');
+  const card = $('tutorialCard');
+  if(!spotlight || !card) return;
+  if(TUTORIAL_FREE_MODE || !target) {
+    spotlight.style.top = '0px';
+    spotlight.style.left = '0px';
+    spotlight.style.width = '0px';
+    spotlight.style.height = '0px';
+    if(arrow) arrow.style.display = 'none';
+    if(TUTORIAL_FREE_MODE) {
+      if(!TUTORIAL_MANUAL_POS) TUTORIAL_MANUAL_POS = {left: Math.max(14, window.innerWidth - card.offsetWidth - 18), top: Math.max(14, window.innerHeight - card.offsetHeight - 18)};
+      clampTutorialCard();
+      card.style.left = `${TUTORIAL_MANUAL_POS.left}px`;
+      card.style.top = `${TUTORIAL_MANUAL_POS.top}px`;
+      card.style.right = 'auto';
+      card.style.bottom = 'auto';
+    }
+    return;
+  }
+  const rect = target.getBoundingClientRect();
+  const pad = 8;
+  const top = Math.max(8, rect.top - pad);
+  const left = Math.max(8, rect.left - pad);
+  const width = Math.min(window.innerWidth - left - 8, rect.width + pad * 2);
+  const height = Math.min(window.innerHeight - top - 8, rect.height + pad * 2);
+  spotlight.style.top = `${top}px`;
+  spotlight.style.left = `${left}px`;
+  spotlight.style.width = `${width}px`;
+  spotlight.style.height = `${height}px`;
+  if(arrow) {
+    arrow.style.display = 'grid';
+    const arrowLeft = Math.min(window.innerWidth - 56, Math.max(12, left + Math.min(width * 0.5, 180) - 21));
+    const arrowTop = top > 58 ? top - 54 : Math.min(window.innerHeight - 56, top + height + 10);
+    arrow.style.left = `${arrowLeft}px`;
+    arrow.style.top = `${arrowTop}px`;
+  }
+
+  const cardWidth = Math.min(440, window.innerWidth - 28);
+  let cardTop = top + height + 14;
+  if(cardTop + 360 > window.innerHeight) cardTop = Math.max(14, top - 380);
+  let cardLeft = Math.min(window.innerWidth - cardWidth - 14, Math.max(14, left));
+  if(cardLeft + cardWidth > window.innerWidth - 14) cardLeft = window.innerWidth - cardWidth - 14;
+  card.style.top = `${cardTop}px`;
+  card.style.left = `${cardLeft}px`;
+  card.style.right = 'auto';
+  card.style.bottom = 'auto';
+};
+
+const renderTutorialStep = () => {
+  const current = TUTORIAL_STEPS[TUTORIAL_INDEX];
+  if(!current) return endTutorial();
+  switchPage(current.page);
+  setTimeout(() => {
+    const target = document.querySelector(current.selector);
+    if(target && !TUTORIAL_FREE_MODE) target.scrollIntoView({behavior:'smooth', block:'center', inline:'center'});
+    setTimeout(() => {
+      $('tutorialProgress').textContent = `Etapa ${TUTORIAL_INDEX + 1}/${TUTORIAL_STEPS.length}`;
+      $('tutorialPageBadge').textContent = `Aba: ${String(current.page || '').charAt(0).toUpperCase() + String(current.page || '').slice(1)}`;
+      $('tutorialTitle').textContent = current.title;
+      $('tutorialText').textContent = current.text;
+      $('tutorialTip').textContent = current.tip || 'Avance para continuar o guia.';
+      $('tutorialPractice').textContent = current.practice || 'Teste sugerido: experimente a área destacada para fixar o funcionamento.';
+      const detailBox = $('tutorialDetails');
+      detailBox.innerHTML = (current.details || []).map(item => `<li>${escapeHtml(item)}</li>`).join('');
+      detailBox.style.display = (current.details && current.details.length) ? 'flex' : 'none';
+      $('tutorialPrevBtn').disabled = TUTORIAL_INDEX === 0;
+      $('tutorialNextBtn').textContent = TUTORIAL_INDEX === TUTORIAL_STEPS.length - 1 ? 'Finalizar' : 'Próximo';
+      positionTutorial();
+    }, 180);
+  }, 80);
+};
+
+const startTutorial = () => {
+  TUTORIAL_STEPS = buildTutorialSteps();
+  if(!TUTORIAL_STEPS.length) return alert('Não encontrei etapas visíveis para o seu perfil neste momento.');
+  TUTORIAL_INDEX = 0;
+  $('tutorialLayer')?.classList.remove('hidden');
+  setTutorialMode(false);
+  renderTutorialStep();
+};
+
+const endTutorial = () => {
+  $('tutorialLayer')?.classList.add('hidden');
+  setTutorialMode(false);
+};
+
+const maybeShowFirstAccessPrompt = () => {
+  const user = getCurrentUser()?.user || 'anonimo';
+  const key = `${FIRST_ACCESS_SESSION_KEY}_${user}`;
+  if(sessionStorage.getItem(key)) return;
+  sessionStorage.setItem(key, '1');
+  setTimeout(() => $('firstAccessModal')?.classList.add('show'), 700);
+};
+
+$('firstAccessYesBtn')?.addEventListener('click', () => {
+  $('firstAccessModal')?.classList.remove('show');
+  $('tutorialConfirmModal')?.classList.add('show');
+});
+$('firstAccessNoBtn')?.addEventListener('click', () => $('firstAccessModal')?.classList.remove('show'));
+$('startTutorialBtn')?.addEventListener('click', () => {
+  $('tutorialConfirmModal')?.classList.remove('show');
+  startTutorial();
+});
+$('skipTutorialBtn')?.addEventListener('click', () => $('tutorialConfirmModal')?.classList.remove('show'));
+$('tutorialNextBtn')?.addEventListener('click', () => {
+  if(TUTORIAL_INDEX >= TUTORIAL_STEPS.length - 1) return endTutorial();
+  TUTORIAL_INDEX += 1;
+  renderTutorialStep();
+});
+$('tutorialPrevBtn')?.addEventListener('click', () => {
+  if(TUTORIAL_INDEX <= 0) return;
+  TUTORIAL_INDEX -= 1;
+  renderTutorialStep();
+});
+$('tutorialFocusToggleBtn')?.addEventListener('click', () => setTutorialMode(!TUTORIAL_FREE_MODE));
+$('tutorialCloseBtn')?.addEventListener('click', endTutorial);
+$('tutorialReopenBtn')?.addEventListener('click', () => {
+  $('firstAccessModal')?.classList.remove('show');
+  $('tutorialConfirmModal')?.classList.remove('show');
+  startTutorial();
+});
+
+const startTutorialDrag = event => {
+  if(!TUTORIAL_FREE_MODE) return;
+  const card = $('tutorialCard');
+  if(!card) return;
+  const target = event.target;
+  if(target?.closest?.('button, input, select, textarea, a')) return;
+  const point = event.touches ? event.touches[0] : event;
+  const rect = card.getBoundingClientRect();
+  TUTORIAL_DRAGGING = true;
+  TUTORIAL_DRAG_OFFSET = {x: point.clientX - rect.left, y: point.clientY - rect.top};
+  card.classList.add('dragging');
+  event.preventDefault();
+};
+const moveTutorialDrag = event => {
+  if(!TUTORIAL_DRAGGING || !TUTORIAL_FREE_MODE) return;
+  const point = event.touches ? event.touches[0] : event;
+  TUTORIAL_MANUAL_POS = {left: point.clientX - TUTORIAL_DRAG_OFFSET.x, top: point.clientY - TUTORIAL_DRAG_OFFSET.y};
+  clampTutorialCard();
+  positionTutorial();
+};
+const endTutorialDrag = () => {
+  TUTORIAL_DRAGGING = false;
+  $('tutorialCard')?.classList.remove('dragging');
+};
+$('tutorialCard')?.addEventListener('mousedown', startTutorialDrag);
+$('tutorialCard')?.addEventListener('touchstart', startTutorialDrag, {passive:false});
+window.addEventListener('mousemove', moveTutorialDrag);
+window.addEventListener('touchmove', moveTutorialDrag, {passive:false});
+window.addEventListener('mouseup', endTutorialDrag);
+window.addEventListener('touchend', endTutorialDrag);
+window.addEventListener('resize', positionTutorial);
+window.addEventListener('scroll', positionTutorial, true);
+document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', () => setTimeout(positionTutorial, 180)));
 // --- INIT ---
 renderDocs();
 renderStageGuide();
 clearForm();
+document.body.dataset.activePage = document.body.dataset.activePage || 'dashboard';
 bootAuth();
 </script>
 </body>
