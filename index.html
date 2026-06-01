@@ -3,64 +3,95 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Página em Manutenção</title>
+<title>Erro de Sistema</title>
 
 <style>
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Arial, Helvetica, sans-serif;
+    font-family:Consolas, monospace;
 }
 
 body{
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-    color:white;
+    background:#050505;
+    color:#fff;
+    overflow:hidden;
+    height:100vh;
     display:flex;
     justify-content:center;
     align-items:center;
-    height:100vh;
-    text-align:center;
 }
 
 .container{
-    max-width:700px;
-    padding:40px;
-}
-
-.icon{
-    font-size:90px;
-    margin-bottom:20px;
-    animation:girar 4s linear infinite;
+    text-align:center;
+    max-width:800px;
+    padding:30px;
+    z-index:2;
 }
 
 h1{
-    font-size:42px;
-    margin-bottom:15px;
+    font-size:3rem;
+    color:#ff4d4d;
+    margin-bottom:20px;
+    animation:glitch 2s infinite;
 }
 
 p{
-    font-size:18px;
-    color:#cbd5e1;
-    line-height:1.6;
+    font-size:1.2rem;
+    line-height:1.8;
+    color:#d9d9d9;
+}
+
+.code{
+    margin:25px auto;
+    padding:15px;
+    background:rgba(255,0,0,0.08);
+    border:1px solid rgba(255,0,0,0.4);
+    border-radius:8px;
+    color:#ff8080;
+    width:fit-content;
 }
 
 .status{
     margin-top:25px;
-    display:inline-block;
-    background:#f59e0b;
-    color:#111827;
-    padding:10px 20px;
-    border-radius:20px;
+    color:#ffd966;
     font-weight:bold;
+    font-size:1.1rem;
 }
 
-@keyframes girar{
+.warning{
+    position:absolute;
+    top:-50px;
+    font-size:28px;
+    opacity:.7;
+    animation:fall linear infinite;
+}
+
+@keyframes fall{
     from{
-        transform:rotate(0deg);
+        transform:translateY(-100px);
     }
     to{
-        transform:rotate(360deg);
+        transform:translateY(110vh);
+    }
+}
+
+@keyframes glitch{
+    0%{
+        text-shadow:2px 2px red;
+    }
+    25%{
+        text-shadow:-2px -2px cyan;
+    }
+    50%{
+        text-shadow:3px -3px red;
+    }
+    75%{
+        text-shadow:-3px 3px cyan;
+    }
+    100%{
+        text-shadow:2px 2px red;
     }
 }
 </style>
@@ -69,19 +100,46 @@ p{
 <body>
 
 <div class="container">
-    <div class="icon">⚙️</div>
+    <h1>⚠ ARQUIVO CORROMPIDO ⚠</h1>
 
-    <h1>Página em Manutenção</h1>
+    <div class="code">
+        ERROR 0x0000F4 | DATA RECOVERY IN PROGRESS
+    </div>
 
     <p>
-        A pagina teve alguns problemas com banco de dados e sincronização de informações.
-        Em breve o sistema será avaliado para voltar as operações normais.
+        Detectamos uma inconsistência crítica em alguns arquivos do sistema.
+        Nossa equipe está trabalhando na recuperação e estabilização do ambiente.
+    </p>
+
+    <br>
+
+    <p>
+        Assim que tudo for restabelecido, o site retornará com melhorias e novas funcionalidades.
     </p>
 
     <div class="status">
-        Avaliação e testes em Andamento.
+        🚧 Recuperando dados e aplicando atualizações...
     </div>
 </div>
+
+<script>
+const symbols = ["⚠️","🚨"];
+
+for(let i=0;i<70;i++){
+
+    let item = document.createElement("div");
+
+    item.classList.add("warning");
+    item.innerHTML = symbols[Math.floor(Math.random()*symbols.length)];
+
+    item.style.left = Math.random()*100 + "vw";
+    item.style.animationDuration = (3 + Math.random()*8) + "s";
+    item.style.fontSize = (20 + Math.random()*25) + "px";
+    item.style.opacity = (0.2 + Math.random()*0.8);
+
+    document.body.appendChild(item);
+}
+</script>
 
 </body>
 </html>
