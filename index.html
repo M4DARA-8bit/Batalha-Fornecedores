@@ -707,27 +707,32 @@ tbody tr:hover { background:rgba(var(--page-rgb),0.07) !important; }
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<style>
-/* === HOTFIX V5 FELIPE — tutorial, legibilidade e cotação === */
-.tutorial-arrow { display:none !important; animation:none !important; }
-.tutorial-card {
-  background:#0f172a !important;
-  color:#f8fafc !important;
-  border:1px solid rgba(14,165,233,.45) !important;
-  box-shadow:0 22px 60px rgba(2,6,23,.48) !important;
-  max-height:calc(100vh - 28px) !important;
-  overflow:auto !important;
-}
-.tutorial-card h3, .tutorial-card strong { color:#ffffff !important; }
-.tutorial-card p, .tutorial-helper, .tutorial-details { color:#e2e8f0 !important; }
-.tutorial-progress { color:#7dd3fc !important; }
-.tutorial-page-badge { color:#dbeafe !important; background:rgba(37,99,235,.22) !important; border-color:rgba(147,197,253,.4) !important; }
-.tutorial-tip { color:#eff6ff !important; background:rgba(37,99,235,.22) !important; border-color:rgba(147,197,253,.35) !important; }
-.tutorial-practice { color:#ecfdf5 !important; background:rgba(22,163,74,.20) !important; border-color:rgba(134,239,172,.35) !important; }
-.tutorial-actions { position:sticky; bottom:0; background:#0f172a; padding-top:10px; z-index:2; }
-.cotacao-template-note { background:#f8fafc !important; color:#253449 !important; border:1px solid #dbe7f3 !important; border-radius:14px; padding:12px; font-size:12px; line-height:1.55; }
-#cotacaoMensagem { color:#172033 !important; background:#ffffff !important; }
-</style></head>
+
+<style id="ability-v6-final-css">
+  #compras, #compras .cp-resultado-card, #compras .cp-metric, #compras .cp-rank-card, #compras .cp-ci-block { color:#162033 !important; }
+  #compras .cp-resultado-card { background:#ffffff !important; border-color:#cbd5e1 !important; box-shadow:0 10px 28px rgba(15,23,42,.10) !important; }
+  #compras .cp-metric { background:#f8fafc !important; border-color:#dbe4ef !important; }
+  #compras .cp-metric-label, #compras .cp-resultado-card [style*="color:#8a9bb8"], #compras .cp-resultado-card [style*="color: #8a9bb8"] { color:#334155 !important; }
+  #compras .cp-tbl th { background:#dbeafe !important; color:#172033 !important; border-color:#b6c7dc !important; }
+  #compras .cp-tbl td { color:#172033 !important; border-color:#d9e2ec !important; background:#ffffff; }
+  #compras .cp-tbl tr.detail-row td, #compras .cp-tbl tr.detail-row div { color:#334155 !important; background:#f8fafc !important; }
+  #compras .cp-tbl td.item-name { color:#0f172a !important; font-weight:800 !important; }
+  #compras .cp-tbl td.best { background:#dcfce7 !important; color:#064e3b !important; }
+  #compras .cp-rank-card { background:#f8fafc !important; border-color:#dbe4ef !important; color:#172033 !important; }
+  #compras .cp-rank-card.rank-1 { background:#ecfdf5 !important; border-color:#86efac !important; }
+  #compras .cp-ci-block { background:#ecfdf5 !important; border-color:#86efac !important; color:#14532d !important; }
+  #compras .cp-ci-block div, #compras .cp-rank-card div { color:inherit; }
+  #compras .cp-print-only { display:none; }
+  @media print {
+    body * { visibility:hidden !important; }
+    #cp-resultado-content, #cp-resultado-content * { visibility:visible !important; }
+    #cp-resultado-content { position:absolute !important; left:0 !important; top:0 !important; width:100% !important; background:#fff !important; color:#111827 !important; }
+    #compras .cp-resultado-card { page-break-inside:avoid; box-shadow:none !important; border:1px solid #cbd5e1 !important; margin-bottom:12px !important; }
+    #compras .cp-tbl { font-size:10px !important; }
+    #compras .ghost-btn, #compras .primary-btn { display:none !important; }
+  }
+</style>
+</head>
 <body data-active-page="dashboard">
 <div class="login-screen" id="loginScreen">
 <div class="login-card">
@@ -1362,6 +1367,19 @@ tbody tr:hover { background:rgba(var(--page-rgb),0.07) !important; }
 <div class="cotacao-template-note"><strong>Serviço:</strong> use quando existir execução, visita técnica, mão de obra, escopo técnico, mobilização ou prazo de execução.</div>
 <div class="cotacao-template-note"><strong>Material:</strong> use quando a cotação envolver item, quantidade, unidade, NCM, frete, prazo de entrega, IPI/DIFAL e condições comerciais.</div>
 </div>
+
+<div class="form-grid" id="cotacaoCnpjBaseBox" style="margin:0 0 14px;">
+  <div class="field">
+    <label>Base / CNPJ ABILITY para material</label>
+    <select id="cotacaoCnpjBaseSelect">
+      <option value="">Selecionar base para inserir no corpo do e-mail</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Prévia do CNPJ selecionado</label>
+    <input id="cotacaoCnpjBasePreview" readonly placeholder="Selecione uma base acima">
+  </div>
+</div>
 <!-- PARA (campo aberto) -->
 <div class="form-grid" style="margin-bottom:14px;">
 <div class="field">
@@ -1679,6 +1697,7 @@ Brita 1;8;m³" style="min-height:140px;width:100%;background:rgba(255,255,255,0.
 </div>
 </div>
 </div>
+
 <!-- MODAL DETALHE -->
 <div class="modal-backdrop" id="detailModal">
 <div class="modal">
@@ -4288,46 +4307,6 @@ const buildTutorialSteps = () => {
         'O comparativo mostra qual fornecedor tem o menor custo total já com todos os impostos incluídos.',
         'Teste sugerido: adicione dois fornecedores de UFs diferentes e calcule para ver o DIFAL aplicado.'
       ),
-      step('compras', '#cpAutomationPanel', 'Automação do comparativo',
-        'Os cards superiores fazem auditoria, importação inteligente, resumo de melhor compra e exportação CSV do comparativo.',
-        [
-          'Auditar dados aponta fornecedor sem UF, CNPJ ou preço pendente.',
-          'Importar orçamento lê XLSX convertido do PDF e tenta vincular itens ao fornecedor.',
-          'Exportar CSV baixa somente os dados do comparativo, não a base completa de fornecedores.'
-        ],
-        'Use auditoria antes de calcular. Ela evita resultado torto por falta de preço ou UF.',
-        'Teste sugerido: clique em Auditar dados com a base vazia e veja as pendências indicadas.'
-      ),
-      step('compras', '#cp-page-fornecedores', 'Fornecedores do comparativo',
-        'Inclua apenas os fornecedores que participam daquela tomada de preço específica.',
-        [
-          'Você pode adicionar manualmente ou importar da base cadastrada.',
-          'UF e CNPJ são importantes para o cálculo fiscal e para vincular orçamento XLSX.',
-          'Fornecedor sem UF pode comprometer DIFAL.'
-        ],
-        'Não use a base inteira no comparativo. Selecione só quem realmente cotou.',
-        'Teste sugerido: importe um fornecedor da base e confira se UF e CNPJ vieram preenchidos.'
-      ),
-      step('compras', '#cp-page-insumos', 'Insumos e importação XLSX',
-        'Cadastre os itens cotados ou importe o orçamento convertido em Excel.',
-        [
-          'Uma linha de insumo deve ter descrição, quantidade e unidade.',
-          'O importador tenta encontrar descrição, quantidade, unidade, valor unitário e total.',
-          'Modelos fora do padrão podem exigir conferência manual antes de importar.'
-        ],
-        'O Excel convertido ajuda, mas orçamento bagunçado ainda precisa revisão.',
-        'Teste sugerido: abra Importar Orçamento XLSX e confira o diagnóstico antes de importar.'
-      ),
-      step('compras', '#cp-page-config', 'Configuração fiscal',
-        'Aqui entram UF destino, ICMS interno, FCP, PIS, COFINS e margem.',
-        [
-          'UF destino define a base do cálculo de DIFAL.',
-          'PIS/COFINS e margem entram no custo final se preenchidos.',
-          'IPI pode ser definido separadamente por item e fornecedor.'
-        ],
-        'Comparativo fiscal sem configuração vira só uma planilha bonita. Configure antes de decidir.',
-        'Teste sugerido: revise a UF destino e veja a tabela DIFAL gerada por fornecedor.'
-      ),
       step('compras', '#cp-page-resultado', 'Resultado e Compra Inteligente',
         'Após calcular, o sistema mostra a tabela comparativa e a estratégia de compra ideal.',
         [
@@ -4407,15 +4386,19 @@ const positionTutorial = () => {
   spotlight.style.left = `${left}px`;
   spotlight.style.width = `${width}px`;
   spotlight.style.height = `${height}px`;
-  if(arrow) arrow.style.display = 'none';
+  if(arrow) {
+    arrow.style.display = 'grid';
+    const arrowLeft = Math.min(window.innerWidth - 56, Math.max(12, left + Math.min(width * 0.5, 180) - 21));
+    const arrowTop = top > 58 ? top - 54 : Math.min(window.innerHeight - 56, top + height + 10);
+    arrow.style.left = `${arrowLeft}px`;
+    arrow.style.top = `${arrowTop}px`;
+  }
 
   const cardWidth = Math.min(440, window.innerWidth - 28);
-  const cardHeight = Math.min(card.offsetHeight || 360, window.innerHeight - 28);
   let cardTop = top + height + 14;
-  if(cardTop + cardHeight > window.innerHeight - 14) cardTop = top - cardHeight - 14;
-  cardTop = Math.min(window.innerHeight - cardHeight - 14, Math.max(14, cardTop));
+  if(cardTop + 360 > window.innerHeight) cardTop = Math.max(14, top - 380);
   let cardLeft = Math.min(window.innerWidth - cardWidth - 14, Math.max(14, left));
-  cardLeft = Math.min(window.innerWidth - cardWidth - 14, Math.max(14, cardLeft));
+  if(cardLeft + cardWidth > window.innerWidth - 14) cardLeft = window.innerWidth - cardWidth - 14;
   card.style.top = `${cardTop}px`;
   card.style.left = `${cardLeft}px`;
   card.style.right = 'auto';
@@ -5477,7 +5460,7 @@ function cpGerarResultado() {
 
   html += `<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
     <button class="ghost-btn" onclick="cpBuildPrecoInput()">← Editar preços</button>
-    <button class="ghost-btn" onclick="window.print()">🖨️ Imprimir / PDF</button>
+    <button class="ghost-btn" onclick="cpImprimirComparativoPdf()">🖨️ Imprimir / PDF</button>
   </div>`;
 
   const rc = $cp('cp-resultado-content');
@@ -6285,34 +6268,159 @@ Atte.`
 })();
 
 </script>
-<script>
-/* === HOTFIX V5 FELIPE — ponte funcional, modelos e botões === */
+
+<script id="ability-v6-final-fixes">
 (function(){
-  const $ = id => document.getElementById(id);
-  const BRL = v => Number(v || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-  const csvCell = v => '"' + String(v ?? '').replace(/"/g,'""') + '"';
-  const downloadCsv = (filename, linhas) => {
-    const csv = '\ufeff' + linhas.map(row => row.map(csvCell).join(';')).join('\n');
-    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 150);
+  'use strict';
+  const ABILITY_CNPJ_BASES = [{"base": "BRASILIA", "cnpj": "06.127.582/0016-34", "razao": "ABILITY TECNOLOGIA E SERVIÇOS S/A", "endereco": "Q QUADRA 4,BRASILIA,DF-72.445-040"}, {"base": "CANOAS", "cnpj": "06.127.582/0034-16", "razao": "ABILITY TECNOLOGIA E SERVIÇOS S/A", "endereco": "R SAO PAULO 575, CANOAS,RS-92.340-180"}, {"base": "CARAGUATATUBA", "cnpj": "06.127.582/0010-49", "razao": "ABILITY TECNOLOGIA E SERVIÇOS S/A", "endereco": "R MINISTRO DILSON FUNARO,CARAGUATATUBA,SP,11.672-150"}, {"base": "CUIABA", "cnpj": "06.127.582/0018-04", "razao": "ABILITY TECNOLOGIA E SERVIÇOS S/A", "endereco": "GALPAO113 E 114,CUIABA,MT-78.070-680"}, {"base": "GOIANIA", "cnpj": "06.127.582/0015-53", "razao": "ABILITY TECNOLOGIA E SERVIÇOS S/A", "endereco": "R 12 818,QUADRA554 LOTE 04 E 05,GOIANIA,GO74.440-420"}, {"base": "GUARATINGUETA", "cnpj": "06.127.582/0008-24", "razao": "ABILITY TECNOLOGIA E SERVIÇOS S/A", "endereco": "AV RUI BARBOSA 556,GUARATINGUETA,SP-12.502-900"}, {"base": "MATRIZ", "cnpj": "06.127.582/0001-58", "razao": "ABILITY TECNOLOGIA E SERVIÇOS S/A", "endereco": "R ANDRE ROVAI N°355 PREDIO CENTRAL - OSASCO - SP"}, {"base": "NITEROI", "cnpj": "06.127.582/0033-35", "razao": "ABILITY TECNOLOGIA E SERVIÇOS S/A", "endereco": "R PADRE AUGUSTO LAMEGO 66,NITEROI,RJ-24.030-340"}, {"base": "OSASCO", "cnpj": "06.127.582/0006-62", "razao": "ABILITY TECNOLOGIA E SERVIÇOS S/A", "endereco": "R ANDRE ROVAI 355,OSASCO,SP-06.233-150"}, {"base": "OSASCO / TECNOLOGIA", "cnpj": "06.127.582/0006-62", "razao": "ABILITY TECNOLOGIA E SERVIÇOS S/A", "endereco": "Rua André Rovai 355, Osasco, SP, 06233-150"}, {"base": "PINHAIS", "cnpj": "06.127.582/0035-05", "razao": "ABILITY TECNOLOGIA E SERVIÇOS S/A", "endereco": "R RIO AZUL 247,PINHAIS,PR-83.325-110"}, {"base": "SAO ROQUE", "cnpj": "06.127.582/0003-10", "razao": "ABILITY TECNOLOGIA E SERVIÇOS S/A", "endereco": "VILA NOVA SAO ROQUE,SAO ROQUE, SP,"}, {"base": "SÃO JOSE -SC", "cnpj": "06.127.582/0036-88", "razao": "ABILITY TECNOLOGIA E SERVIÇOS S/A", "endereco": "R JOAO JOSE VIEIRA 4983,SAO JOSE ,SC-88.115-362"}, {"base": "SÃO JOSE DOS CAMPOS", "cnpj": "06.127.582/0009-05", "razao": "ABILITY TECNOLOGIA E SERVIÇOS S/A", "endereco": "AV DR. JOAO BATISTA DE SOUZA SOARES 355,SAO JOSE DOS CAMPOS,SP,12.235-200"}];
+  window.ABILITY_CNPJ_BASES = ABILITY_CNPJ_BASES;
+  const byId = id => document.getElementById(id);
+  const esc = v => String(v ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const num = v => Number(v || 0);
+  const brl = v => 'R$ ' + num(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const dec = v => num(v).toLocaleString('pt-BR', {maximumFractionDigits:3});
+
+  function getForns() { return Array.isArray(window.cpFornecedores) ? window.cpFornecedores : []; }
+  function getIns() { return Array.isArray(window.cpInsumos) ? window.cpInsumos : []; }
+  function getPreco() { return window.cpPrecoData && typeof window.cpPrecoData === 'object' ? window.cpPrecoData : {}; }
+  function getIpi() { return window.cpIpiMatrix && typeof window.cpIpiMatrix === 'object' ? window.cpIpiMatrix : {}; }
+  function aliqInter(ufOrig, ufDest) {
+    try { if(typeof window.cpGetAliqInter === 'function') return Number(window.cpGetAliqInter(ufOrig, ufDest)) || 12; } catch(e) {}
+    ufOrig = String(ufOrig||'').toUpperCase(); ufDest = String(ufDest||'').toUpperCase();
+    if(!ufOrig || !ufDest || ufOrig === ufDest) return 0;
+    return ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MT','MS','PA','PB','PE','PI','RN','RO','RR','SE','TO'].includes(ufDest) ? 7 : 12;
+  }
+  function cpParams() {
+    return {
+      aliqInterno: num(byId('cp-aliq-interno')?.value || 18),
+      fcp: num(byId('cp-aliq-fcp')?.value || 0),
+      partilha: num(byId('cp-partilha-difal')?.value || 100),
+      pis: num(byId('cp-aliq-pis')?.value || 0),
+      cofins: num(byId('cp-aliq-cofins')?.value || 0),
+      margem: num(byId('cp-margem')?.value || 0),
+      ufDestino: byId('cp-uf-destino')?.value || 'SP'
+    };
+  }
+  function calcularRelatorio() {
+    const fs = getForns(), insumos = getIns(), precos = getPreco(), ipis = getIpi(), p = cpParams();
+    const resultados = {}, totais = {}, bestByItem = [], compraInteligente = {total:0, itens:[]};
+    fs.forEach(f => { resultados[f.id] = {}; totais[f.id] = 0; });
+    insumos.forEach(ins => {
+      let best = null;
+      fs.forEach(f => {
+        const precoUnit = num(precos[f.id + '_' + ins.id]);
+        const qty = num(ins.qty || 1);
+        const ipiPct = num(ipis[f.id]?.[ins.id] ?? 0);
+        const desconto = num(f.desconto);
+        let valorNF = precoUnit * qty;
+        if(f.descontoTipo === 'item') valorNF = precoUnit * (1 - desconto/100) * qty;
+        const valorIPI = valorNF * ipiPct / 100;
+        const freteVal = valorNF * num(f.frete) / 100 + num(f.outros);
+        const pisCofVal = (valorNF + valorIPI) * (p.pis + p.cofins) / 100;
+        let difalVal = 0, fcpVal = 0;
+        const isDifal = String(f.uf||'').toUpperCase() !== String(p.ufDestino||'').toUpperCase();
+        if(isDifal && precoUnit > 0) {
+          const base = (valorNF + valorIPI) / (1 - p.aliqInterno/100);
+          const icmsDest = base * p.aliqInterno/100;
+          const icmsOrig = base * aliqInter(f.uf, p.ufDestino)/100;
+          difalVal = Math.max(0, icmsDest - icmsOrig) * (p.partilha/100);
+          fcpVal = base * p.fcp/100;
+        }
+        const totalSemMargem = valorNF + valorIPI + freteVal + pisCofVal + difalVal + fcpVal;
+        const descontoNF = f.descontoTipo === 'total' ? totalSemMargem * desconto/100 : 0;
+        const totalFinal = precoUnit > 0 ? (totalSemMargem - descontoNF) * (1 + p.margem/100) : 0;
+        const r = {precoUnit, qty, ipiPct, valorNF, valorIPI, freteVal, pisCofVal, difalVal, fcpVal, descontoNF, totalFinal, isDifal};
+        resultados[f.id][ins.id] = r; totais[f.id] += totalFinal;
+        if(totalFinal > 0 && (!best || totalFinal < best.totalFinal)) best = {fornecedor:f, insumo:ins, totalFinal, r};
+      });
+      if(best) { bestByItem.push(best); compraInteligente.total += best.totalFinal; compraInteligente.itens.push(best); }
+    });
+    const ranking = fs.slice().sort((a,b) => (totais[a.id] || Infinity) - (totais[b.id] || Infinity));
+    return {params:p, fornecedores:fs, insumos, resultados, totais, ranking, bestByItem, compraInteligente};
+  }
+  window.cpMontarRelatorioComparativo = calcularRelatorio;
+
+  function matrizHtml(rep) {
+    const fs = rep.fornecedores, insumos = rep.insumos;
+    return `<table class="cp-tbl"><thead><tr><th style="text-align:left;min-width:220px;">Insumo</th><th>Qtd</th><th>Un</th>${fs.map(f=>`<th>${esc(f.nome||f.id)}<br><span style="font-size:9px;">${esc(f.uf||'')}</span></th>`).join('')}</tr></thead><tbody>` +
+      insumos.map(ins => {
+        const vals = fs.map(f => rep.resultados[f.id]?.[ins.id]?.totalFinal || 0).filter(v=>v>0);
+        const min = vals.length ? Math.min(...vals) : 0;
+        return `<tr><td class="item-name">${esc(ins.nome)}</td><td style="text-align:center;">${dec(ins.qty)}</td><td style="text-align:center;">${esc(ins.unit||'UN')}</td>` +
+          fs.map(f => { const r = rep.resultados[f.id]?.[ins.id] || {}; const best = r.totalFinal > 0 && r.totalFinal === min; return `<td class="${best?'best':''}" style="text-align:right;">${r.totalFinal?brl(r.totalFinal):'—'}${best?'<div style="font-size:9px;font-weight:800;">✓ melhor</div>':''}</td>`; }).join('') +
+        `</tr><tr class="detail-row"><td colspan="${3+fs.length}"><div style="display:grid;grid-template-columns:repeat(${fs.length},minmax(180px,1fr));gap:8px;">${fs.map(f=>{ const r=rep.resultados[f.id]?.[ins.id]||{}; return `<div><strong>${esc(f.nome||f.id)}:</strong> NF ${brl(r.valorNF)} · IPI ${brl(r.valorIPI)} · DIFAL ${brl(r.difalVal)} · Frete ${brl(r.freteVal)}</div>`; }).join('')}</div></td></tr>`;
+      }).join('') + `</tbody></table>`;
+  }
+  function reportHtml(rep) {
+    const best = rep.ranking[0], worst = rep.ranking[rep.ranking.length-1];
+    const bestTotal = best ? rep.totais[best.id] : 0, worstTotal = worst ? rep.totais[worst.id] : 0;
+    const inteligentes = rep.compraInteligente.itens.map(x=>`<div class="cp-ci-block"><strong>${esc(x.insumo.nome)}:</strong> ${esc(x.fornecedor.nome||x.fornecedor.id)} — ${brl(x.totalFinal)}</div>`).join('') || '<p>Sem preços válidos para compra inteligente.</p>';
+    const ranking = rep.ranking.map((f,i)=>`<div class="cp-rank-card ${i===0?'rank-1':''}"><div class="cp-rank-pos">${i+1}º</div><div style="flex:1;"><strong>${esc(f.nome||f.id)}</strong><div>CNPJ: ${esc(f.cnpj||'—')} · UF: ${esc(f.uf||'—')}</div></div><div style="font-weight:900;">${brl(rep.totais[f.id])}</div></div>`).join('');
+    return `<div class="cp-resultado-card"><div style="font-size:12px;font-weight:900;text-transform:uppercase;margin-bottom:12px;">📊 Resumo do comparativo · Destino: ${esc(rep.params.ufDestino)}</div><div class="cp-metric-row"><div class="cp-metric"><div class="cp-metric-label">Melhor fornecedor</div><div class="cp-metric-val green">${brl(bestTotal)}</div><div>${esc(best?.nome||'—')}</div></div><div class="cp-metric"><div class="cp-metric-label">Maior custo</div><div class="cp-metric-val red">${brl(worstTotal)}</div><div>${esc(worst?.nome||'—')}</div></div><div class="cp-metric"><div class="cp-metric-label">Economia fornecedor único</div><div class="cp-metric-val">${brl(worstTotal-bestTotal)}</div><div>Melhor vs. pior</div></div><div class="cp-metric"><div class="cp-metric-label">Compra inteligente</div><div class="cp-metric-val blue">${brl(rep.compraInteligente.total)}</div><div>Menor custo por insumo</div></div></div></div><div class="cp-resultado-card"><div style="font-size:12px;font-weight:900;text-transform:uppercase;margin-bottom:12px;">📋 Detalhamento por insumo</div><div style="overflow-x:auto;">${matrizHtml(rep)}</div></div><div class="cp-resultado-card"><div style="font-size:12px;font-weight:900;text-transform:uppercase;margin-bottom:12px;">🛒 Compra inteligente</div>${inteligentes}</div><div class="cp-resultado-card"><div style="font-size:12px;font-weight:900;text-transform:uppercase;margin-bottom:12px;">🏆 Ranking de fornecedores</div>${ranking}</div>`;
+  }
+
+  window.cpExportarComparativoCsv = function() {
+    const rep = calcularRelatorio();
+    if(!rep.fornecedores.length || !rep.insumos.length) return alert('Cadastre fornecedores e insumos antes de exportar.');
+    const linhas = [];
+    const add = arr => linhas.push(arr.map(v => '"' + String(v ?? '').replace(/"/g,'""') + '"').join(';'));
+    add(['COMPARATIVO COMPRAS / DIFAL']); add(['Gerado em', new Date().toLocaleString('pt-BR')]); add([]);
+    add(['RESUMO']);
+    const best = rep.ranking[0], worst = rep.ranking[rep.ranking.length-1];
+    add(['Melhor fornecedor', best?.nome || '', 'Total', brl(best ? rep.totais[best.id] : 0)]);
+    add(['Maior custo', worst?.nome || '', 'Total', brl(worst ? rep.totais[worst.id] : 0)]);
+    add(['Compra inteligente', brl(rep.compraInteligente.total)]); add([]);
+    add(['RANKING DE FORNECEDORES']); add(['Posição','Fornecedor','CNPJ','UF','Total calculado']);
+    rep.ranking.forEach((f,i)=>add([i+1, f.nome, f.cnpj, f.uf, brl(rep.totais[f.id])])); add([]);
+    add(['DETALHAMENTO POR INSUMO']); add(['Insumo','Quantidade','Unidade','Melhor fornecedor','Melhor custo', ...rep.fornecedores.map(f => `${f.nome||f.id} - total item`)]);
+    rep.insumos.forEach(ins => {
+      const bestItem = rep.bestByItem.find(x => x.insumo.id === ins.id);
+      add([ins.nome, ins.qty, ins.unit, bestItem?.fornecedor?.nome || '', bestItem ? brl(bestItem.totalFinal) : '', ...rep.fornecedores.map(f => brl(rep.resultados[f.id]?.[ins.id]?.totalFinal || 0))]);
+      add(['Detalhe fiscal', '', '', '', '', ...rep.fornecedores.map(f => { const r=rep.resultados[f.id]?.[ins.id]||{}; return `NF ${brl(r.valorNF)} | IPI ${brl(r.valorIPI)} | DIFAL ${brl(r.difalVal)} | Frete ${brl(r.freteVal)}`; })]);
+    }); add([]);
+    add(['COMPRA INTELIGENTE']); add(['Insumo','Fornecedor vencedor','CNPJ','UF','Total item']);
+    rep.compraInteligente.itens.forEach(x=>add([x.insumo.nome, x.fornecedor.nome, x.fornecedor.cnpj, x.fornecedor.uf, brl(x.totalFinal)]));
+    const blob = new Blob(['﻿' + linhas.join('\\n')], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `comparativo_compras_difal_completo_${new Date().toISOString().slice(0,10)}.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 500);
   };
 
-  window.COTACAO_MODELOS = {
-    servico: {
-      assunto: 'Solicitação de Cotação — Serviço | Favor não alterar o assunto do e-mail com o NR da RM',
-      mensagem: `Prezado(a), bom dia!
+  window.cpImprimirComparativoPdf = function() {
+    const rep = calcularRelatorio();
+    if(!rep.fornecedores.length || !rep.insumos.length) return alert('Gere o comparativo antes de imprimir.');
+    const w = window.open('', '_blank');
+    if(!w) return alert('O navegador bloqueou a janela de impressão. Libere pop-ups para este site.');
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Comparativo Compras DIFAL</title><style>body{font-family:Segoe UI,Arial,sans-serif;color:#111827;background:#fff;margin:24px;}h1{font-size:20px;margin:0 0 12px;}.cp-resultado-card{border:1px solid #cbd5e1;border-radius:12px;padding:14px;margin-bottom:12px;page-break-inside:avoid;}.cp-metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}.cp-metric{border:1px solid #dbe4ef;background:#f8fafc;border-radius:10px;padding:10px;}.cp-metric-label{font-size:10px;text-transform:uppercase;color:#334155;font-weight:800;}.cp-metric-val{font-size:18px;font-weight:900;margin:5px 0;}.green{color:#047857;}.red{color:#b91c1c;}.blue{color:#1d4ed8;}table{width:100%;border-collapse:collapse;font-size:10px;}th{background:#dbeafe;color:#172033;}th,td{border:1px solid #cbd5e1;padding:6px;text-align:left;}td.best{background:#dcfce7;color:#064e3b;font-weight:900;}td.item-name{font-weight:900;}.detail-row td,.detail-row div{background:#f8fafc;color:#334155;font-size:9px;}.cp-rank-card,.cp-ci-block{border:1px solid #cbd5e1;border-radius:10px;padding:10px;margin-bottom:8px;display:flex;gap:10px;align-items:center;}.rank-1,.cp-ci-block{background:#ecfdf5;border-color:#86efac;}.cp-rank-pos{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#e2e8f0;font-weight:900;}@media print{body{margin:10mm;}}</style></head><body><h1>Comparativo de Preços · DIFAL/IPI</h1><div style="font-size:11px;color:#475569;margin-bottom:12px;">Gerado em ${new Date().toLocaleString('pt-BR')}</div>${reportHtml(rep)}<script>window.onload=()=>setTimeout(()=>window.print(),250)<\/script></body></html>`);
+    w.document.close();
+  };
+
+  function popularBaseCnpj() {
+    const sel = byId('cotacaoCnpjBaseSelect'); if(!sel || sel.dataset.ready) return;
+    ABILITY_CNPJ_BASES.forEach((b,i)=>{ const opt=document.createElement('option'); opt.value=String(i); opt.textContent=`${b.base} — ${b.cnpj}`; sel.appendChild(opt); });
+    sel.dataset.ready='1';
+  }
+  function blocoCnpjBase() {
+    const sel = byId('cotacaoCnpjBaseSelect'); if(!sel || sel.value==='') return '';
+    const b = ABILITY_CNPJ_BASES[Number(sel.value)]; if(!b) return '';
+    return `
+CNPJ: ${b.cnpj}
+Base: ${b.base}
+${b.razao ? 'Razão social: '+b.razao+'
+' : ''}${b.endereco ? 'Endereço: '+b.endereco+'
+' : ''}`;
+  }
+  function aplicarModeloCotacaoFinal(forcar) {
+    const tipo = byId('cotacaoModelo')?.value || 'servico';
+    const assunto = byId('cotacaoAssunto'); const msg = byId('cotacaoMensagem');
+    const base = blocoCnpjBase();
+    const modelos = {
+      servico: { assunto:'Solicitação de Cotação de Serviço — [Nº RM / OS]', mensagem:`Prezado(a), bom dia!
 
 Por favor, enviar orçamento para o serviço descrito abaixo:
 
 Observações:
-[DESCREVA AQUI O ESCOPO DO SERVIÇO]
+[Descrever aqui o escopo do serviço, local, condições de acesso, visita técnica e demais informações necessárias.]
 
-[INSIRA AQUI OS ITENS / QUANTIDADES / DETALHES TÉCNICOS]
+[Inserir tabela de itens/serviços, se aplicável]
 
 Por favor, mencionar na proposta as seguintes informações:
 
@@ -6324,147 +6432,39 @@ Por favor, mencionar na proposta as seguintes informações:
 
 *Condição de pagamento mínima: 35DDL
 
-**Favor não alterar o assunto do e-mail com o NR da RM**
+**Favor não alterar o assunto do e-mail com o Nº da RM**
 
 Seguem os dados do site (local do serviço):
+[Inserir site / bairro / endereço / CEP / latitude / longitude / altitude]
 
-Sigla Site: [INFORMAR]
-Localidade: [INFORMAR]
-Site Região: [INFORMAR]
-
-MUNICÍPIO | BAIRRO | ENDEREÇO | CEP | LATITUDE | LONGITUDE | ALTITUDE
-[INFORMAR] | [INFORMAR] | [INFORMAR] | [INFORMAR] | [INFORMAR] | [INFORMAR] | [INFORMAR]
-
-Atte.`
-    },
-    material: {
-      assunto: 'Solicitação de Cotação — Material | Favor não alterar o assunto do e-mail com o NR da RM',
-      mensagem: `Prezado(a), bom dia!
+Atte.` },
+      material: { assunto:'Solicitação de Cotação de Material — [Nº RM / OS]', mensagem:`Prezado(a), bom dia!
 
 Solicito cotação para os insumos abaixo.
 
 Imagens dos itens e suas descrições em anexo.
 
-Descrição | Und | Qtde | V.Unit. | Valor Total
-[DESCREVER ITEM] | [UND] | [QTDE] | [PREENCHER] | [PREENCHER]
-
-CNPJ: [INFORMAR CNPJ]
-
-Atte.`
-    }
-  };
-
-  function aplicarModeloCotacao(force){
-    const sel = $('cotacaoModelo');
-    const msg = $('cotacaoMensagem');
-    const assunto = $('cotacaoAssunto');
-    if(!sel || !msg) return;
-    const modelo = window.COTACAO_MODELOS[sel.value] || window.COTACAO_MODELOS.servico;
-    if(force || !msg.dataset.editado || confirm('Trocar o modelo vai substituir o corpo atual. Deseja continuar?')){
-      msg.value = modelo.mensagem;
-      msg.dataset.editado = '';
-    }
-    if(assunto) assunto.value = modelo.assunto;
-  }
-
-  function instalarCotacoes(){
-    const sel = $('cotacaoModelo');
-    const msg = $('cotacaoMensagem');
-    if(sel && !sel.dataset.hotfixV5){
-      sel.dataset.hotfixV5 = '1';
-      sel.addEventListener('change', () => aplicarModeloCotacao(false));
-      aplicarModeloCotacao(true);
-    }
-    if(msg && !msg.dataset.hotfixV5){
-      msg.dataset.hotfixV5 = '1';
-      msg.addEventListener('input', () => { msg.dataset.editado = '1'; });
-    }
-  }
-
-  function cpState(){
-    return {
-      fornecedores: Array.isArray(window.cpFornecedores) ? window.cpFornecedores : [],
-      insumos: Array.isArray(window.cpInsumos) ? window.cpInsumos : [],
-      precos: window.cpPrecoData && typeof window.cpPrecoData === 'object' ? window.cpPrecoData : {}
+[Inserir tabela com: Descrição | Und | Qtde | V.Unit.A | Valor Total]
+${base}
+Atte.` }
     };
+    const m = modelos[tipo]; if(!m) return;
+    if(assunto && (forcar || !assunto.dataset.manualEdit)) assunto.value = m.assunto;
+    if(msg && (forcar || !msg.dataset.manualEdit || tipo==='material')) msg.value = m.mensagem;
   }
-
-  window.cpAuditarComparativo = function(){
-    const {fornecedores, insumos, precos} = cpState();
-    const faltas = [];
-    if(!fornecedores.length) faltas.push('Nenhum fornecedor adicionado ao comparativo.');
-    if(!insumos.length) faltas.push('Nenhum insumo adicionado ao comparativo.');
-    fornecedores.forEach(f => {
-      if(!String(f.uf || '').trim()) faltas.push(`UF ausente no fornecedor ${f.nome || f.razao || f.id}.`);
-      if(!String(f.cnpj || '').trim()) faltas.push(`CNPJ ausente no fornecedor ${f.nome || f.razao || f.id}.`);
+  window.cotacaoAplicarModelo = aplicarModeloCotacaoFinal;
+  document.addEventListener('DOMContentLoaded', () => {
+    popularBaseCnpj();
+    byId('cotacaoModelo')?.addEventListener('change', () => aplicarModeloCotacaoFinal(true));
+    byId('cotacaoCnpjBaseSelect')?.addEventListener('change', () => {
+      const b = ABILITY_CNPJ_BASES[Number(byId('cotacaoCnpjBaseSelect').value)];
+      const prev = byId('cotacaoCnpjBasePreview'); if(prev) prev.value = b ? `${b.base} — ${b.cnpj}` : '';
+      if((byId('cotacaoModelo')?.value || '') !== 'material') byId('cotacaoModelo').value = 'material';
+      aplicarModeloCotacaoFinal(true);
     });
-    insumos.forEach(ins => {
-      const pendentes = fornecedores.filter(f => !Number(precos[`${f.id}_${ins.id}`] || 0));
-      if(pendentes.length) faltas.push(`${ins.nome || ins.descricao || 'Insumo'} sem preço em ${pendentes.length} fornecedor(es).`);
-    });
-    alert(faltas.length ? 'Pontos para corrigir:\n\n- ' + faltas.slice(0,22).join('\n- ') + (faltas.length > 22 ? '\n- ...' : '') : 'Base pronta para cálculo. Nenhuma pendência crítica encontrada.');
-  };
-
-  window.cpSugerirMelhorCompra = function(){
-    if(typeof window.cpCalcular === 'function') window.cpCalcular();
-    const {fornecedores, insumos, precos} = cpState();
-    if(!fornecedores.length || !insumos.length) return alert('Cadastre fornecedores e insumos antes de gerar o resumo.');
-    const totais = fornecedores.map(f => {
-      const total = insumos.reduce((s,ins) => s + (Number(precos[`${f.id}_${ins.id}`] || 0) * Number(ins.qty || ins.quantidade || 1)), 0);
-      return {f,total};
-    }).sort((a,b) => a.total - b.total);
-    const best = totais[0];
-    const second = totais[1];
-    alert(`Melhor fornecedor pelo preço-base informado: ${best.f.nome || best.f.razao || best.f.id}\nTotal estimado: ${BRL(best.total)}\nEconomia contra 2º colocado: ${second ? BRL(second.total - best.total) : 'Sem segundo fornecedor'}\n\nConfirme no Resultado final com DIFAL, IPI, frete, descontos e prazo antes de decidir.`);
-  };
-
-  window.cpExportarComparativoCsv = function(){
-    const {fornecedores, insumos, precos} = cpState();
-    if(!fornecedores.length || !insumos.length) return alert('Cadastre fornecedores e insumos antes de exportar.');
-    const linhas = [['Item','Quantidade','Unidade', ...fornecedores.map(f => `${f.nome || f.razao || f.id} (${f.uf || '-'})`)]];
-    insumos.forEach(ins => linhas.push([ins.nome || ins.descricao || '', ins.qty || ins.quantidade || '', ins.unit || ins.unidade || '', ...fornecedores.map(f => precos[`${f.id}_${ins.id}`] || '')]));
-    const totais = ['TOTAL','','', ...fornecedores.map(f => insumos.reduce((s,ins) => s + Number(precos[`${f.id}_${ins.id}`] || 0) * Number(ins.qty || ins.quantidade || 1), 0))];
-    linhas.push(totais);
-    downloadCsv('comparativo_compras_difal.csv', linhas);
-  };
-
-  function instalarBotoesCompras(){
-    document.querySelectorAll('#compras button[onclick], #cpOrcamentoModal button[onclick]').forEach(btn => {
-      if(btn.dataset.hotfixClickV5) return;
-      btn.dataset.hotfixClickV5 = '1';
-      const code = btn.getAttribute('onclick') || '';
-      btn.addEventListener('click', ev => {
-        const fn = (code.match(/^\s*([A-Za-z_$][\w$]*)\s*\(/) || [])[1];
-        if(fn && typeof window[fn] !== 'function'){
-          ev.preventDefault();
-          ev.stopPropagation();
-          alert(`A função ${fn} não carregou. O arquivo foi corrigido na versão V5; recarregue sem cache (Ctrl+F5) e teste novamente.`);
-        }
-      }, true);
-    });
-  }
-
-  function fixTutorialCard(){
-    const arrow = $('tutorialArrow');
-    if(arrow) arrow.style.display = 'none';
-    const card = $('tutorialCard');
-    if(card){
-      const r = card.getBoundingClientRect();
-      const maxTop = Math.max(10, window.innerHeight - card.offsetHeight - 10);
-      const maxLeft = Math.max(10, window.innerWidth - card.offsetWidth - 10);
-      if(r.top < 0 || r.top > window.innerHeight - 40) card.style.top = Math.min(20, maxTop) + 'px';
-      if(r.left < 0 || r.left > window.innerWidth - 40) card.style.left = Math.min(20, maxLeft) + 'px';
-    }
-  }
-
-  function initHotfix(){
-    instalarCotacoes();
-    instalarBotoesCompras();
-    fixTutorialCard();
-    setInterval(fixTutorialCard, 700);
-  }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initHotfix);
-  else initHotfix();
+    setTimeout(()=>{ popularBaseCnpj(); aplicarModeloCotacaoFinal(false); }, 500);
+  });
 })();
-</script></body>
+</script>
+</body>
 </html>
