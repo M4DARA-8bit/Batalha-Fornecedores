@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel de Cadastro de Fornecedores</title>
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Painel de Cadastro de Fornecedores</title>
+<style>
     :root {
       --bg: #0f1117; --bg-2: #161b27; --surface: rgba(255,255,255,0.055);
       --surface-2: rgba(255,255,255,0.09); --border: rgba(255,255,255,0.10);
@@ -707,681 +706,676 @@ tbody tr:hover { background:rgba(var(--page-rgb),0.07) !important; }
 }
 
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-</head>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+/* === HOTFIX V5 FELIPE — tutorial, legibilidade e cotação === */
+.tutorial-arrow { display:none !important; animation:none !important; }
+.tutorial-card {
+  background:#0f172a !important;
+  color:#f8fafc !important;
+  border:1px solid rgba(14,165,233,.45) !important;
+  box-shadow:0 22px 60px rgba(2,6,23,.48) !important;
+  max-height:calc(100vh - 28px) !important;
+  overflow:auto !important;
+}
+.tutorial-card h3, .tutorial-card strong { color:#ffffff !important; }
+.tutorial-card p, .tutorial-helper, .tutorial-details { color:#e2e8f0 !important; }
+.tutorial-progress { color:#7dd3fc !important; }
+.tutorial-page-badge { color:#dbeafe !important; background:rgba(37,99,235,.22) !important; border-color:rgba(147,197,253,.4) !important; }
+.tutorial-tip { color:#eff6ff !important; background:rgba(37,99,235,.22) !important; border-color:rgba(147,197,253,.35) !important; }
+.tutorial-practice { color:#ecfdf5 !important; background:rgba(22,163,74,.20) !important; border-color:rgba(134,239,172,.35) !important; }
+.tutorial-actions { position:sticky; bottom:0; background:#0f172a; padding-top:10px; z-index:2; }
+.cotacao-template-note { background:#f8fafc !important; color:#253449 !important; border:1px solid #dbe7f3 !important; border-radius:14px; padding:12px; font-size:12px; line-height:1.55; }
+#cotacaoMensagem { color:#172033 !important; background:#ffffff !important; }
+</style></head>
 <body data-active-page="dashboard">
-
 <div class="login-screen" id="loginScreen">
-  <div class="login-card">
-    <div class="card">
-      <div class="login-logo">🛡️</div>
-      <div class="panel-title">
-        <div>
-          <h3>Acesso ao Painel de Fornecedores</h3>
-          <p>Login por usuário cadastrado, com dados salvos no Firestore.</p>
-        </div>
-      </div>
-      <form id="loginForm" class="form-grid">
-        <div class="field row-span-2">
-          <label>Usuário / comprador</label>
-          <input type="text" id="loginUser" autocomplete="username" placeholder="Ex.: daniel, compras, rh" required>
-        </div>
-        <div class="field row-span-2">
-          <label>Senha</label>
-          <input type="password" id="loginPass" autocomplete="current-password" placeholder="Senha" required>
-        </div>
-        <div class="field row-span-2">
-          <button class="primary-btn" type="submit">Entrar</button>
-        </div>
-      </form>
-      <div class="access-note">
+<div class="login-card">
+<div class="card">
+<div class="login-logo">🛡️</div>
+<div class="panel-title">
+<div>
+<h3>Acesso ao Painel de Fornecedores</h3>
+<p>Login por usuário cadastrado, com dados salvos no Firestore.</p>
+</div>
+</div>
+<form class="form-grid" id="loginForm">
+<div class="field row-span-2">
+<label>Usuário / comprador</label>
+<input autocomplete="username" id="loginUser" placeholder="Ex.: daniel, compras, rh" required="" type="text"/>
+</div>
+<div class="field row-span-2">
+<label>Senha</label>
+<input autocomplete="current-password" id="loginPass" placeholder="Senha" required="" type="password"/>
+</div>
+<div class="field row-span-2">
+<button class="primary-btn" type="submit">Entrar</button>
+</div>
+</form>
+<div class="access-note">
         Neste momento o login usa usuários cadastrados no Firestore. O usuário raiz temporário existe apenas para liberar a primeira configuração.
       </div>
-      <div class="access-note">
-        <strong>Primeiro acesso?</strong><br>
+<div class="access-note">
+<strong>Primeiro acesso?</strong><br/>
         Crie seu acesso inicial como Solicitante. Esse perfil é limitado para visualização e acompanhamento.
         <div style="margin-top:12px;">
-          <button type="button" class="ghost-btn" id="toggleSelfAccessBtn">Criar meu acesso limitado</button>
-        </div>
-        <form id="selfAccessForm" class="form-grid hidden" style="margin-top:12px;">
-          <div class="field row-span-2">
-            <label>Nome completo</label>
-            <input type="text" id="selfAccessName" placeholder="Seu nome completo">
-          </div>
-          <div class="field">
-            <label>Usuário</label>
-            <input type="text" id="selfAccessUser" placeholder="Ex.: joao.silva">
-          </div>
-          <div class="field">
-            <label>Senha</label>
-            <input type="password" id="selfAccessPass" minlength="6" placeholder="Mínimo 6 caracteres">
-          </div>
-          <div class="field row-span-2">
-            <button type="submit" class="primary-btn">Salvar acesso limitado</button>
-          </div>
-        </form>
-      </div>
-    </div>
-    <div class="card">
-      <div class="panel-title">
-        <div>
-          <h3>Área restrita</h3>
-          <p>Digite o usuário e a senha informados pelo administrador do painel.</p>
-        </div>
-      </div>
-      <div class="login-users">
-        <div class="login-user-row"><strong>Usuário</strong><span>Nome cadastrado</span></div>
-        <div class="login-user-row"><strong>Senha</strong><span>Individual e não exibida</span></div>
-        <div class="login-user-row"><strong>Perfis</strong><span>Compras, RH, SESMT, Jurídico, Diretoria, Solicitante</span></div>
-        <div class="login-user-row"><strong>Controle</strong><span>Acessos gerenciados pela aba Acessos</span></div>
-      </div>
-      <div class="access-note">
+<button class="ghost-btn" id="toggleSelfAccessBtn" type="button">Criar meu acesso limitado</button>
+</div>
+<form class="form-grid hidden" id="selfAccessForm" style="margin-top:12px;">
+<div class="field row-span-2">
+<label>Nome completo</label>
+<input id="selfAccessName" placeholder="Seu nome completo" type="text"/>
+</div>
+<div class="field">
+<label>Usuário</label>
+<input id="selfAccessUser" placeholder="Ex.: joao.silva" type="text"/>
+</div>
+<div class="field">
+<label>Senha</label>
+<input id="selfAccessPass" minlength="6" placeholder="Mínimo 6 caracteres" type="password"/>
+</div>
+<div class="field row-span-2">
+<button class="primary-btn" type="submit">Salvar acesso limitado</button>
+</div>
+</form>
+</div>
+</div>
+<div class="card">
+<div class="panel-title">
+<div>
+<h3>Área restrita</h3>
+<p>Digite o usuário e a senha informados pelo administrador do painel.</p>
+</div>
+</div>
+<div class="login-users">
+<div class="login-user-row"><strong>Usuário</strong><span>Nome cadastrado</span></div>
+<div class="login-user-row"><strong>Senha</strong><span>Individual e não exibida</span></div>
+<div class="login-user-row"><strong>Perfis</strong><span>Compras, RH, SESMT, Jurídico, Diretoria, Solicitante</span></div>
+<div class="login-user-row"><strong>Controle</strong><span>Acessos gerenciados pela aba Acessos</span></div>
+</div>
+<div class="access-note">
         Os logins não são listados nesta tela. Novos acessos administrativos devem ser criados apenas por Compras.
       </div>
-    </div>
-  </div>
 </div>
-
+</div>
+</div>
 <div class="app" id="appShell" style="display:none;">
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <div class="brand-badge">🧾</div>
-      <div>
-        <h1>Cadastro Pro</h1>
-        <p>Fornecedores, homologação e passagem para operação</p>
-      </div>
-    </div>
-    <nav class="menu">
-      <button class="nav-btn active" data-page="dashboard">📊 Dashboard</button>
-      <button class="nav-btn" data-page="cadastro">➕ Cadastro</button>
-      <button class="nav-btn" data-page="acompanhamento">🧭 Acompanhamento</button>
-      <button class="nav-btn" data-page="servicos">🛠️ Tipos de Serviço</button>
-      <button class="nav-btn" data-page="checklist">📎 Checklist</button>
-      <button class="nav-btn" data-page="acessos">👥 Acessos</button>
-      <button class="nav-btn" data-page="cotacoes">📨 Cotações</button>
-      <button class="nav-btn" data-page="compras">🛒 Compras / DIFAL</button>
-    </nav>
-    <div class="sidebar-footer">
+<aside class="sidebar" id="sidebar">
+<div class="brand">
+<div class="brand-badge">🧾</div>
+<div>
+<h1>Cadastro Pro</h1>
+<p>Fornecedores, homologação e passagem para operação</p>
+</div>
+</div>
+<nav class="menu">
+<button class="nav-btn active" data-page="dashboard">📊 Dashboard</button>
+<button class="nav-btn" data-page="cadastro">➕ Cadastro</button>
+<button class="nav-btn" data-page="acompanhamento">🧭 Acompanhamento</button>
+<button class="nav-btn" data-page="servicos">🛠️ Tipos de Serviço</button>
+<button class="nav-btn" data-page="checklist">📎 Checklist</button>
+<button class="nav-btn" data-page="acessos">👥 Acessos</button>
+<button class="nav-btn" data-page="cotacoes">📨 Cotações</button>
+<button class="nav-btn" data-page="compras">🛒 Compras / DIFAL</button>
+</nav>
+<div class="sidebar-footer">
       Dados sincronizados com banco de dados. Use CSV como relatório/atualização em massa. 🗃️
     </div>
-  </aside>
-
-  <main class="content">
-    <div class="topbar">
-      <div class="title-block">
-        <button class="ghost-btn mobile-toggle" id="menuToggle">☰ Abrir menu</button>
-        <h2>Painel de Fornecedores ABILITY</h2>
-        <p>Painel para cadastro e consulta de fornecedores.</p>
-      </div>
-      <div class="top-actions">
-        <span class="tag info" id="currentUserBadge">Não logado</span>
-        <button class="ghost-btn" id="logoutBtn">Sair</button>
-        <select id="csvExportScope" class="top-select" title="Escolha a aba do relatório Excel/CSV">
-          <option value="dashboard">Excel - Dashboard filtrado</option>
-          <option value="baseCompleta">Excel - Base completa</option>
-          <option value="acompanhamento">Excel - Acompanhamento</option>
-          <option value="servicos">Excel - Tipos de Serviço</option>
-          <option value="acessos">Excel - Acessos</option>
-          <option value="checklist">Excel - Checklist</option>
-        </select>
-        <button class="ghost-btn" id="downloadCsvBtn">Exportar Excel</button>
-        <input type="file" id="bulkCsvUpdateInput" accept=".csv,text/csv" class="hidden">
-        <button class="warning-btn" id="bulkCsvUpdateBtn">Atualizar por CSV</button>
-        <button class="danger-btn" id="resetBtn">Restaurar base</button>
-      </div>
-    </div>
-
-    <!-- DASHBOARD -->
-    <section class="page active" id="dashboard">
-      <div class="grid-cards">
-        <div class="card"><div class="metric-label">Fornecedores na seleção</div><div class="metric-value" id="kpiTotal">0</div><div class="metric-note">Quantidade conforme filtros atuais.</div></div>
-        <div class="card"><div class="metric-label">Homologados</div><div class="metric-value" id="kpiHomologados">0</div><div class="metric-note">Todos os status concluídos e progresso 100%.</div></div>
-        <div class="card"><div class="metric-label">Em andamento</div><div class="metric-value" id="kpiAndamento">0</div><div class="metric-note">Não concluídos com alguma evolução.</div></div>
-        <div class="card"><div class="metric-label">Passagem à operação</div><div class="metric-value" id="kpiOperacao">0</div><div class="metric-note">Prontos para atuação operacional.</div></div>
-        <div class="card"><div class="metric-label">Possível atraso</div><div class="metric-value" id="kpiAtraso">0</div><div class="metric-note">SLA fora do prazo ou prazo vencido.</div></div>
-      </div>
-
-      <div class="card" style="margin-bottom:18px;">
-        <div class="panel-title">
-          <div><h3>Filtros de análise</h3><p>Filtre por fornecedor, UF do cadastro, estado de atuação, escopo, etapa atual e situação.</p></div>
-          <div class="legend"><span>Hover na tabela</span><span>Dados locais</span></div>
-        </div>
-        <div class="filters">
-          <div class="field"><label>Buscar</label><input type="text" id="filterSearch" placeholder="Fornecedor, CNPJ, e-mail ou contato"></div>
-          <div class="field"><label>Estado (UF)</label><select id="filterRegion"><option value="todos">Todas</option></select></div>
-          <div class="field"><label>Estado de atuação</label><select id="filterAtuacaoEstado"><option value="todos">Todos</option></select></div>
-          <div class="field"><label>Categoria do escopo</label><select id="filterScope"><option value="todos">Todas</option></select></div>
-          <div class="field"><label>Etapa atual</label><select id="filterStage"><option value="todos">Todas</option></select></div>
-          <div class="field"><label>Situação</label><select id="filterSituation">
-            <option value="todos">Todas</option>
-            <option value="concluido">Concluído</option>
-            <option value="andamento">Em andamento</option>
-            <option value="pendente">Sem avanço</option>
-            <option value="atrasado">Possível atraso</option>
-          </select></div>
-        </div>
-      </div>
-
-      <div class="section-grid">
-        <div class="card">
-          <div class="panel-title"><div><h3>Avanço por etapa</h3><p>Quantos fornecedores completaram cada marco.</p></div><span class="tag positive">Mapa de gargalo</span></div>
-          <div class="bar-list" id="stageBars"></div>
-        </div>
-        <div class="card stack">
-          <div>
-            <div class="panel-title"><div><h3>Leitura rápida</h3></div></div>
-            <div class="summary-grid">
-              <div class="mini-card"><strong>Maior gargalo</strong><span id="maiorGargalo">-</span></div>
-              <div class="mini-card"><strong>Progresso médio</strong><span id="progressoMedio">0%</span></div>
-              <div class="mini-card"><strong>Doc. recebida</strong><span id="docRecebidaResumo">0</span></div>
-              <div class="mini-card"><strong>LPU concluída</strong><span id="lpuResumo">0</span></div>
-            </div>
-          </div>
-          <div class="footer-note" id="insightNote">Sem leitura disponível.</div>
-        </div>
-      </div>
-
-
-      <div class="segment-dashboard-grid" id="segmentCharts"></div>
-
-      <div class="card">
-        <div class="panel-title">
-          <div><h3>Fornecedores filtrados</h3><p>Visão executiva do funil de cadastro.</p></div>
-          <span class="tag info" id="filteredCount">0 itens</span>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Fornecedor</th><th>CNPJ</th><th>Contato</th><th>Escopo</th><th>UF</th><th>Região atuação</th><th>Segmento</th><th>Etapa atual</th><th>Progresso</th><th>SLA</th><th>Ações</th></tr></thead>
-            <tbody id="dashboardTable"></tbody>
-          </table>
-        </div>
-        <div class="empty-state" id="dashboardEmpty">Nenhum fornecedor encontrado com os filtros atuais.</div>
-      </div>
-    </section>
-
-    <!-- CADASTRO -->
-    <section class="page" id="cadastro">
-      <div class="section-grid">
-        <div class="card">
-          <div class="panel-title">
-            <div><h3 id="formTitle">Novo cadastro</h3><p>Registre o fornecedor e atualize as etapas.</p></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <span class="tag">Formulário</span>
-              <button class="ghost-btn" id="importCnpjBtn" style="padding:8px 14px;font-size:13px;">📋 Importar CNPJ (JSON)</button>
-            </div>
-          </div>
-          <form id="supplierForm" class="form-grid">
-            <input type="hidden" id="supplierId">
-            <div class="field row-span-2"><label>Razão social</label><input type="text" id="razao" required placeholder="Ex.: EMPRESA LTDA"></div>
-            <div class="field"><label>CNPJ</label><input type="text" id="cnpj" maxlength="18" placeholder="00.000.000/0000-00"></div>
-            <div class="field"><label>Nome do contato</label><input type="text" id="nomeContato" placeholder="Ex.: João Silva"></div>
-            <div class="field"><label>Telefone</label><input type="text" id="telefone" placeholder="(00) 00000-0000"></div>
-            <div class="field"><label>Tipo de telefone</label>
-              <select id="telefoneDigitos">
-                <option value="auto">Automático</option>
-                <option value="9">Celular - 9 dígitos</option>
-                <option value="8">Fixo - 8 dígitos</option>
-              </select>
-            </div>
-            <div class="field"><label>E-mail</label><input type="email" id="email" placeholder="fornecedor@email.com"></div>
-            <div class="field"><label>UF</label><input type="text" id="uf" maxlength="2" placeholder="SP"></div>
-            <div class="field"><label>Região de atuação</label><input type="text" id="regiaoAtuacao" placeholder="SP / RJ / Sul"></div>
-            <div class="field"><label>Escopo</label><input type="text" id="escopo" list="scopeList" placeholder="GMG, Climatização, Elétrica..."><datalist id="scopeList"></datalist></div>
-            <div class="field"><label>Responsável</label><input type="text" id="responsavel" placeholder="Nome do comprador / área"></div>
-            <div class="field"><label>Data início SLA</label><input type="date" id="dataInicioCadastro"></div>
-
-            <!-- SEGMENTO MULTISELEÇÃO -->
-            <div class="field row-span-2">
-              <label>Segmento (multiseleção)</label>
-              <div class="multiselect-wrap" id="segmentoWrap">
-                <label><input type="checkbox" value="Serviço PLIN"><span>Serviço PLIN</span></label>
-                <label><input type="checkbox" value="Material PLIN"><span>Material PLIN</span></label>
-                <label><input type="checkbox" value="Serviço PLEX"><span>Serviço PLEX</span></label>
-                <label><input type="checkbox" value="Material PLEX"><span>Material PLEX</span></label>
-              </div>
-            </div>
-
-            <div class="field"><label>Status fiscal</label>
-              <select id="statusFiscal">
-                <option value="ATIVA">ATIVA</option>
-                <option value="BAIXADA">BAIXADA</option>
-                <option value="SUSPENSA">SUSPENSA</option>
-                <option value="INAPTA">INAPTA</option>
-                <option value="PENDENTE">PENDENTE</option>
-              </select>
-            </div>
-            <div class="field"><label>Simples Nacional</label>
-              <select id="simplesNacional">
-                <option value="NÃO INFORMADO">NÃO INFORMADO</option>
-                <option value="SIM">SIM</option>
-                <option value="NÃO">NÃO</option>
-              </select>
-            </div>
-            <div class="field"><label>Homologado Ability</label>
-              <select id="homologado">
-                <option value="SIM">SIM</option>
-                <option value="NÃO">NÃO</option>
-                <option value="EM DESENVOLVIMENTO">EM DESENVOLVIMENTO</option>
-                <option value="DESOMOLOGADO">DESOMOLOGADO</option>
-                <option value="PENDENTE">PENDENTE</option>
-              </select>
-            </div>
-
-            <!-- ETAPAS COM DATA -->
-            <div class="field"><label>Apresentação do escopo</label>
-              <select id="apresentacaoEscopo">
-                <option value="PENDENTE">PENDENTE</option>
-                <option value="SOLICITADO">SOLICITADO</option>
-                <option value="EM ANDAMENTO">EM ANDAMENTO</option>
-                <option value="CONCLUÍDO">CONCLUÍDO</option>
-                <option value="N/A">N/A</option>
-              </select>
-            </div>
-            <div class="field"><label>Data - Apres. escopo</label><input type="date" id="dtApresentacaoEscopo"></div>
-
-            <div class="field">
-              <label>Documentação solicitada</label>
-              <select id="documentacaoSolicitada">
-                <option value="PENDENTE">PENDENTE</option>
-                <option value="SOLICITADO">SOLICITADO</option>
-                <option value="CONCLUÍDO">CONCLUÍDO</option>
-                <option value="N/A">N/A</option>
-              </select>
-            </div>
-            <div class="field"><label>Data - Doc. solicitada</label><input type="date" id="dtDocumentacaoSolicitada"></div>
-
-            <div class="field">
-              <label style="display:flex;align-items:center;gap:8px;">
+</aside>
+<main class="content">
+<div class="topbar">
+<div class="title-block">
+<button class="ghost-btn mobile-toggle" id="menuToggle">☰ Abrir menu</button>
+<h2>Painel de Fornecedores ABILITY</h2>
+<p>Painel para cadastro e consulta de fornecedores.</p>
+</div>
+<div class="top-actions">
+<span class="tag info" id="currentUserBadge">Não logado</span>
+<button class="ghost-btn" id="logoutBtn">Sair</button>
+<select class="top-select" id="csvExportScope" title="Escolha a aba do relatório Excel/CSV">
+<option value="dashboard">Excel - Dashboard filtrado</option>
+<option value="baseCompleta">Excel - Base completa</option>
+<option value="acompanhamento">Excel - Acompanhamento</option>
+<option value="servicos">Excel - Tipos de Serviço</option>
+<option value="acessos">Excel - Acessos</option>
+<option value="checklist">Excel - Checklist</option>
+</select>
+<button class="ghost-btn" id="downloadCsvBtn">Exportar Excel</button>
+<input accept=".csv,text/csv" class="hidden" id="bulkCsvUpdateInput" type="file"/>
+<button class="warning-btn" id="bulkCsvUpdateBtn">Atualizar por CSV</button>
+<button class="danger-btn" id="resetBtn">Restaurar base</button>
+</div>
+</div>
+<!-- DASHBOARD -->
+<section class="page active" id="dashboard">
+<div class="grid-cards">
+<div class="card"><div class="metric-label">Fornecedores na seleção</div><div class="metric-value" id="kpiTotal">0</div><div class="metric-note">Quantidade conforme filtros atuais.</div></div>
+<div class="card"><div class="metric-label">Homologados</div><div class="metric-value" id="kpiHomologados">0</div><div class="metric-note">Todos os status concluídos e progresso 100%.</div></div>
+<div class="card"><div class="metric-label">Em andamento</div><div class="metric-value" id="kpiAndamento">0</div><div class="metric-note">Não concluídos com alguma evolução.</div></div>
+<div class="card"><div class="metric-label">Passagem à operação</div><div class="metric-value" id="kpiOperacao">0</div><div class="metric-note">Prontos para atuação operacional.</div></div>
+<div class="card"><div class="metric-label">Possível atraso</div><div class="metric-value" id="kpiAtraso">0</div><div class="metric-note">SLA fora do prazo ou prazo vencido.</div></div>
+</div>
+<div class="card" style="margin-bottom:18px;">
+<div class="panel-title">
+<div><h3>Filtros de análise</h3><p>Filtre por fornecedor, UF do cadastro, estado de atuação, escopo, etapa atual e situação.</p></div>
+<div class="legend"><span>Hover na tabela</span><span>Dados locais</span></div>
+</div>
+<div class="filters">
+<div class="field"><label>Buscar</label><input id="filterSearch" placeholder="Fornecedor, CNPJ, e-mail ou contato" type="text"/></div>
+<div class="field"><label>Estado (UF)</label><select id="filterRegion"><option value="todos">Todas</option></select></div>
+<div class="field"><label>Estado de atuação</label><select id="filterAtuacaoEstado"><option value="todos">Todos</option></select></div>
+<div class="field"><label>Categoria do escopo</label><select id="filterScope"><option value="todos">Todas</option></select></div>
+<div class="field"><label>Etapa atual</label><select id="filterStage"><option value="todos">Todas</option></select></div>
+<div class="field"><label>Situação</label><select id="filterSituation">
+<option value="todos">Todas</option>
+<option value="concluido">Concluído</option>
+<option value="andamento">Em andamento</option>
+<option value="pendente">Sem avanço</option>
+<option value="atrasado">Possível atraso</option>
+</select></div>
+</div>
+</div>
+<div class="section-grid">
+<div class="card">
+<div class="panel-title"><div><h3>Avanço por etapa</h3><p>Quantos fornecedores completaram cada marco.</p></div><span class="tag positive">Mapa de gargalo</span></div>
+<div class="bar-list" id="stageBars"></div>
+</div>
+<div class="card stack">
+<div>
+<div class="panel-title"><div><h3>Leitura rápida</h3></div></div>
+<div class="summary-grid">
+<div class="mini-card"><strong>Maior gargalo</strong><span id="maiorGargalo">-</span></div>
+<div class="mini-card"><strong>Progresso médio</strong><span id="progressoMedio">0%</span></div>
+<div class="mini-card"><strong>Doc. recebida</strong><span id="docRecebidaResumo">0</span></div>
+<div class="mini-card"><strong>LPU concluída</strong><span id="lpuResumo">0</span></div>
+</div>
+</div>
+<div class="footer-note" id="insightNote">Sem leitura disponível.</div>
+</div>
+</div>
+<div class="segment-dashboard-grid" id="segmentCharts"></div>
+<div class="card">
+<div class="panel-title">
+<div><h3>Fornecedores filtrados</h3><p>Visão executiva do funil de cadastro.</p></div>
+<span class="tag info" id="filteredCount">0 itens</span>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Fornecedor</th><th>CNPJ</th><th>Contato</th><th>Escopo</th><th>UF</th><th>Região atuação</th><th>Segmento</th><th>Etapa atual</th><th>Progresso</th><th>SLA</th><th>Ações</th></tr></thead>
+<tbody id="dashboardTable"></tbody>
+</table>
+</div>
+<div class="empty-state" id="dashboardEmpty">Nenhum fornecedor encontrado com os filtros atuais.</div>
+</div>
+</section>
+<!-- CADASTRO -->
+<section class="page" id="cadastro">
+<div class="section-grid">
+<div class="card">
+<div class="panel-title">
+<div><h3 id="formTitle">Novo cadastro</h3><p>Registre o fornecedor e atualize as etapas.</p></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;">
+<span class="tag">Formulário</span>
+<button class="ghost-btn" id="importCnpjBtn" style="padding:8px 14px;font-size:13px;">📋 Importar CNPJ (JSON)</button>
+</div>
+</div>
+<form class="form-grid" id="supplierForm">
+<input id="supplierId" type="hidden"/>
+<div class="field row-span-2"><label>Razão social</label><input id="razao" placeholder="Ex.: EMPRESA LTDA" required="" type="text"/></div>
+<div class="field"><label>CNPJ</label><input id="cnpj" maxlength="18" placeholder="00.000.000/0000-00" type="text"/></div>
+<div class="field"><label>Nome do contato</label><input id="nomeContato" placeholder="Ex.: João Silva" type="text"/></div>
+<div class="field"><label>Telefone</label><input id="telefone" placeholder="(00) 00000-0000" type="text"/></div>
+<div class="field"><label>Tipo de telefone</label>
+<select id="telefoneDigitos">
+<option value="auto">Automático</option>
+<option value="9">Celular - 9 dígitos</option>
+<option value="8">Fixo - 8 dígitos</option>
+</select>
+</div>
+<div class="field"><label>E-mail</label><input id="email" placeholder="fornecedor@email.com" type="email"/></div>
+<div class="field"><label>UF</label><input id="uf" maxlength="2" placeholder="SP" type="text"/></div>
+<div class="field"><label>Região de atuação</label><input id="regiaoAtuacao" placeholder="SP / RJ / Sul" type="text"/></div>
+<div class="field"><label>Escopo</label><input id="escopo" list="scopeList" placeholder="GMG, Climatização, Elétrica..." type="text"/><datalist id="scopeList"></datalist></div>
+<div class="field"><label>Responsável</label><input id="responsavel" placeholder="Nome do comprador / área" type="text"/></div>
+<div class="field"><label>Data início SLA</label><input id="dataInicioCadastro" type="date"/></div>
+<!-- SEGMENTO MULTISELEÇÃO -->
+<div class="field row-span-2">
+<label>Segmento (multiseleção)</label>
+<div class="multiselect-wrap" id="segmentoWrap">
+<label><input type="checkbox" value="Serviço PLIN"/><span>Serviço PLIN</span></label>
+<label><input type="checkbox" value="Material PLIN"/><span>Material PLIN</span></label>
+<label><input type="checkbox" value="Serviço PLEX"/><span>Serviço PLEX</span></label>
+<label><input type="checkbox" value="Material PLEX"/><span>Material PLEX</span></label>
+</div>
+</div>
+<div class="field"><label>Status fiscal</label>
+<select id="statusFiscal">
+<option value="ATIVA">ATIVA</option>
+<option value="BAIXADA">BAIXADA</option>
+<option value="SUSPENSA">SUSPENSA</option>
+<option value="INAPTA">INAPTA</option>
+<option value="PENDENTE">PENDENTE</option>
+</select>
+</div>
+<div class="field"><label>Simples Nacional</label>
+<select id="simplesNacional">
+<option value="NÃO INFORMADO">NÃO INFORMADO</option>
+<option value="SIM">SIM</option>
+<option value="NÃO">NÃO</option>
+</select>
+</div>
+<div class="field"><label>Homologado Ability</label>
+<select id="homologado">
+<option value="SIM">SIM</option>
+<option value="NÃO">NÃO</option>
+<option value="EM DESENVOLVIMENTO">EM DESENVOLVIMENTO</option>
+<option value="DESOMOLOGADO">DESOMOLOGADO</option>
+<option value="PENDENTE">PENDENTE</option>
+</select>
+</div>
+<!-- ETAPAS COM DATA -->
+<div class="field"><label>Apresentação do escopo</label>
+<select id="apresentacaoEscopo">
+<option value="PENDENTE">PENDENTE</option>
+<option value="SOLICITADO">SOLICITADO</option>
+<option value="EM ANDAMENTO">EM ANDAMENTO</option>
+<option value="CONCLUÍDO">CONCLUÍDO</option>
+<option value="N/A">N/A</option>
+</select>
+</div>
+<div class="field"><label>Data - Apres. escopo</label><input id="dtApresentacaoEscopo" type="date"/></div>
+<div class="field">
+<label>Documentação solicitada</label>
+<select id="documentacaoSolicitada">
+<option value="PENDENTE">PENDENTE</option>
+<option value="SOLICITADO">SOLICITADO</option>
+<option value="CONCLUÍDO">CONCLUÍDO</option>
+<option value="N/A">N/A</option>
+</select>
+</div>
+<div class="field"><label>Data - Doc. solicitada</label><input id="dtDocumentacaoSolicitada" type="date"/></div>
+<div class="field">
+<label style="display:flex;align-items:center;gap:8px;">
                 Documentação recebida
-                <button type="button" class="ghost-btn" id="openDocCheckBtn" style="padding:4px 10px;font-size:11px;border-radius:8px;">📋 Gerenciar docs</button>
-              </label>
-              <select id="documentacaoRecebida">
-                <option value="PENDENTE">PENDENTE</option>
-                <option value="EM ANDAMENTO">EM ANDAMENTO</option>
-                <option value="RECEBIDO">RECEBIDO</option>
-                <option value="CONCLUÍDO">CONCLUÍDO</option>
-                <option value="N/A">N/A</option>
-              </select>
-            </div>
-            <div class="field"><label>Data - Doc. recebida</label><input type="date" id="dtDocumentacaoRecebida"></div>
-
-            <div class="field"><label>Negociação comercial LPU</label>
-              <select id="negociacaoLpu">
-                <option value="PENDENTE">PENDENTE</option>
-                <option value="EM NEGOCIAÇÃO">EM NEGOCIAÇÃO</option>
-                <option value="CONCLUÍDO">CONCLUÍDO</option>
-                <option value="N/A">N/A</option>
-                <option value="N/A">SPOT (PONTUAL)</option>
-              </select>
-            </div>
-            <div class="field"><label>Data - Negociação LPU</label><input type="date" id="dtNegociacaoLpu"></div>
-
-            <div class="field"><label>Cadastro Micro</label>
-              <select id="cadastroMicro">
-                <option value="PENDENTE">PENDENTE</option>
-                <option value="EM ANDAMENTO">EM ANDAMENTO</option>
-                <option value="CONCLUÍDO">CONCLUÍDO</option>
-                <option value="N/A">N/A</option>
-              </select>
-            </div>
-            <div class="field"><label>Data - Cadastro Micro</label><input type="date" id="dtCadastroMicro"></div>
-
-            <div class="field"><label>Cadastro Painel</label>
-              <select id="cadastroPainel">
-                <option value="PENDENTE">PENDENTE</option>
-                <option value="EM ANDAMENTO">EM ANDAMENTO</option>
-                <option value="CONCLUÍDO">CONCLUÍDO</option>
-                <option value="N/A">N/A</option>
-              </select>
-            </div>
-            <div class="field"><label>Data - Cadastro Painel</label><input type="date" id="dtCadastroPainel"></div>
-
-            <div class="field"><label>Formalização de acordo</label>
-              <select id="formalizacaoAcordo">
-                <option value="PENDENTE">PENDENTE</option>
-                <option value="EM ANDAMENTO">EM ANDAMENTO</option>
-                <option value="CONCLUÍDO">CONCLUÍDO</option>
-                <option value="N/A">N/A</option>
-              </select>
-            </div>
-            <div class="field"><label>Data - Formalização</label><input type="date" id="dtFormalizacaoAcordo"></div>
-
-            <div class="field"><label>Passagem à operação</label>
-              <select id="passagemOperacao">
-                <option value="PENDENTE">PENDENTE</option>
-                <option value="EM ANDAMENTO">EM ANDAMENTO</option>
-                <option value="CONCLUÍDO">CONCLUÍDO</option>
-                <option value="N/A">N/A</option>
-              </select>
-            </div>
-            <div class="field"><label>Data - Passagem operação</label><input type="date" id="dtPassagemOperacao"></div>
-
-            <!-- PLEX extras - RH, SESMT, JURÍDICO, DIRETORIA -->
-            <div class="field row-span-2" id="plexExtrasContainer" style="display:none;">
-              <div class="plex-stages">
-                <h4>🏢 Etapas adicionais — Serviço PLEX</h4>
-                <div class="form-grid">
-                  <div class="field"><label>RH</label>
-                    <select id="plexRh">
-                      <option value="PENDENTE">PENDENTE</option>
-                      <option value="EM ANDAMENTO">EM ANDAMENTO</option>
-                      <option value="APROVADO">APROVADO</option>
-                      <option value="REPROVADO">REPROVADO</option>
-                      <option value="N/A">N/A</option>
-                    </select>
-                  </div>
-                  <div class="field"><label>Data - RH</label><input type="date" id="dtPlexRh"></div>
-                  <div class="field"><label>SESMT</label>
-                    <select id="plexSesmt">
-                      <option value="PENDENTE">PENDENTE</option>
-                      <option value="EM ANDAMENTO">EM ANDAMENTO</option>
-                      <option value="APROVADO">APROVADO</option>
-                      <option value="REPROVADO">REPROVADO</option>
-                      <option value="N/A">N/A</option>
-                    </select>
-                  </div>
-                  <div class="field"><label>Data - SESMT</label><input type="date" id="dtPlexSesmt"></div>
-                  <div class="field"><label>Jurídico</label>
-                    <select id="plexJuridico">
-                      <option value="PENDENTE">PENDENTE</option>
-                      <option value="EM ANDAMENTO">EM ANDAMENTO</option>
-                      <option value="APROVADO">APROVADO</option>
-                      <option value="REPROVADO">REPROVADO</option>
-                      <option value="N/A">N/A</option>
-                    </select>
-                  </div>
-                  <div class="field"><label>Data - Jurídico</label><input type="date" id="dtPlexJuridico"></div>
-                  <div class="field"><label>Diretoria</label>
-                    <select id="plexDiretoria">
-                      <option value="PENDENTE">PENDENTE</option>
-                      <option value="EM ANDAMENTO">EM ANDAMENTO</option>
-                      <option value="APROVADO">APROVADO</option>
-                      <option value="REPROVADO">REPROVADO</option>
-                      <option value="N/A">N/A</option>
-                    </select>
-                  </div>
-                  <div class="field"><label>Data - Diretoria</label><input type="date" id="dtPlexDiretoria"></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="field"><label>Prazo negociação</label><input type="date" id="prazoNegociacao"></div>
-            <div class="field"><label>Tempo previsto / prazo final</label><input type="date" id="tempoPrevisto"></div>
-            <div class="field"><label>Lead Time x SLA automático</label>
-              <input type="text" id="leadTimeSla" value="SEM SLA" readonly>
-              <div class="sla-preview" id="slaPreview">Selecione o segmento e a data de início para calcular o SLA.</div>
-            </div>
-            <div class="field row-span-2"><label>Próxima ação</label><textarea id="proximaAcao" placeholder="Ex.: cobrar documentação, validar LPU, formalizar acordo"></textarea></div>
-            <div class="field row-span-2"><label>Último follow-up / observações</label><textarea id="followUp" placeholder="Resumo do último contato"></textarea></div>
-            <div class="field row-span-2" style="display:flex;gap:10px;flex-wrap:wrap;">
-              <button type="submit" class="primary-btn">Salvar cadastro</button>
-              <button type="button" class="ghost-btn" id="clearFormBtn">Limpar formulário</button>
-            </div>
-          </form>
-        </div>
-        <div class="card stack">
-          <div class="panel-title"><div><h3>Régua do processo</h3><p>Bússola das etapas do cadastro.</p></div></div>
-          <div id="stageGuide" class="stack"></div>
-          <div class="footer-note">Se documentação não foi recebida, não trate como fornecedor pronto. 🧯</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ACOMPANHAMENTO -->
-    <section class="page" id="acompanhamento">
-      <div class="card" style="margin-bottom:18px;">
-        <div class="panel-title">
-          <div><h3>Acompanhamento completo</h3><p>Tabela operacional com todas as etapas, progresso e follow-up.</p></div>
-          <span class="tag info" id="trackingCount">0 registros</span>
-        </div>
-        <div class="filters" style="grid-template-columns: 1fr; margin-bottom: 12px;">
-          <div class="field">
-            <label>Buscar no acompanhamento</label>
-            <input type="text" id="trackingSearch" placeholder="Fornecedor, CNPJ, segmento, etapa, responsável, próxima ação ou follow-up">
-          </div>
-        </div>
-        <p class="tracking-scroll-hint">← Role horizontalmente para ver todas as colunas →</p>
-        <div class="table-wrap" style="overflow-x:auto; max-height:70vh;">
-          <table style="min-width:1600px;">
-            <thead><tr>
-              <th>Fornecedor</th><th>CNPJ</th><th>Segmento</th>
-              <th>Fiscal</th><th>Homologado</th>
-              <th>Apres.<br><small style="font-weight:normal;color:var(--muted)">Data</small></th>
-              <th>Doc.Sol.<br><small style="font-weight:normal;color:var(--muted)">Data</small></th>
-              <th>Doc.Rec.<br><small style="font-weight:normal;color:var(--muted)">Data</small></th>
-              <th>LPU<br><small style="font-weight:normal;color:var(--muted)">Data</small></th>
-              <th>Micro<br><small style="font-weight:normal;color:var(--muted)">Data</small></th>
-              <th>Painel<br><small style="font-weight:normal;color:var(--muted)">Data</small></th>
-              <th>Acordo<br><small style="font-weight:normal;color:var(--muted)">Data</small></th>
-              <th>Operação<br><small style="font-weight:normal;color:var(--muted)">Data</small></th>
-              <th>RH</th><th>SESMT</th><th>Jurídico</th><th>Diretoria</th>
-              <th>Progresso</th><th>Próxima ação</th><th>Ações</th>
-            </tr></thead>
-            <tbody id="trackingTable"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- SERVIÇOS -->
-    <section class="page" id="servicos">
-      <div class="card" style="margin-bottom:18px;">
-        <div class="panel-title">
-          <div><h3>Tipos de serviço</h3><p>Base de serviços para ajudar na definição do escopo do fornecedor.</p></div>
-          <span class="tag positive" id="serviceCount">0 itens</span>
-        </div>
-        <!-- Add service form -->
-        <div class="add-service-form" style="margin-bottom:16px;">
-          <div class="field"><label>Categoria</label><input type="text" id="newSvcCat" placeholder="Ex.: GMG"></div>
-          <div class="field"><label>Subcategoria</label><input type="text" id="newSvcSub" placeholder="Ex.: Manutenção"></div>
-          <div class="field"><label>Descrição</label><input type="text" id="newSvcDesc" placeholder="Descrição do serviço"></div>
-          <div class="field"><label>&nbsp;</label><button class="primary-btn" id="addServiceBtn" style="white-space:nowrap;">+ Adicionar</button></div>
-        </div>
-        <div class="filters" style="grid-template-columns: 1fr 1fr auto;">
-          <div class="field"><label>Buscar serviço</label><input type="text" id="serviceSearch" placeholder="GMG, chiller, fibra..."></div>
-          <div class="field"><label>Categoria</label><select id="serviceCategory"><option value="todos">Todas</option></select></div>
-          <div class="field"><label>&nbsp;</label><button class="ghost-btn" id="clearServiceFilters">Limpar</button></div>
-        </div>
-      </div>
-      <div class="service-grid" id="serviceGrid"></div>
-      <div class="empty-state" id="serviceEmpty">Nenhum tipo de serviço encontrado.</div>
-    </section>
-
-    <!-- CHECKLIST -->
-    <section class="page" id="checklist">
-      <div class="card" style="margin-bottom:18px;">
-        <div class="panel-title"><div><h3>Checklist documental obrigatório</h3><p>Padrão para cobrança inicial ao fornecedor.</p></div><span class="tag warning">Governança</span></div>
-        <div id="docsList" style="display:flex;flex-direction:column;gap:20px;"></div>
-      </div>
-      <div class="card stack">
-        <div class="panel-title"><div><h3>Texto rápido de cobrança</h3><p>Modelo para e-mail ou WhatsApp.</p></div></div>
-        <textarea id="templateMsg" style="min-height:260px;background:rgba(255,255,255,0.05);color:var(--text);border:1px solid var(--border);border-radius:16px;padding:14px;resize:vertical;"></textarea>
-        <button class="primary-btn" id="copyTemplateBtn">Copiar texto</button>
-        <div class="footer-note">Cadastro bom é cadastro que não volta por pendência besta.</div>
-      </div>
-    </section>
-
-    <!-- ACESSOS -->
-    <section class="page" id="acessos">
-      <div class="section-grid">
-        <div class="card">
-          <div class="panel-title">
-            <div><h3>Criar acesso</h3><p>Cadastre compradores e áreas com login por nome de usuário.</p></div>
-            <span class="tag warning">Firestore</span>
-          </div>
-          <form id="accessForm" class="form-grid">
-            <div class="field"><label>Nome completo</label><input type="text" id="accessName" placeholder="Ex.: Daniel Baldini" required></div>
-            <div class="field"><label>Usuário / comprador</label><input type="text" id="accessUser" placeholder="Ex.: daniel" required></div>
-            <div class="field"><label>Perfil</label>
-              <select id="accessRole" required>
-                <option value="Compras">Compras</option>
-                <option value="RH">RH</option>
-                <option value="SESMT">SESMT</option>
-                <option value="Juridico">Jurídico</option>
-                <option value="Diretoria">Diretoria</option>
-                <option value="Solicitante">Solicitante</option>
-              </select>
-            </div>
-            <div class="field"><label>Senha inicial</label><input type="password" id="accessPass" minlength="6" placeholder="Mínimo 6 caracteres" required></div>
-            <div class="field row-span-2"><label>Observação</label><textarea id="accessNote" placeholder="Ex.: acesso criado para comprador responsável por fornecedores"></textarea></div>
-            <div class="field row-span-2" style="display:flex;gap:10px;flex-wrap:wrap;">
-              <button type="submit" class="primary-btn">Criar acesso</button>
-              <button type="button" class="ghost-btn" id="clearAccessFormBtn">Limpar</button>
-            </div>
-          </form>
-          <div class="access-note">
+                <button class="ghost-btn" id="openDocCheckBtn" style="padding:4px 10px;font-size:11px;border-radius:8px;" type="button">📋 Gerenciar docs</button>
+</label>
+<select id="documentacaoRecebida">
+<option value="PENDENTE">PENDENTE</option>
+<option value="EM ANDAMENTO">EM ANDAMENTO</option>
+<option value="RECEBIDO">RECEBIDO</option>
+<option value="CONCLUÍDO">CONCLUÍDO</option>
+<option value="N/A">N/A</option>
+</select>
+</div>
+<div class="field"><label>Data - Doc. recebida</label><input id="dtDocumentacaoRecebida" type="date"/></div>
+<div class="field"><label>Negociação comercial LPU</label>
+<select id="negociacaoLpu">
+<option value="PENDENTE">PENDENTE</option>
+<option value="EM NEGOCIAÇÃO">EM NEGOCIAÇÃO</option>
+<option value="CONCLUÍDO">CONCLUÍDO</option>
+<option value="N/A">N/A</option>
+<option value="N/A">SPOT (PONTUAL)</option>
+</select>
+</div>
+<div class="field"><label>Data - Negociação LPU</label><input id="dtNegociacaoLpu" type="date"/></div>
+<div class="field"><label>Cadastro Micro</label>
+<select id="cadastroMicro">
+<option value="PENDENTE">PENDENTE</option>
+<option value="EM ANDAMENTO">EM ANDAMENTO</option>
+<option value="CONCLUÍDO">CONCLUÍDO</option>
+<option value="N/A">N/A</option>
+</select>
+</div>
+<div class="field"><label>Data - Cadastro Micro</label><input id="dtCadastroMicro" type="date"/></div>
+<div class="field"><label>Cadastro Painel</label>
+<select id="cadastroPainel">
+<option value="PENDENTE">PENDENTE</option>
+<option value="EM ANDAMENTO">EM ANDAMENTO</option>
+<option value="CONCLUÍDO">CONCLUÍDO</option>
+<option value="N/A">N/A</option>
+</select>
+</div>
+<div class="field"><label>Data - Cadastro Painel</label><input id="dtCadastroPainel" type="date"/></div>
+<div class="field"><label>Formalização de acordo</label>
+<select id="formalizacaoAcordo">
+<option value="PENDENTE">PENDENTE</option>
+<option value="EM ANDAMENTO">EM ANDAMENTO</option>
+<option value="CONCLUÍDO">CONCLUÍDO</option>
+<option value="N/A">N/A</option>
+</select>
+</div>
+<div class="field"><label>Data - Formalização</label><input id="dtFormalizacaoAcordo" type="date"/></div>
+<div class="field"><label>Passagem à operação</label>
+<select id="passagemOperacao">
+<option value="PENDENTE">PENDENTE</option>
+<option value="EM ANDAMENTO">EM ANDAMENTO</option>
+<option value="CONCLUÍDO">CONCLUÍDO</option>
+<option value="N/A">N/A</option>
+</select>
+</div>
+<div class="field"><label>Data - Passagem operação</label><input id="dtPassagemOperacao" type="date"/></div>
+<!-- PLEX extras - RH, SESMT, JURÍDICO, DIRETORIA -->
+<div class="field row-span-2" id="plexExtrasContainer" style="display:none;">
+<div class="plex-stages">
+<h4>🏢 Etapas adicionais — Serviço PLEX</h4>
+<div class="form-grid">
+<div class="field"><label>RH</label>
+<select id="plexRh">
+<option value="PENDENTE">PENDENTE</option>
+<option value="EM ANDAMENTO">EM ANDAMENTO</option>
+<option value="APROVADO">APROVADO</option>
+<option value="REPROVADO">REPROVADO</option>
+<option value="N/A">N/A</option>
+</select>
+</div>
+<div class="field"><label>Data - RH</label><input id="dtPlexRh" type="date"/></div>
+<div class="field"><label>SESMT</label>
+<select id="plexSesmt">
+<option value="PENDENTE">PENDENTE</option>
+<option value="EM ANDAMENTO">EM ANDAMENTO</option>
+<option value="APROVADO">APROVADO</option>
+<option value="REPROVADO">REPROVADO</option>
+<option value="N/A">N/A</option>
+</select>
+</div>
+<div class="field"><label>Data - SESMT</label><input id="dtPlexSesmt" type="date"/></div>
+<div class="field"><label>Jurídico</label>
+<select id="plexJuridico">
+<option value="PENDENTE">PENDENTE</option>
+<option value="EM ANDAMENTO">EM ANDAMENTO</option>
+<option value="APROVADO">APROVADO</option>
+<option value="REPROVADO">REPROVADO</option>
+<option value="N/A">N/A</option>
+</select>
+</div>
+<div class="field"><label>Data - Jurídico</label><input id="dtPlexJuridico" type="date"/></div>
+<div class="field"><label>Diretoria</label>
+<select id="plexDiretoria">
+<option value="PENDENTE">PENDENTE</option>
+<option value="EM ANDAMENTO">EM ANDAMENTO</option>
+<option value="APROVADO">APROVADO</option>
+<option value="REPROVADO">REPROVADO</option>
+<option value="N/A">N/A</option>
+</select>
+</div>
+<div class="field"><label>Data - Diretoria</label><input id="dtPlexDiretoria" type="date"/></div>
+</div>
+</div>
+</div>
+<div class="field"><label>Prazo negociação</label><input id="prazoNegociacao" type="date"/></div>
+<div class="field"><label>Tempo previsto / prazo final</label><input id="tempoPrevisto" type="date"/></div>
+<div class="field"><label>Lead Time x SLA automático</label>
+<input id="leadTimeSla" readonly="" type="text" value="SEM SLA"/>
+<div class="sla-preview" id="slaPreview">Selecione o segmento e a data de início para calcular o SLA.</div>
+</div>
+<div class="field row-span-2"><label>Próxima ação</label><textarea id="proximaAcao" placeholder="Ex.: cobrar documentação, validar LPU, formalizar acordo"></textarea></div>
+<div class="field row-span-2"><label>Último follow-up / observações</label><textarea id="followUp" placeholder="Resumo do último contato"></textarea></div>
+<div class="field row-span-2" style="display:flex;gap:10px;flex-wrap:wrap;">
+<button class="primary-btn" type="submit">Salvar cadastro</button>
+<button class="ghost-btn" id="clearFormBtn" type="button">Limpar formulário</button>
+</div>
+</form>
+</div>
+<div class="card stack">
+<div class="panel-title"><div><h3>Régua do processo</h3><p>Bússola das etapas do cadastro.</p></div></div>
+<div class="stack" id="stageGuide"></div>
+<div class="footer-note">Se documentação não foi recebida, não trate como fornecedor pronto. 🧯</div>
+</div>
+</div>
+</section>
+<!-- ACOMPANHAMENTO -->
+<section class="page" id="acompanhamento">
+<div class="card" style="margin-bottom:18px;">
+<div class="panel-title">
+<div><h3>Acompanhamento completo</h3><p>Tabela operacional com todas as etapas, progresso e follow-up.</p></div>
+<span class="tag info" id="trackingCount">0 registros</span>
+</div>
+<div class="filters" style="grid-template-columns: 1fr; margin-bottom: 12px;">
+<div class="field">
+<label>Buscar no acompanhamento</label>
+<input id="trackingSearch" placeholder="Fornecedor, CNPJ, segmento, etapa, responsável, próxima ação ou follow-up" type="text"/>
+</div>
+</div>
+<p class="tracking-scroll-hint">← Role horizontalmente para ver todas as colunas →</p>
+<div class="table-wrap" style="overflow-x:auto; max-height:70vh;">
+<table style="min-width:1600px;">
+<thead><tr>
+<th>Fornecedor</th><th>CNPJ</th><th>Segmento</th>
+<th>Fiscal</th><th>Homologado</th>
+<th>Apres.<br/><small style="font-weight:normal;color:var(--muted)">Data</small></th>
+<th>Doc.Sol.<br/><small style="font-weight:normal;color:var(--muted)">Data</small></th>
+<th>Doc.Rec.<br/><small style="font-weight:normal;color:var(--muted)">Data</small></th>
+<th>LPU<br/><small style="font-weight:normal;color:var(--muted)">Data</small></th>
+<th>Micro<br/><small style="font-weight:normal;color:var(--muted)">Data</small></th>
+<th>Painel<br/><small style="font-weight:normal;color:var(--muted)">Data</small></th>
+<th>Acordo<br/><small style="font-weight:normal;color:var(--muted)">Data</small></th>
+<th>Operação<br/><small style="font-weight:normal;color:var(--muted)">Data</small></th>
+<th>RH</th><th>SESMT</th><th>Jurídico</th><th>Diretoria</th>
+<th>Progresso</th><th>Próxima ação</th><th>Ações</th>
+</tr></thead>
+<tbody id="trackingTable"></tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- SERVIÇOS -->
+<section class="page" id="servicos">
+<div class="card" style="margin-bottom:18px;">
+<div class="panel-title">
+<div><h3>Tipos de serviço</h3><p>Base de serviços para ajudar na definição do escopo do fornecedor.</p></div>
+<span class="tag positive" id="serviceCount">0 itens</span>
+</div>
+<!-- Add service form -->
+<div class="add-service-form" style="margin-bottom:16px;">
+<div class="field"><label>Categoria</label><input id="newSvcCat" placeholder="Ex.: GMG" type="text"/></div>
+<div class="field"><label>Subcategoria</label><input id="newSvcSub" placeholder="Ex.: Manutenção" type="text"/></div>
+<div class="field"><label>Descrição</label><input id="newSvcDesc" placeholder="Descrição do serviço" type="text"/></div>
+<div class="field"><label> </label><button class="primary-btn" id="addServiceBtn" style="white-space:nowrap;">+ Adicionar</button></div>
+</div>
+<div class="filters" style="grid-template-columns: 1fr 1fr auto;">
+<div class="field"><label>Buscar serviço</label><input id="serviceSearch" placeholder="GMG, chiller, fibra..." type="text"/></div>
+<div class="field"><label>Categoria</label><select id="serviceCategory"><option value="todos">Todas</option></select></div>
+<div class="field"><label> </label><button class="ghost-btn" id="clearServiceFilters">Limpar</button></div>
+</div>
+</div>
+<div class="service-grid" id="serviceGrid"></div>
+<div class="empty-state" id="serviceEmpty">Nenhum tipo de serviço encontrado.</div>
+</section>
+<!-- CHECKLIST -->
+<section class="page" id="checklist">
+<div class="card" style="margin-bottom:18px;">
+<div class="panel-title"><div><h3>Checklist documental obrigatório</h3><p>Padrão para cobrança inicial ao fornecedor.</p></div><span class="tag warning">Governança</span></div>
+<div id="docsList" style="display:flex;flex-direction:column;gap:20px;"></div>
+</div>
+<div class="card stack">
+<div class="panel-title"><div><h3>Texto rápido de cobrança</h3><p>Modelo para e-mail ou WhatsApp.</p></div></div>
+<textarea id="templateMsg" style="min-height:260px;background:rgba(255,255,255,0.05);color:var(--text);border:1px solid var(--border);border-radius:16px;padding:14px;resize:vertical;"></textarea>
+<button class="primary-btn" id="copyTemplateBtn">Copiar texto</button>
+<div class="footer-note">Cadastro bom é cadastro que não volta por pendência besta.</div>
+</div>
+</section>
+<!-- ACESSOS -->
+<section class="page" id="acessos">
+<div class="section-grid">
+<div class="card">
+<div class="panel-title">
+<div><h3>Criar acesso</h3><p>Cadastre compradores e áreas com login por nome de usuário.</p></div>
+<span class="tag warning">Firestore</span>
+</div>
+<form class="form-grid" id="accessForm">
+<div class="field"><label>Nome completo</label><input id="accessName" placeholder="Ex.: Daniel Baldini" required="" type="text"/></div>
+<div class="field"><label>Usuário / comprador</label><input id="accessUser" placeholder="Ex.: daniel" required="" type="text"/></div>
+<div class="field"><label>Perfil</label>
+<select id="accessRole" required="">
+<option value="Compras">Compras</option>
+<option value="RH">RH</option>
+<option value="SESMT">SESMT</option>
+<option value="Juridico">Jurídico</option>
+<option value="Diretoria">Diretoria</option>
+<option value="Solicitante">Solicitante</option>
+</select>
+</div>
+<div class="field"><label>Senha inicial</label><input id="accessPass" minlength="6" placeholder="Mínimo 6 caracteres" required="" type="password"/></div>
+<div class="field row-span-2"><label>Observação</label><textarea id="accessNote" placeholder="Ex.: acesso criado para comprador responsável por fornecedores"></textarea></div>
+<div class="field row-span-2" style="display:flex;gap:10px;flex-wrap:wrap;">
+<button class="primary-btn" type="submit">Criar acesso</button>
+<button class="ghost-btn" id="clearAccessFormBtn" type="button">Limpar</button>
+</div>
+</form>
+<div class="access-note">
             Neste modelo temporário, a senha fica salva no Firestore para permitir login por usuário sem Firebase Auth. Quando migrarmos para Firebase Auth, a senha sai do banco e fica protegida pelo Authentication.
           </div>
+</div>
+<div class="card stack">
+<div class="panel-title">
+<div><h3>Regras de perfil</h3><p>Permissões aplicadas na interface e registradas no banco.</p></div>
+</div>
+<div class="mini-card"><strong>Compras</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Cria e edita fornecedores, serviços, documentação e acessos.</span></div>
+<div class="mini-card"><strong>RH / SESMT / Jurídico / Diretoria</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Aprova somente a etapa correspondente em Serviço PLEX.</span></div>
+<div class="mini-card"><strong>Diretoria</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Sem acesso total. Atua apenas na aprovação de Diretoria para Serviço PLEX.</span></div>
+<div class="mini-card"><strong>Solicitante</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Visualização sem edição estrutural.</span></div>
+</div>
+</div>
+<div class="card" style="margin-bottom:18px;">
+<div class="panel-title">
+<div><h3>Alterar minha senha</h3><p>Cada usuário pode trocar a própria senha. A alteração é gravada direto no Firestore.</p></div>
+<span class="tag info">Senha individual</span>
+</div>
+<form class="form-grid" id="ownPasswordForm">
+<div class="field"><label>Senha atual</label><input autocomplete="current-password" id="ownCurrentPass" minlength="6" placeholder="Digite sua senha atual" required="" type="password"/></div>
+<div class="field"><label>Nova senha</label><input autocomplete="new-password" id="ownNewPass" minlength="6" placeholder="Mínimo 6 caracteres" required="" type="password"/></div>
+<div class="field"><label>Confirmar nova senha</label><input autocomplete="new-password" id="ownConfirmPass" minlength="6" placeholder="Repita a nova senha" required="" type="password"/></div>
+<div class="field" style="justify-content:end;"><button class="primary-btn" type="submit">Salvar minha nova senha</button></div>
+</form>
+<div class="access-note">
+          A senha é atualizada nos documentos <strong>usuarios</strong> e <strong>usuarios_uid</strong>. O usuário continua com o mesmo perfil e permissões.
         </div>
-        <div class="card stack">
-          <div class="panel-title">
-            <div><h3>Regras de perfil</h3><p>Permissões aplicadas na interface e registradas no banco.</p></div>
-          </div>
-          <div class="mini-card"><strong>Compras</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Cria e edita fornecedores, serviços, documentação e acessos.</span></div>
-          <div class="mini-card"><strong>RH / SESMT / Jurídico / Diretoria</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Aprova somente a etapa correspondente em Serviço PLEX.</span></div>
-          <div class="mini-card"><strong>Diretoria</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Sem acesso total. Atua apenas na aprovação de Diretoria para Serviço PLEX.</span></div>
-          <div class="mini-card"><strong>Solicitante</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Visualização sem edição estrutural.</span></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="panel-title">
-          <div><h3>Acessos cadastrados</h3><p>Usuários salvos na coleção <strong>usuarios</strong> do Firestore.</p></div>
-          <span class="tag info" id="accessCount">0 acessos</span>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Status</th><th>Criado em</th><th>Ações</th></tr></thead>
-            <tbody id="accessTable"></tbody>
-          </table>
-        </div>
-        <div class="empty-state" id="accessEmpty">Nenhum acesso encontrado.</div>
-      </div>
-    </section>
-
-  
-    <!-- COTAÇÕES -->
-    <section class="page" id="cotacoes">
-
-      <!-- FILTROS -->
-      <div class="card" style="margin-bottom:18px;">
-        <div class="panel-title">
-          <div>
-            <h3>📨 Solicitação de Cotação</h3>
-            <p>Filtre os fornecedores, selecione os destinatários e abra o e-mail já montado no Outlook.</p>
-          </div>
-          <span class="tag info" id="cotacaoContador">0 selecionados</span>
-        </div>
-
-        <div class="filters" style="grid-template-columns: 1fr 1fr 1fr 1fr; margin-bottom:14px;">
-          <div class="field">
-            <label>UF do fornecedor</label>
-            <select id="cotacaoFiltroUf"><option value="todos">Todas</option></select>
-          </div>
-          <div class="field">
-            <label>Estado de atuação</label>
-            <select id="cotacaoFiltroAtuacao"><option value="todos">Todos</option></select>
-          </div>
-          <div class="field">
-            <label>Categoria do escopo</label>
-            <select id="cotacaoFiltroEscopo"><option value="todos">Todas</option></select>
-          </div>
-          <div class="field">
-            <label>Segmento</label>
-            <select id="cotacaoFiltroSegmento">
-              <option value="todos">Todos</option>
-              <option value="Serviço PLIN">Serviço PLIN</option>
-              <option value="Material PLIN">Material PLIN</option>
-              <option value="Serviço PLEX">Serviço PLEX</option>
-              <option value="Material PLEX">Material PLEX</option>
-            </select>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-          <button class="ghost-btn" id="cotacaoSelecionarTodosBtn">☑️ Selecionar todos filtrados</button>
-          <button class="ghost-btn" id="cotacaoLimparSelecaoBtn">✖️ Limpar seleção</button>
-          <span class="subtle" id="cotacaoAvisoLimite" style="color:var(--warning);display:none;">⚠️ Limite de 50 destinatários por envio (CCO).</span>
-        </div>
-      </div>
-
-      <!-- TABELA DE FORNECEDORES -->
-      <div class="card" style="margin-bottom:18px;">
-        <div class="panel-title">
-          <div><h3>Fornecedores encontrados</h3><p>Marque os que receberão a solicitação de cotação em CCO.</p></div>
-          <span class="tag info" id="cotacaoTotalFiltrado">0 itens</span>
-        </div>
-        <div class="table-wrap" style="max-height:380px;">
-          <table style="min-width:860px;">
-            <thead>
-              <tr>
-                <th style="width:44px;"><input type="checkbox" id="cotacaoCheckAll" title="Marcar/desmarcar todos visíveis" style="accent-color:var(--primary);width:16px;height:16px;"></th>
-                <th>Fornecedor</th>
-                <th>E-mail</th>
-                <th>UF</th>
-                <th>Atuação</th>
-                <th>Escopo</th>
-                <th>Segmento</th>
-              </tr>
-            </thead>
-            <tbody id="cotacaoTabelaBody"></tbody>
-          </table>
-        </div>
-        <div class="empty-state" id="cotacaoVazio" style="display:none;">Nenhum fornecedor encontrado com os filtros selecionados.</div>
-      </div>
-
-      <!-- COMPOSIÇÃO DO E-MAIL -->
-      <div class="card">
-        <div class="panel-title">
-          <div><h3>✉️ Compor e-mail de cotação</h3><p>Configure os destinatários, copias e corpo do e-mail antes de abrir no Outlook.</p></div>
-        </div>
-
-        <!-- PARA -->
-        <div style="margin-bottom:14px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px;">📤 PARA — Fornecedores (CCO)</div>
-          <div id="cotacaoDestinatariosPreview" style="
+</div>
+<div class="card">
+<div class="panel-title">
+<div><h3>Acessos cadastrados</h3><p>Usuários salvos na coleção <strong>usuarios</strong> do Firestore.</p></div>
+<span class="tag info" id="accessCount">0 acessos</span>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Status</th><th>Criado em</th><th>Ações</th></tr></thead>
+<tbody id="accessTable"></tbody>
+</table>
+</div>
+<div class="empty-state" id="accessEmpty">Nenhum acesso encontrado.</div>
+</div>
+</section>
+<!-- COTAÇÕES -->
+<section class="page" id="cotacoes">
+<!-- FILTROS -->
+<div class="card" style="margin-bottom:18px;">
+<div class="panel-title">
+<div>
+<h3>📨 Solicitação de Cotação</h3>
+<p>Filtre os fornecedores, selecione os destinatários e abra o e-mail já montado no Outlook.</p>
+</div>
+<span class="tag info" id="cotacaoContador">0 selecionados</span>
+</div>
+<div class="filters" style="grid-template-columns: 1fr 1fr 1fr 1fr; margin-bottom:14px;">
+<div class="field">
+<label>UF do fornecedor</label>
+<select id="cotacaoFiltroUf"><option value="todos">Todas</option></select>
+</div>
+<div class="field">
+<label>Estado de atuação</label>
+<select id="cotacaoFiltroAtuacao"><option value="todos">Todos</option></select>
+</div>
+<div class="field">
+<label>Categoria do escopo</label>
+<select id="cotacaoFiltroEscopo"><option value="todos">Todas</option></select>
+</div>
+<div class="field">
+<label>Segmento</label>
+<select id="cotacaoFiltroSegmento">
+<option value="todos">Todos</option>
+<option value="Serviço PLIN">Serviço PLIN</option>
+<option value="Material PLIN">Material PLIN</option>
+<option value="Serviço PLEX">Serviço PLEX</option>
+<option value="Material PLEX">Material PLEX</option>
+</select>
+</div>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+<button class="ghost-btn" id="cotacaoSelecionarTodosBtn">☑️ Selecionar todos filtrados</button>
+<button class="ghost-btn" id="cotacaoLimparSelecaoBtn">✖️ Limpar seleção</button>
+<span class="subtle" id="cotacaoAvisoLimite" style="color:var(--warning);display:none;">⚠️ Limite de 50 destinatários por envio (CCO).</span>
+</div>
+</div>
+<!-- TABELA DE FORNECEDORES -->
+<div class="card" style="margin-bottom:18px;">
+<div class="panel-title">
+<div><h3>Fornecedores encontrados</h3><p>Marque os que receberão a solicitação de cotação em CCO.</p></div>
+<span class="tag info" id="cotacaoTotalFiltrado">0 itens</span>
+</div>
+<div class="table-wrap" style="max-height:380px;">
+<table style="min-width:860px;">
+<thead>
+<tr>
+<th style="width:44px;"><input id="cotacaoCheckAll" style="accent-color:var(--primary);width:16px;height:16px;" title="Marcar/desmarcar todos visíveis" type="checkbox"/></th>
+<th>Fornecedor</th>
+<th>E-mail</th>
+<th>UF</th>
+<th>Atuação</th>
+<th>Escopo</th>
+<th>Segmento</th>
+</tr>
+</thead>
+<tbody id="cotacaoTabelaBody"></tbody>
+</table>
+</div>
+<div class="empty-state" id="cotacaoVazio" style="display:none;">Nenhum fornecedor encontrado com os filtros selecionados.</div>
+</div>
+<!-- COMPOSIÇÃO DO E-MAIL -->
+<div class="card">
+<div class="panel-title">
+<div><h3>✉️ Compor e-mail de cotação</h3><p>Configure os destinatários, copias e corpo do e-mail antes de abrir no Outlook.</p></div>
+</div>
+<!-- PARA -->
+<div style="margin-bottom:14px;">
+<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:6px;">📤 PARA — Fornecedores (CCO)</div>
+<div id="cotacaoDestinatariosPreview" style="
             min-height:48px; padding:10px 14px; border-radius:12px;
             background:rgba(255,255,255,0.04); border:1px solid var(--border);
             font-size:12px; line-height:1.7; color:var(--muted); word-break:break-word;
           ">Nenhum fornecedor selecionado ainda. Marque os fornecedores na tabela acima.</div>
-        </div>
-
-        <!-- CC — Equipe interna -->
-        <div style="margin-bottom:14px;">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px;">👥 CC — Equipe Interna (selecione quem deve receber cópia)</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;" id="cotacaoCcWrap">
-            <!-- gerado pelo JS -->
-          </div>
-        </div>
-
-
-        <div class="cotacao-template-picker">
-          <div class="field">
-            <label>Modelo de e-mail</label>
-            <select id="cotacaoModelo">
-              <option value="servico">Serviço</option>
-              <option value="material">Material</option>
-            </select>
-          </div>
-          <div class="cotacao-template-note"><strong>Serviço:</strong> use quando existir execução, visita técnica, mão de obra, escopo técnico, mobilização ou prazo de execução.</div>
-          <div class="cotacao-template-note"><strong>Material:</strong> use quando a cotação envolver item, quantidade, unidade, NCM, frete, prazo de entrega, IPI/DIFAL e condições comerciais.</div>
-        </div>
-
-        <!-- PARA (campo aberto) -->
-        <div class="form-grid" style="margin-bottom:14px;">
-          <div class="field">
-            <label>Campo "Para:" do e-mail (deixe em branco ou use seu próprio e-mail)</label>
-            <input id="cotacaoParaCampo" placeholder="Ex.: compras@suaempresa.com.br" type="email">
-          </div>
-          <div class="field">
-            <label>Assunto do e-mail</label>
-            <input id="cotacaoAssunto" value="Solicitação de Cotação — [descreva o objeto]" placeholder="Ex.: Solicitação de Cotação — Manutenção Elétrica">
-          </div>
-        </div>
-
-        <div class="field" style="margin-bottom:20px;">
-          <label>Corpo do e-mail</label>
-          <textarea id="cotacaoMensagem" style="min-height:240px;font-size:14px;line-height:1.7;">Prezados,
+</div>
+<!-- CC — Equipe interna -->
+<div style="margin-bottom:14px;">
+<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px;">👥 CC — Equipe Interna (selecione quem deve receber cópia)</div>
+<div id="cotacaoCcWrap" style="display:flex;flex-wrap:wrap;gap:6px;">
+<!-- gerado pelo JS -->
+</div>
+</div>
+<div class="cotacao-template-picker">
+<div class="field">
+<label>Modelo de e-mail</label>
+<select id="cotacaoModelo">
+<option value="servico">Serviço</option>
+<option value="material">Material</option>
+</select>
+</div>
+<div class="cotacao-template-note"><strong>Serviço:</strong> use quando existir execução, visita técnica, mão de obra, escopo técnico, mobilização ou prazo de execução.</div>
+<div class="cotacao-template-note"><strong>Material:</strong> use quando a cotação envolver item, quantidade, unidade, NCM, frete, prazo de entrega, IPI/DIFAL e condições comerciais.</div>
+</div>
+<!-- PARA (campo aberto) -->
+<div class="form-grid" style="margin-bottom:14px;">
+<div class="field">
+<label>Campo "Para:" do e-mail (deixe em branco ou use seu próprio e-mail)</label>
+<input id="cotacaoParaCampo" placeholder="Ex.: compras@suaempresa.com.br" type="email"/>
+</div>
+<div class="field">
+<label>Assunto do e-mail</label>
+<input id="cotacaoAssunto" placeholder="Ex.: Solicitação de Cotação — Manutenção Elétrica" value="Solicitação de Cotação — [descreva o objeto]"/>
+</div>
+</div>
+<div class="field" style="margin-bottom:20px;">
+<label>Corpo do e-mail</label>
+<textarea id="cotacaoMensagem" style="min-height:240px;font-size:14px;line-height:1.7;">Prezados,
 
 Solicitamos o envio de proposta comercial para [descrever o serviço/material] conforme escopo abaixo:
 
@@ -1395,392 +1389,359 @@ Por favor, encaminhar a proposta para este e-mail até a data informada.
 Atenciosamente,
 [Seu nome]
 Compras — ABILITY</textarea>
-        </div>
-
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
-          <button class="primary-btn" id="cotacaoAbrirOutlookBtn" style="font-size:15px;padding:14px 24px;">
+</div>
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+<button class="primary-btn" id="cotacaoAbrirOutlookBtn" style="font-size:15px;padding:14px 24px;">
             📤 Abrir no Outlook
           </button>
-          <span class="subtle" id="cotacaoStatusMsg" style="font-size:13px;"></span>
-        </div>
-
-        <div style="margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.18);font-size:12px;color:#93c5fd;line-height:1.65;">
+<span class="subtle" id="cotacaoStatusMsg" style="font-size:13px;"></span>
+</div>
+<div style="margin-top:14px;padding:12px 14px;border-radius:12px;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.18);font-size:12px;color:#93c5fd;line-height:1.65;">
           ℹ️ <strong>Como funciona:</strong> fornecedores selecionados vão em <strong>CCO</strong> (sem ver uns aos outros). A equipe marcada em CC recebe cópia visível. O campo "Para:" pode ser o seu próprio e-mail ou deixado em branco.
         </div>
-      </div>
-    </section>
-
-    <!-- ══════════════════ ABA COMPRAS / DIFAL+IPI ══════════════════ -->
-    <section class="page" id="compras">
-
-      <div class="card" style="margin-bottom:18px;">
-        <div class="panel-title">
-          <div>
-            <h3>🛒 Comparativo de Preços · DIFAL & IPI</h3>
-            <p>Cadastre fornecedores e insumos, informe preços e obtenha o custo total com DIFAL, IPI, frete e PIS/COFINS calculados automaticamente.</p>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="ghost-btn" onclick="cpShowTab('fornecedores')">🏭 Fornecedores <span class="tag info" style="margin-left:4px;" id="cp-badge-forn">0</span></button>
-            <button class="ghost-btn" onclick="cpShowTab('insumos')">📦 Insumos <span class="tag info" style="margin-left:4px;" id="cp-badge-ins">0</span></button>
-            <button class="ghost-btn" onclick="cpShowTab('ipi')">🔢 IPI</button>
-            <button class="primary-btn" onclick="cpCalcular()">▶ Calcular</button>
-          </div>
-        </div>
-
-
-        <div class="cp-automation-panel" id="cpAutomationPanel">
-          <div class="cp-automation-card"><strong>⚡ Pré-análise automática</strong><span>Valida fornecedores, insumos sem preço, UF, CNPJ e campos fiscais antes do cálculo.</span><button class="ghost-btn" type="button" onclick="cpAuditarComparativo()">Auditar dados</button></div>
-          <div class="cp-automation-card"><strong>🧾 Importação inteligente</strong><span>Lê XLSX convertido do PDF, procura CNPJ, sugere fornecedor e carrega preços nos insumos.</span><button class="ghost-btn" type="button" onclick="cpAbrirModalOrcamento()">Importar orçamento</button></div>
-          <div class="cp-automation-card"><strong>🏆 Melhor compra</strong><span>Mostra fornecedor vencedor, economia e itens em que cada fornecedor ganhou.</span><button class="ghost-btn" type="button" onclick="cpSugerirMelhorCompra()">Gerar resumo</button></div>
-          <div class="cp-automation-card"><strong>📤 Exportação rápida</strong><span>Baixa um CSV do comparativo para anexar ao pedido, aprovação ou e-mail.</span><button class="ghost-btn" type="button" onclick="cpExportarComparativoCsv()">Exportar CSV</button></div>
-        </div>
-
-        <!-- Sub-tabs internas -->
-        <div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:18px;overflow-x:auto;">
-          <button class="cp-tab active" data-tab="fornecedores" onclick="cpShowTab('fornecedores')" style="background:transparent;border:none;border-bottom:2px solid var(--primary);color:var(--primary);padding:10px 18px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;">🏭 Fornecedores</button>
-          <button class="cp-tab" data-tab="insumos" onclick="cpShowTab('insumos')" style="background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px 18px;cursor:pointer;font-size:13px;white-space:nowrap;">📦 Insumos</button>
-          <button class="cp-tab" data-tab="config" onclick="cpShowTab('config')" style="background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px 18px;cursor:pointer;font-size:13px;white-space:nowrap;">⚙️ Config. Fiscal</button>
-          <button class="cp-tab" data-tab="ipi" onclick="cpShowTab('ipi')" style="background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px 18px;cursor:pointer;font-size:13px;white-space:nowrap;">🔢 IPI</button>
-          <button class="cp-tab" data-tab="resultado" onclick="cpShowTab('resultado')" style="background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px 18px;cursor:pointer;font-size:13px;white-space:nowrap;">📊 Resultado</button>
-        </div>
-
-        <!-- TAB FORNECEDORES -->
-        <div class="cp-page" id="cp-page-fornecedores">
-          <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
-            <button class="primary-btn" onclick="cpAddFornecedor()">+ Adicionar Fornecedor Manual</button>
-            <button class="ghost-btn" onclick="cpImportarDaBase()">📂 Importar da Base de Fornecedores</button>
-          </div>
-          <div id="cp-forn-import-panel" style="display:none;margin-bottom:14px;padding:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;">
-            <div class="panel-title" style="margin-bottom:12px;">
-              <div><strong>Importar da base cadastrada</strong><br><span style="color:var(--muted);font-size:12px;">Selecione fornecedores já cadastrados para usar neste comparativo.</span></div>
-              <button class="ghost-btn" onclick="document.getElementById('cp-forn-import-panel').style.display='none'" style="padding:6px 12px;font-size:12px;">✕ Fechar</button>
-            </div>
-            <div class="filters" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:12px;">
-              <div class="field"><label>Buscar</label><input type="text" id="cp-import-search" placeholder="Nome, CNPJ, e-mail..." oninput="cpRenderImportList()"></div>
-              <div class="field"><label>UF</label><select id="cp-import-uf" onchange="cpRenderImportList()"><option value="todos">Todas</option></select></div>
-              <div class="field"><label>Segmento</label><select id="cp-import-seg" onchange="cpRenderImportList()"><option value="todos">Todos</option></select></div>
-            </div>
-            <div id="cp-import-list" style="max-height:280px;overflow-y:auto;display:grid;gap:6px;"></div>
-            <div style="margin-top:12px;display:flex;gap:8px;">
-              <button class="primary-btn" onclick="cpConfirmarImport()" style="font-size:13px;">✔ Adicionar selecionados</button>
-              <span id="cp-import-count" style="color:var(--muted);font-size:12px;align-self:center;"></span>
-            </div>
-          </div>
-          <div id="cp-forn-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;">
-            <div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted);font-size:13px;">Nenhum fornecedor adicionado. Clique em "+ Adicionar" ou importe da base.</div>
-          </div>
-        </div>
-
-        <!-- TAB INSUMOS -->
-        <div class="cp-page" id="cp-page-insumos" style="display:none;">
-          <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
-            <button class="primary-btn" onclick="cpAddInsumo()">+ Adicionar Insumo</button>
-            <button class="ghost-btn" onclick="document.getElementById('cp-bulk-panel').style.display=document.getElementById('cp-bulk-panel').style.display==='none'?'block':'none'">📋 Importar em lote</button>
-            <button class="ghost-btn" onclick="cpAbrirModalOrcamento()" style="border-color:rgba(251,191,36,0.35);color:#fbbf24;">📊 Importar Orçamento XLSX</button>
-          </div>
-          <div id="cp-bulk-panel" style="display:none;margin-bottom:14px;padding:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;">
-            <p style="color:var(--muted);font-size:12px;margin-bottom:10px;">Uma linha por item: <code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:6px;font-size:11px;">Nome do Item;Quantidade;Unidade</code></p>
-            <textarea id="cp-bulk-input" style="min-height:140px;width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);border-radius:14px;padding:12px;font-family:monospace;font-size:12px;resize:vertical;outline:none;" placeholder="Cimento CP-II;50;sc&#10;Areia média;10;m³&#10;Brita 1;8;m³"></textarea>
-            <div style="margin-top:8px;display:flex;gap:8px;">
-              <button class="primary-btn" onclick="cpImportarBulk()" style="font-size:13px;">Importar</button>
-            </div>
-          </div>
-          <div class="table-wrap" style="max-height:400px;">
-            <table style="min-width:560px;">
-              <thead>
-                <tr>
-                  <th style="width:36px;">#</th>
-                  <th>Descrição do Insumo</th>
-                  <th>Quantidade</th>
-                  <th>Unidade</th>
-                  <th style="width:44px;"></th>
-                </tr>
-              </thead>
-              <tbody id="cp-insumos-body">
-                <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted);">Nenhum insumo cadastrado.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- TAB CONFIG FISCAL -->
-        <div class="cp-page" id="cp-page-config" style="display:none;">
-          <div class="form-grid">
-            <div class="field">
-              <label>UF de Destino (sua empresa)</label>
-              <select id="cp-uf-destino" onchange="cpOnUfDestinoChange()">
-                <option value="SP" selected>SP</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Alíquota ICMS Interno do Destino (%)</label>
-              <input type="number" id="cp-aliq-interno" value="18" min="0" max="30" step="0.01">
-            </div>
-            <div class="field">
-              <label>FCP — Fundo de Combate à Pobreza (%)</label>
-              <input type="number" id="cp-aliq-fcp" value="0" min="0" max="5" step="0.01" placeholder="0">
-            </div>
-            <div class="field">
-              <label>Partilha DIFAL (%)</label>
-              <input type="number" id="cp-partilha-difal" value="100" min="0" max="100" step="1" placeholder="100">
-            </div>
-            <div class="field">
-              <label>PIS (%)</label>
-              <input type="number" id="cp-aliq-pis" value="0" min="0" max="10" step="0.01" placeholder="0">
-            </div>
-            <div class="field">
-              <label>COFINS (%)</label>
-              <input type="number" id="cp-aliq-cofins" value="0" min="0" max="10" step="0.01" placeholder="0">
-            </div>
-            <div class="field">
-              <label>Margem / Mark-up (%)</label>
-              <input type="number" id="cp-margem" value="0" min="0" max="200" step="0.01" placeholder="0">
-            </div>
-          </div>
-          <div style="margin-top:16px;" id="cp-difal-table-area">
-            <p style="color:var(--muted);font-size:13px;">Adicione fornecedores para ver a tabela DIFAL.</p>
-          </div>
-        </div>
-
-        <!-- TAB IPI -->
-        <div class="cp-page" id="cp-page-ipi" style="display:none;">
-          <p style="color:var(--muted);font-size:12px;margin-bottom:12px;">Defina o IPI (%) de cada fornecedor por insumo. Deixe em branco ou 0 para isento.</p>
-          <div class="table-wrap" id="cp-ipi-table-area">
-            <p style="padding:2rem;text-align:center;color:var(--muted);font-size:13px;">Adicione fornecedores e insumos para configurar o IPI.</p>
-          </div>
-        </div>
-
-        <!-- TAB RESULTADO -->
-        <div class="cp-page" id="cp-page-resultado" style="display:none;">
-          <div id="cp-resultado-content" style="text-align:center;padding:3rem;color:var(--muted);">
+</div>
+</section>
+<!-- ══════════════════ ABA COMPRAS / DIFAL+IPI ══════════════════ -->
+<section class="page" id="compras">
+<div class="card" style="margin-bottom:18px;">
+<div class="panel-title">
+<div>
+<h3>🛒 Comparativo de Preços · DIFAL &amp; IPI</h3>
+<p>Cadastre fornecedores e insumos, informe preços e obtenha o custo total com DIFAL, IPI, frete e PIS/COFINS calculados automaticamente.</p>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;">
+<button class="ghost-btn" onclick="cpShowTab('fornecedores')">🏭 Fornecedores <span class="tag info" id="cp-badge-forn" style="margin-left:4px;">0</span></button>
+<button class="ghost-btn" onclick="cpShowTab('insumos')">📦 Insumos <span class="tag info" id="cp-badge-ins" style="margin-left:4px;">0</span></button>
+<button class="ghost-btn" onclick="cpShowTab('ipi')">🔢 IPI</button>
+<button class="primary-btn" onclick="cpCalcular()">▶ Calcular</button>
+</div>
+</div>
+<div class="cp-automation-panel" id="cpAutomationPanel">
+<div class="cp-automation-card"><strong>⚡ Pré-análise automática</strong><span>Valida fornecedores, insumos sem preço, UF, CNPJ e campos fiscais antes do cálculo.</span><button class="ghost-btn" onclick="cpAuditarComparativo()" type="button">Auditar dados</button></div>
+<div class="cp-automation-card"><strong>🧾 Importação inteligente</strong><span>Lê XLSX convertido do PDF, procura CNPJ, sugere fornecedor e carrega preços nos insumos.</span><button class="ghost-btn" onclick="cpAbrirModalOrcamento()" type="button">Importar orçamento</button></div>
+<div class="cp-automation-card"><strong>🏆 Melhor compra</strong><span>Mostra fornecedor vencedor, economia e itens em que cada fornecedor ganhou.</span><button class="ghost-btn" onclick="cpSugerirMelhorCompra()" type="button">Gerar resumo</button></div>
+<div class="cp-automation-card"><strong>📤 Exportação rápida</strong><span>Baixa um CSV do comparativo para anexar ao pedido, aprovação ou e-mail.</span><button class="ghost-btn" onclick="cpExportarComparativoCsv()" type="button">Exportar CSV</button></div>
+</div>
+<!-- Sub-tabs internas -->
+<div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:18px;overflow-x:auto;">
+<button class="cp-tab active" data-tab="fornecedores" onclick="cpShowTab('fornecedores')" style="background:transparent;border:none;border-bottom:2px solid var(--primary);color:var(--primary);padding:10px 18px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;">🏭 Fornecedores</button>
+<button class="cp-tab" data-tab="insumos" onclick="cpShowTab('insumos')" style="background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px 18px;cursor:pointer;font-size:13px;white-space:nowrap;">📦 Insumos</button>
+<button class="cp-tab" data-tab="config" onclick="cpShowTab('config')" style="background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px 18px;cursor:pointer;font-size:13px;white-space:nowrap;">⚙️ Config. Fiscal</button>
+<button class="cp-tab" data-tab="ipi" onclick="cpShowTab('ipi')" style="background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px 18px;cursor:pointer;font-size:13px;white-space:nowrap;">🔢 IPI</button>
+<button class="cp-tab" data-tab="resultado" onclick="cpShowTab('resultado')" style="background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px 18px;cursor:pointer;font-size:13px;white-space:nowrap;">📊 Resultado</button>
+</div>
+<!-- TAB FORNECEDORES -->
+<div class="cp-page" id="cp-page-fornecedores">
+<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+<button class="primary-btn" onclick="cpAddFornecedor()">+ Adicionar Fornecedor Manual</button>
+<button class="ghost-btn" onclick="cpImportarDaBase()">📂 Importar da Base de Fornecedores</button>
+</div>
+<div id="cp-forn-import-panel" style="display:none;margin-bottom:14px;padding:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;">
+<div class="panel-title" style="margin-bottom:12px;">
+<div><strong>Importar da base cadastrada</strong><br/><span style="color:var(--muted);font-size:12px;">Selecione fornecedores já cadastrados para usar neste comparativo.</span></div>
+<button class="ghost-btn" onclick="document.getElementById('cp-forn-import-panel').style.display='none'" style="padding:6px 12px;font-size:12px;">✕ Fechar</button>
+</div>
+<div class="filters" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:12px;">
+<div class="field"><label>Buscar</label><input id="cp-import-search" oninput="cpRenderImportList()" placeholder="Nome, CNPJ, e-mail..." type="text"/></div>
+<div class="field"><label>UF</label><select id="cp-import-uf" onchange="cpRenderImportList()"><option value="todos">Todas</option></select></div>
+<div class="field"><label>Segmento</label><select id="cp-import-seg" onchange="cpRenderImportList()"><option value="todos">Todos</option></select></div>
+</div>
+<div id="cp-import-list" style="max-height:280px;overflow-y:auto;display:grid;gap:6px;"></div>
+<div style="margin-top:12px;display:flex;gap:8px;">
+<button class="primary-btn" onclick="cpConfirmarImport()" style="font-size:13px;">✔ Adicionar selecionados</button>
+<span id="cp-import-count" style="color:var(--muted);font-size:12px;align-self:center;"></span>
+</div>
+</div>
+<div id="cp-forn-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;">
+<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted);font-size:13px;">Nenhum fornecedor adicionado. Clique em "+ Adicionar" ou importe da base.</div>
+</div>
+</div>
+<!-- TAB INSUMOS -->
+<div class="cp-page" id="cp-page-insumos" style="display:none;">
+<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+<button class="primary-btn" onclick="cpAddInsumo()">+ Adicionar Insumo</button>
+<button class="ghost-btn" onclick="document.getElementById('cp-bulk-panel').style.display=document.getElementById('cp-bulk-panel').style.display==='none'?'block':'none'">📋 Importar em lote</button>
+<button class="ghost-btn" onclick="cpAbrirModalOrcamento()" style="border-color:rgba(251,191,36,0.35);color:#fbbf24;">📊 Importar Orçamento XLSX</button>
+</div>
+<div id="cp-bulk-panel" style="display:none;margin-bottom:14px;padding:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;">
+<p style="color:var(--muted);font-size:12px;margin-bottom:10px;">Uma linha por item: <code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:6px;font-size:11px;">Nome do Item;Quantidade;Unidade</code></p>
+<textarea id="cp-bulk-input" placeholder="Cimento CP-II;50;sc
+Areia média;10;m³
+Brita 1;8;m³" style="min-height:140px;width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);border-radius:14px;padding:12px;font-family:monospace;font-size:12px;resize:vertical;outline:none;"></textarea>
+<div style="margin-top:8px;display:flex;gap:8px;">
+<button class="primary-btn" onclick="cpImportarBulk()" style="font-size:13px;">Importar</button>
+</div>
+</div>
+<div class="table-wrap" style="max-height:400px;">
+<table style="min-width:560px;">
+<thead>
+<tr>
+<th style="width:36px;">#</th>
+<th>Descrição do Insumo</th>
+<th>Quantidade</th>
+<th>Unidade</th>
+<th style="width:44px;"></th>
+</tr>
+</thead>
+<tbody id="cp-insumos-body">
+<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted);">Nenhum insumo cadastrado.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- TAB CONFIG FISCAL -->
+<div class="cp-page" id="cp-page-config" style="display:none;">
+<div class="form-grid">
+<div class="field">
+<label>UF de Destino (sua empresa)</label>
+<select id="cp-uf-destino" onchange="cpOnUfDestinoChange()">
+<option selected="" value="SP">SP</option>
+</select>
+</div>
+<div class="field">
+<label>Alíquota ICMS Interno do Destino (%)</label>
+<input id="cp-aliq-interno" max="30" min="0" step="0.01" type="number" value="18"/>
+</div>
+<div class="field">
+<label>FCP — Fundo de Combate à Pobreza (%)</label>
+<input id="cp-aliq-fcp" max="5" min="0" placeholder="0" step="0.01" type="number" value="0"/>
+</div>
+<div class="field">
+<label>Partilha DIFAL (%)</label>
+<input id="cp-partilha-difal" max="100" min="0" placeholder="100" step="1" type="number" value="100"/>
+</div>
+<div class="field">
+<label>PIS (%)</label>
+<input id="cp-aliq-pis" max="10" min="0" placeholder="0" step="0.01" type="number" value="0"/>
+</div>
+<div class="field">
+<label>COFINS (%)</label>
+<input id="cp-aliq-cofins" max="10" min="0" placeholder="0" step="0.01" type="number" value="0"/>
+</div>
+<div class="field">
+<label>Margem / Mark-up (%)</label>
+<input id="cp-margem" max="200" min="0" placeholder="0" step="0.01" type="number" value="0"/>
+</div>
+</div>
+<div id="cp-difal-table-area" style="margin-top:16px;">
+<p style="color:var(--muted);font-size:13px;">Adicione fornecedores para ver a tabela DIFAL.</p>
+</div>
+</div>
+<!-- TAB IPI -->
+<div class="cp-page" id="cp-page-ipi" style="display:none;">
+<p style="color:var(--muted);font-size:12px;margin-bottom:12px;">Defina o IPI (%) de cada fornecedor por insumo. Deixe em branco ou 0 para isento.</p>
+<div class="table-wrap" id="cp-ipi-table-area">
+<p style="padding:2rem;text-align:center;color:var(--muted);font-size:13px;">Adicione fornecedores e insumos para configurar o IPI.</p>
+</div>
+</div>
+<!-- TAB RESULTADO -->
+<div class="cp-page" id="cp-page-resultado" style="display:none;">
+<div id="cp-resultado-content" style="text-align:center;padding:3rem;color:var(--muted);">
             Configure os dados e clique em <strong>▶ Calcular</strong> para ver o comparativo.
           </div>
-        </div>
-
-      </div><!-- /card -->
-    </section><!-- /compras -->
-
+</div>
+</div><!-- /card -->
+</section><!-- /compras -->
 </main>
 </div>
-
-<button type="button" class="tutorial-reopen-btn hidden" id="tutorialReopenBtn">🤖 Ver tutorial novamente</button>
-
+<button class="tutorial-reopen-btn hidden" id="tutorialReopenBtn" type="button">🤖 Ver tutorial novamente</button>
 <!-- MODAL IMPORTAÇÃO DE ORÇAMENTO XLSX / TEXTO -->
 <div class="modal-backdrop" id="cpOrcamentoModal">
-  <div class="modal" style="width:min(860px,96vw);max-height:92vh;overflow:auto;">
-    <div class="panel-title" style="margin-bottom:16px;">
-      <div>
-        <h3>📊 Importar Orçamento / Cotação XLSX</h3>
-        <p>Importe o XLSX do orçamento. Se o arquivo ainda estiver em PDF, converta antes pelo link do iLovePDF e depois selecione o Excel gerado.</p>
-      </div>
-      <button class="ghost-btn" id="cpCloseOrcamentoModal" style="padding:8px 14px;">✕ Fechar</button>
+<div class="modal" style="width:min(860px,96vw);max-height:92vh;overflow:auto;">
+<div class="panel-title" style="margin-bottom:16px;">
+<div>
+<h3>📊 Importar Orçamento / Cotação XLSX</h3>
+<p>Importe o XLSX do orçamento. Se o arquivo ainda estiver em PDF, converta antes pelo link do iLovePDF e depois selecione o Excel gerado.</p>
+</div>
+<button class="ghost-btn" id="cpCloseOrcamentoModal" style="padding:8px 14px;">✕ Fechar</button>
+</div>
+<div style="margin-bottom:14px;padding:12px 14px;border-radius:12px;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.20);font-size:12px;color:#fde68a;line-height:1.7;">
+<strong>Como usar:</strong> Converta o PDF para XLSX em <a href="https://www.ilovepdf.com/pdf_to_excel" rel="noopener" style="color:#2563eb;font-weight:800;" target="_blank">iLovePDF — PDF para Excel</a>. Depois selecione o XLSX aqui. O sistema procura CNPJ no arquivo, tenta vincular ao fornecedor da base e identifica colunas de descrição, quantidade, unidade, valor unitário e total. O campo de texto abaixo continua como plano B para modelos fora do padrão.
     </div>
-
-    <div style="margin-bottom:14px;padding:12px 14px;border-radius:12px;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.20);font-size:12px;color:#fde68a;line-height:1.7;">
-      <strong>Como usar:</strong> Converta o PDF para XLSX em <a href="https://www.ilovepdf.com/pdf_to_excel" target="_blank" rel="noopener" style="color:#2563eb;font-weight:800;">iLovePDF — PDF para Excel</a>. Depois selecione o XLSX aqui. O sistema procura CNPJ no arquivo, tenta vincular ao fornecedor da base e identifica colunas de descrição, quantidade, unidade, valor unitário e total. O campo de texto abaixo continua como plano B para modelos fora do padrão.
-    </div>
-
-
-    <div class="field" style="margin-bottom:14px;">
-      <label>Arquivo XLSX do orçamento</label>
-      <input type="file" id="cpOrcamentoXlsxInput" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
-      <span class="subtle">Dica: quando o orçamento vier em PDF, converta no iLovePDF e importe o Excel aqui.</span>
-    </div>
-
-
-    <div class="cp-match-panel">
-      <div class="field">
-        <label>Fornecedor vinculado ao orçamento</label>
-        <select id="cpOrcamentoFornecedorSelect"><option value="">Detectar automaticamente pelo CNPJ</option></select>
-      </div>
-      <div class="cp-mini-report" id="cpOrcamentoDiagnostico">Nenhum arquivo lido ainda. Após importar, o sistema exibirá CNPJ encontrado, fornecedor sugerido e colunas detectadas.</div>
-    </div>
-
-    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-      <button class="primary-btn" onclick="cpImportarXlsxOrcamento()">📥 Ler XLSX e vincular fornecedor</button>
-      <a class="ghost-btn" href="https://www.ilovepdf.com/pdf_to_excel" target="_blank" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;">🔗 Converter PDF no iLovePDF</a>
-    </div>
-    <div class="field" style="margin-bottom:14px;">
-      <label>Texto copiado do PDF / conteúdo alternativo</label>
-      <textarea id="cpOrcamentoPasteArea" style="min-height:220px;width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px;font-family:monospace;font-size:12px;resize:vertical;outline:none;" placeholder="Cole aqui o texto do orçamento/cotação..."></textarea>
-    </div>
-
-    <div style="display:flex;gap:8px;margin-bottom:16px;">
-      <button class="primary-btn" onclick="cpParsearOrcamento()">🔍 Identificar Itens</button>
-      <button class="ghost-btn" onclick="document.getElementById('cpOrcamentoPasteArea').value=''">Limpar</button>
-    </div>
-
-    <!-- Preview dos itens parseados -->
-    <div id="cpOrcamentoPreview" style="display:none;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px;">Itens identificados — confirme antes de importar:</div>
-      <div class="table-wrap" style="max-height:320px;margin-bottom:14px;">
-        <table id="cpOrcamentoPreviewTable" style="min-width:700px;">
-          <thead>
-            <tr>
-              <th style="width:32px;"><input type="checkbox" id="cpOrcCheckAll" style="accent-color:var(--primary);" onchange="document.querySelectorAll('.cp-orc-check').forEach(c=>c.checked=this.checked)"></th>
-              <th>Código</th>
-              <th>Descrição</th>
-              <th>Qtde</th>
-              <th>Un</th>
-              <th>V. Unitário</th>
-              <th>V. Total</th>
-            </tr>
-          </thead>
-          <tbody id="cpOrcamentoPreviewBody"></tbody>
-        </table>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <button class="primary-btn" onclick="cpImportarOrcamento()">✔ Importar selecionados como insumos</button>
-        <span id="cpOrcamentoStatus" style="font-size:12px;color:var(--muted);"></span>
-      </div>
-    </div>
-    <div id="cpOrcamentoEmpty" style="display:none;text-align:center;padding:1.5rem;color:var(--muted);font-size:13px;border:1px dashed var(--border);border-radius:12px;">
+<div class="field" style="margin-bottom:14px;">
+<label>Arquivo XLSX do orçamento</label>
+<input accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" id="cpOrcamentoXlsxInput" type="file"/>
+<span class="subtle">Dica: quando o orçamento vier em PDF, converta no iLovePDF e importe o Excel aqui.</span>
+</div>
+<div class="cp-match-panel">
+<div class="field">
+<label>Fornecedor vinculado ao orçamento</label>
+<select id="cpOrcamentoFornecedorSelect"><option value="">Detectar automaticamente pelo CNPJ</option></select>
+</div>
+<div class="cp-mini-report" id="cpOrcamentoDiagnostico">Nenhum arquivo lido ainda. Após importar, o sistema exibirá CNPJ encontrado, fornecedor sugerido e colunas detectadas.</div>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+<button class="primary-btn" onclick="cpImportarXlsxOrcamento()">📥 Ler XLSX e vincular fornecedor</button>
+<a class="ghost-btn" href="https://www.ilovepdf.com/pdf_to_excel" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;" target="_blank">🔗 Converter PDF no iLovePDF</a>
+</div>
+<div class="field" style="margin-bottom:14px;">
+<label>Texto copiado do PDF / conteúdo alternativo</label>
+<textarea id="cpOrcamentoPasteArea" placeholder="Cole aqui o texto do orçamento/cotação..." style="min-height:220px;width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px;font-family:monospace;font-size:12px;resize:vertical;outline:none;"></textarea>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:16px;">
+<button class="primary-btn" onclick="cpParsearOrcamento()">🔍 Identificar Itens</button>
+<button class="ghost-btn" onclick="document.getElementById('cpOrcamentoPasteArea').value=''">Limpar</button>
+</div>
+<!-- Preview dos itens parseados -->
+<div id="cpOrcamentoPreview" style="display:none;">
+<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px;">Itens identificados — confirme antes de importar:</div>
+<div class="table-wrap" style="max-height:320px;margin-bottom:14px;">
+<table id="cpOrcamentoPreviewTable" style="min-width:700px;">
+<thead>
+<tr>
+<th style="width:32px;"><input id="cpOrcCheckAll" onchange="document.querySelectorAll('.cp-orc-check').forEach(c=&gt;c.checked=this.checked)" style="accent-color:var(--primary);" type="checkbox"/></th>
+<th>Código</th>
+<th>Descrição</th>
+<th>Qtde</th>
+<th>Un</th>
+<th>V. Unitário</th>
+<th>V. Total</th>
+</tr>
+</thead>
+<tbody id="cpOrcamentoPreviewBody"></tbody>
+</table>
+</div>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+<button class="primary-btn" onclick="cpImportarOrcamento()">✔ Importar selecionados como insumos</button>
+<span id="cpOrcamentoStatus" style="font-size:12px;color:var(--muted);"></span>
+</div>
+</div>
+<div id="cpOrcamentoEmpty" style="display:none;text-align:center;padding:1.5rem;color:var(--muted);font-size:13px;border:1px dashed var(--border);border-radius:12px;">
       Nenhum item identificado. Verifique se o texto foi copiado corretamente do PDF.
     </div>
-  </div>
 </div>
-
-
+</div>
 <!-- MODAL PRIMEIRO ACESSO -->
 <div class="modal-backdrop" id="firstAccessModal">
-  <div class="modal modal-sm">
-    <div class="panel-title">
-      <div>
-        <h3>👋 Boas-vindas ao Painel de Fornecedores</h3>
-        <p>Antes de começar, só uma pergunta rápida para ajustar a rota.</p>
-      </div>
-    </div>
-    <div class="welcome-choice-grid">
-      <button type="button" class="welcome-choice" id="firstAccessYesBtn">
-        <strong>Sim, é meu primeiro acesso</strong>
-        <span>Quero entender as abas, filtros, gráficos e funções disponíveis para meu perfil.</span>
-      </button>
-      <button type="button" class="welcome-choice" id="firstAccessNoBtn">
-        <strong>Não, já conheço</strong>
-        <span>Fechar este aviso e ir direto para o painel.</span>
-      </button>
-    </div>
-  </div>
+<div class="modal modal-sm">
+<div class="panel-title">
+<div>
+<h3>👋 Boas-vindas ao Painel de Fornecedores</h3>
+<p>Antes de começar, só uma pergunta rápida para ajustar a rota.</p>
 </div>
-
+</div>
+<div class="welcome-choice-grid">
+<button class="welcome-choice" id="firstAccessYesBtn" type="button">
+<strong>Sim, é meu primeiro acesso</strong>
+<span>Quero entender as abas, filtros, gráficos e funções disponíveis para meu perfil.</span>
+</button>
+<button class="welcome-choice" id="firstAccessNoBtn" type="button">
+<strong>Não, já conheço</strong>
+<span>Fechar este aviso e ir direto para o painel.</span>
+</button>
+</div>
+</div>
+</div>
 <!-- MODAL CONFIRMAR TUTORIAL -->
 <div class="modal-backdrop" id="tutorialConfirmModal">
-  <div class="modal modal-sm">
-    <div class="panel-title">
-      <div>
-        <h3>🧭 Quer ver um tutorial guiado?</h3>
-        <p>O tutorial destaca cada área da tela e mostra apenas funções disponíveis para o seu perfil.</p>
-      </div>
-    </div>
-    <div class="welcome-choice-grid">
-      <button type="button" class="welcome-choice" id="startTutorialBtn">
-        <strong>Ver tutorial agora</strong>
-        <span>Passo a passo pelas abas, filtros, cards, gráficos e ações permitidas.</span>
-      </button>
-      <button type="button" class="welcome-choice" id="skipTutorialBtn">
-        <strong>Agora não</strong>
-        <span>Entrar no painel sem iniciar o guia.</span>
-      </button>
-    </div>
-  </div>
+<div class="modal modal-sm">
+<div class="panel-title">
+<div>
+<h3>🧭 Quer ver um tutorial guiado?</h3>
+<p>O tutorial destaca cada área da tela e mostra apenas funções disponíveis para o seu perfil.</p>
 </div>
-
+</div>
+<div class="welcome-choice-grid">
+<button class="welcome-choice" id="startTutorialBtn" type="button">
+<strong>Ver tutorial agora</strong>
+<span>Passo a passo pelas abas, filtros, cards, gráficos e ações permitidas.</span>
+</button>
+<button class="welcome-choice" id="skipTutorialBtn" type="button">
+<strong>Agora não</strong>
+<span>Entrar no painel sem iniciar o guia.</span>
+</button>
+</div>
+</div>
+</div>
 <!-- CAMADA DO TUTORIAL -->
 <div class="tutorial-layer hidden" id="tutorialLayer">
-  <div class="tutorial-spotlight" id="tutorialSpotlight"></div>
-  <div class="tutorial-arrow" id="tutorialArrow">➜</div>
-  <div class="tutorial-card" id="tutorialCard">
-    <div class="tutorial-header">
-      <div class="tutorial-bot">🤖</div>
-      <div style="flex:1;min-width:0;">
-        <div class="tutorial-progress" id="tutorialProgress">Etapa 1/1</div>
-        <div class="tutorial-page-badge" id="tutorialPageBadge">Aba: Dashboard</div>
-      </div>
-    </div>
-    <h3 id="tutorialTitle">Tutorial</h3>
-    <p id="tutorialText">Descrição da etapa.</p>
-    <ul class="tutorial-details" id="tutorialDetails"></ul>
-    <div class="tutorial-tip" id="tutorialTip">Dica: use os botões para avançar ou sair.</div>
-    <div class="tutorial-practice" id="tutorialPractice">Teste sugerido: experimente clicar, filtrar e navegar. O painel continua interativo durante o tutorial.</div>
-    <div class="tutorial-helper" id="tutorialHelper">💡 Dica do Newt Bot: você pode deixar o tutorial em modo teste para experimentar a tela e depois voltar ao foco guiado.</div>
-    <div class="tutorial-actions">
-      <button type="button" class="ghost-btn" id="tutorialPrevBtn">Voltar</button>
-      <button type="button" class="ghost-btn" id="tutorialFocusToggleBtn">Modo teste</button>
-      <button type="button" class="ghost-btn" id="tutorialCloseBtn">Sair</button>
-      <button type="button" class="primary-btn" id="tutorialNextBtn">Próximo</button>
-    </div>
-  </div>
+<div class="tutorial-spotlight" id="tutorialSpotlight"></div>
+<div class="tutorial-arrow" id="tutorialArrow">➜</div>
+<div class="tutorial-card" id="tutorialCard">
+<div class="tutorial-header">
+<div class="tutorial-bot">🤖</div>
+<div style="flex:1;min-width:0;">
+<div class="tutorial-progress" id="tutorialProgress">Etapa 1/1</div>
+<div class="tutorial-page-badge" id="tutorialPageBadge">Aba: Dashboard</div>
 </div>
-
 </div>
-
+<h3 id="tutorialTitle">Tutorial</h3>
+<p id="tutorialText">Descrição da etapa.</p>
+<ul class="tutorial-details" id="tutorialDetails"></ul>
+<div class="tutorial-tip" id="tutorialTip">Dica: use os botões para avançar ou sair.</div>
+<div class="tutorial-practice" id="tutorialPractice">Teste sugerido: experimente clicar, filtrar e navegar. O painel continua interativo durante o tutorial.</div>
+<div class="tutorial-helper" id="tutorialHelper">💡 Dica do Newt Bot: você pode deixar o tutorial em modo teste para experimentar a tela e depois voltar ao foco guiado.</div>
+<div class="tutorial-actions">
+<button class="ghost-btn" id="tutorialPrevBtn" type="button">Voltar</button>
+<button class="ghost-btn" id="tutorialFocusToggleBtn" type="button">Modo teste</button>
+<button class="ghost-btn" id="tutorialCloseBtn" type="button">Sair</button>
+<button class="primary-btn" id="tutorialNextBtn" type="button">Próximo</button>
+</div>
+</div>
+</div>
 <!-- MODAL DETALHE -->
 <div class="modal-backdrop" id="detailModal">
-  <div class="modal">
-    <div class="panel-title"><div><h3 id="detailTitle">Detalhes</h3><p id="detailSubtitle"></p></div><button class="ghost-btn" id="closeModalBtn">Fechar</button></div>
-    <div id="detailBody"></div>
-  </div>
+<div class="modal">
+<div class="panel-title"><div><h3 id="detailTitle">Detalhes</h3><p id="detailSubtitle"></p></div><button class="ghost-btn" id="closeModalBtn">Fechar</button></div>
+<div id="detailBody"></div>
 </div>
-
+</div>
 <!-- MODAL DOCUMENTOS (popup de checklist) -->
 <div class="modal-backdrop" id="docCheckModal">
-  <div class="modal modal-sm">
-    <div class="panel-title">
-      <div><h3>Gerenciar Documentação</h3><p id="docCheckSupplierName">Selecione quais documentos já foram recebidos</p></div>
-      <button class="ghost-btn" id="closeDocCheckBtn">Fechar</button>
-    </div>
-    <div class="doc-check-list" id="docCheckList"></div>
-    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
-      <button class="ghost-btn" id="selectAllDocCheckBtn">Selecionar todos</button>
-      <button class="ghost-btn" id="clearAllDocCheckBtn">Limpar seleção</button>
-      <button class="primary-btn" id="saveDocCheckBtn">Salvar documentação</button>
-      <button class="ghost-btn" id="closeDocCheckBtn2">Cancelar</button>
-    </div>
-    <div style="margin-top:12px;padding:10px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:12px;">
-      <p style="font-size:12px;color:var(--warning);">✅ = Recebido &nbsp; ⬜ = Pendente. O status da etapa "Documentação recebida" será atualizado automaticamente.</p>
-    </div>
-  </div>
+<div class="modal modal-sm">
+<div class="panel-title">
+<div><h3>Gerenciar Documentação</h3><p id="docCheckSupplierName">Selecione quais documentos já foram recebidos</p></div>
+<button class="ghost-btn" id="closeDocCheckBtn">Fechar</button>
 </div>
-
-
+<div class="doc-check-list" id="docCheckList"></div>
+<div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+<button class="ghost-btn" id="selectAllDocCheckBtn">Selecionar todos</button>
+<button class="ghost-btn" id="clearAllDocCheckBtn">Limpar seleção</button>
+<button class="primary-btn" id="saveDocCheckBtn">Salvar documentação</button>
+<button class="ghost-btn" id="closeDocCheckBtn2">Cancelar</button>
+</div>
+<div style="margin-top:12px;padding:10px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:12px;">
+<p style="font-size:12px;color:var(--warning);">✅ = Recebido   ⬜ = Pendente. O status da etapa "Documentação recebida" será atualizado automaticamente.</p>
+</div>
+</div>
+</div>
 <!-- MODAL ATUALIZAÇÃO EM MASSA CSV -->
 <div class="modal-backdrop" id="bulkCsvModeModal">
-  <div class="modal modal-sm">
-    <div class="panel-title">
-      <div>
-        <h3>Atualização em massa por CSV</h3>
-        <p>Escolha o tipo de atualização antes de selecionar o arquivo.</p>
-      </div>
-      <button class="ghost-btn" id="closeBulkCsvModeBtn">Fechar</button>
-    </div>
-    <div class="cards-grid-2">
-      <button type="button" class="bulk-mode-card" data-mode="segmentoTelefone">
-        <strong>Segmento / Telefone</strong>
-        <span>Atualiza somente segmento, telefone, contato e etapas PLEX quando o segmento virar Serviço PLEX.</span>
-      </button>
-      <button type="button" class="bulk-mode-card" data-mode="andamentoConclusao">
-        <strong>Andamento / Conclusão</strong>
-        <span>Atualiza etapas do acompanhamento, datas, SLA, prazo final, responsável, próxima ação e follow-up.</span>
-      </button>
-    </div>
-    <div class="bulk-mode-info" id="bulkCsvModeInfo">
+<div class="modal modal-sm">
+<div class="panel-title">
+<div>
+<h3>Atualização em massa por CSV</h3>
+<p>Escolha o tipo de atualização antes de selecionar o arquivo.</p>
+</div>
+<button class="ghost-btn" id="closeBulkCsvModeBtn">Fechar</button>
+</div>
+<div class="cards-grid-2">
+<button class="bulk-mode-card" data-mode="segmentoTelefone" type="button">
+<strong>Segmento / Telefone</strong>
+<span>Atualiza somente segmento, telefone, contato e etapas PLEX quando o segmento virar Serviço PLEX.</span>
+</button>
+<button class="bulk-mode-card" data-mode="andamentoConclusao" type="button">
+<strong>Andamento / Conclusão</strong>
+<span>Atualiza etapas do acompanhamento, datas, SLA, prazo final, responsável, próxima ação e follow-up.</span>
+</button>
+</div>
+<div class="bulk-mode-info" id="bulkCsvModeInfo">
       Selecione uma opção para ver o funcionamento. Use o modo de andamento com cautela: ele altera status e datas em massa pelo CNPJ.
     </div>
-    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
-      <button class="primary-btn" id="chooseBulkCsvFileBtn" disabled>Selecionar CSV e continuar</button>
-      <button class="ghost-btn" id="cancelBulkCsvModeBtn">Cancelar</button>
-    </div>
-  </div>
+<div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+<button class="primary-btn" disabled="" id="chooseBulkCsvFileBtn">Selecionar CSV e continuar</button>
+<button class="ghost-btn" id="cancelBulkCsvModeBtn">Cancelar</button>
 </div>
-
+</div>
+</div>
 <!-- MODAL IMPORTAR CNPJ JSON -->
 <div class="modal-backdrop" id="cnpjJsonModal">
-  <div class="modal modal-sm">
-    <div class="panel-title">
-      <div><h3>Importar dados via JSON ReceitaWS</h3><p>Cole o JSON retornado pela API <code>receitaws.com.br/v1/cnpj/{cnpj}</code></p></div>
-      <button class="ghost-btn" id="closeCnpjModal">Fechar</button>
-    </div>
-    <textarea class="json-paste-area" id="cnpjJsonInput" placeholder='Cole aqui o JSON da ReceitaWS. Ex:
+<div class="modal modal-sm">
+<div class="panel-title">
+<div><h3>Importar dados via JSON ReceitaWS</h3><p>Cole o JSON retornado pela API <code>receitaws.com.br/v1/cnpj/{cnpj}</code></p></div>
+<button class="ghost-btn" id="closeCnpjModal">Fechar</button>
+</div>
+<textarea class="json-paste-area" id="cnpjJsonInput" placeholder='Cole aqui o JSON da ReceitaWS. Ex:
 {
   "cnpj": "11.414.555/0001-04",
   "nome": "AMBIPAR RESPONSE S/A",
@@ -1791,15 +1752,14 @@ Compras — ABILITY</textarea>
   "situacao": "ATIVA",
   ...
 }'></textarea>
-    <div id="cnpjJsonPreview" class="json-preview" style="display:none;"></div>
-    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
-      <button class="primary-btn" id="parseCnpjBtn">Pré-visualizar</button>
-      <button class="primary-btn" id="applyCnpjBtn" style="display:none;">Aplicar ao formulário</button>
-      <button class="ghost-btn" id="closeCnpjModal2">Cancelar</button>
-    </div>
-  </div>
+<div class="json-preview" id="cnpjJsonPreview" style="display:none;"></div>
+<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+<button class="primary-btn" id="parseCnpjBtn">Pré-visualizar</button>
+<button class="primary-btn" id="applyCnpjBtn" style="display:none;">Aplicar ao formulário</button>
+<button class="ghost-btn" id="closeCnpjModal2">Cancelar</button>
 </div>
-
+</div>
+</div>
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getAnalytics, isSupported as analyticsIsSupported } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js";
@@ -4328,6 +4288,46 @@ const buildTutorialSteps = () => {
         'O comparativo mostra qual fornecedor tem o menor custo total já com todos os impostos incluídos.',
         'Teste sugerido: adicione dois fornecedores de UFs diferentes e calcule para ver o DIFAL aplicado.'
       ),
+      step('compras', '#cpAutomationPanel', 'Automação do comparativo',
+        'Os cards superiores fazem auditoria, importação inteligente, resumo de melhor compra e exportação CSV do comparativo.',
+        [
+          'Auditar dados aponta fornecedor sem UF, CNPJ ou preço pendente.',
+          'Importar orçamento lê XLSX convertido do PDF e tenta vincular itens ao fornecedor.',
+          'Exportar CSV baixa somente os dados do comparativo, não a base completa de fornecedores.'
+        ],
+        'Use auditoria antes de calcular. Ela evita resultado torto por falta de preço ou UF.',
+        'Teste sugerido: clique em Auditar dados com a base vazia e veja as pendências indicadas.'
+      ),
+      step('compras', '#cp-page-fornecedores', 'Fornecedores do comparativo',
+        'Inclua apenas os fornecedores que participam daquela tomada de preço específica.',
+        [
+          'Você pode adicionar manualmente ou importar da base cadastrada.',
+          'UF e CNPJ são importantes para o cálculo fiscal e para vincular orçamento XLSX.',
+          'Fornecedor sem UF pode comprometer DIFAL.'
+        ],
+        'Não use a base inteira no comparativo. Selecione só quem realmente cotou.',
+        'Teste sugerido: importe um fornecedor da base e confira se UF e CNPJ vieram preenchidos.'
+      ),
+      step('compras', '#cp-page-insumos', 'Insumos e importação XLSX',
+        'Cadastre os itens cotados ou importe o orçamento convertido em Excel.',
+        [
+          'Uma linha de insumo deve ter descrição, quantidade e unidade.',
+          'O importador tenta encontrar descrição, quantidade, unidade, valor unitário e total.',
+          'Modelos fora do padrão podem exigir conferência manual antes de importar.'
+        ],
+        'O Excel convertido ajuda, mas orçamento bagunçado ainda precisa revisão.',
+        'Teste sugerido: abra Importar Orçamento XLSX e confira o diagnóstico antes de importar.'
+      ),
+      step('compras', '#cp-page-config', 'Configuração fiscal',
+        'Aqui entram UF destino, ICMS interno, FCP, PIS, COFINS e margem.',
+        [
+          'UF destino define a base do cálculo de DIFAL.',
+          'PIS/COFINS e margem entram no custo final se preenchidos.',
+          'IPI pode ser definido separadamente por item e fornecedor.'
+        ],
+        'Comparativo fiscal sem configuração vira só uma planilha bonita. Configure antes de decidir.',
+        'Teste sugerido: revise a UF destino e veja a tabela DIFAL gerada por fornecedor.'
+      ),
       step('compras', '#cp-page-resultado', 'Resultado e Compra Inteligente',
         'Após calcular, o sistema mostra a tabela comparativa e a estratégia de compra ideal.',
         [
@@ -4407,19 +4407,15 @@ const positionTutorial = () => {
   spotlight.style.left = `${left}px`;
   spotlight.style.width = `${width}px`;
   spotlight.style.height = `${height}px`;
-  if(arrow) {
-    arrow.style.display = 'grid';
-    const arrowLeft = Math.min(window.innerWidth - 56, Math.max(12, left + Math.min(width * 0.5, 180) - 21));
-    const arrowTop = top > 58 ? top - 54 : Math.min(window.innerHeight - 56, top + height + 10);
-    arrow.style.left = `${arrowLeft}px`;
-    arrow.style.top = `${arrowTop}px`;
-  }
+  if(arrow) arrow.style.display = 'none';
 
   const cardWidth = Math.min(440, window.innerWidth - 28);
+  const cardHeight = Math.min(card.offsetHeight || 360, window.innerHeight - 28);
   let cardTop = top + height + 14;
-  if(cardTop + 360 > window.innerHeight) cardTop = Math.max(14, top - 380);
+  if(cardTop + cardHeight > window.innerHeight - 14) cardTop = top - cardHeight - 14;
+  cardTop = Math.min(window.innerHeight - cardHeight - 14, Math.max(14, cardTop));
   let cardLeft = Math.min(window.innerWidth - cardWidth - 14, Math.max(14, left));
-  if(cardLeft + cardWidth > window.innerWidth - 14) cardLeft = window.innerWidth - cardWidth - 14;
+  cardLeft = Math.min(window.innerWidth - cardWidth - 14, Math.max(14, cardLeft));
   card.style.top = `${cardTop}px`;
   card.style.left = `${cardLeft}px`;
   card.style.right = 'auto';
@@ -4553,7 +4549,6 @@ window.renderAll = () => {
   if (typeof window.__onSuppliersReady === 'function') window.__onSuppliersReady();
 };
 </script>
-
 <script>
 // ─── ABA COTAÇÕES ────────────────────────────────────────────────────────────
 
@@ -4922,7 +4917,6 @@ $c('cotacaoAbrirOutlookBtn')?.addEventListener('click', () => {
   renderCotacaoCcChips();
 })();
 </script>
-
 <script>
 // ─── ABA COMPRAS / DIFAL & IPI ───────────────────────────────────────────────
 
@@ -5773,8 +5767,7 @@ Compras — ABILITY`
     };
   }
 
-  function cpRowsToText(rows){ return rows.map(r => r.join(' ')).join('
-'); }
+  function cpRowsToText(rows){ return rows.map(r => r.join(' ')).join('\n'); }
   function cpFindFornecedorByCnpj(text){
     const found = (text.match(/\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}/g) || []).map(digits);
     const fornecedores = Array.isArray(window.cpFornecedores) ? window.cpFornecedores : [];
@@ -5877,10 +5870,7 @@ Compras — ABILITY`
       const semPreco = (cpFornecedores||[]).filter(f => !(window.cpPrecoData||{})[f.id+'_'+ins.id]);
       if(semPreco.length) faltas.push(`${ins.nome}: sem preço em ${semPreco.length} fornecedor(es)`);
     });
-    alert(faltas.length ? 'Pontos para corrigir:
-- '+faltas.slice(0,18).join('
-- ')+(faltas.length>18?'
-- ...':'') : 'Base pronta para cálculo. Nenhuma pendência crítica encontrada.');
+    alert(faltas.length ? ('Pontos para corrigir:\n- ' + faltas.slice(0,18).join('\n- ') + (faltas.length > 18 ? '\n- ...' : '')) : 'Base pronta para cálculo. Nenhuma pendência crítica encontrada.');
   };
 
   window.cpSugerirMelhorCompra = function(){
@@ -5902,14 +5892,579 @@ Atenção: confirme no Resultado final com DIFAL, IPI, frete, descontos e prazo 
     if(!Array.isArray(cpFornecedores) || !Array.isArray(cpInsumos) || !cpFornecedores.length || !cpInsumos.length){ alert('Cadastre fornecedores e insumos antes de exportar.'); return; }
     const linhas = [['Insumo','Quantidade','Unidade',...cpFornecedores.map(f => `${f.nome || f.id} (${f.uf || '-'})`)]];
     cpInsumos.forEach(ins => linhas.push([ins.nome, ins.qty, ins.unit, ...cpFornecedores.map(f => (window.cpPrecoData||{})[f.id+'_'+ins.id] || '')]));
-    const csv = linhas.map(r => r.map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('
-');
+    const csv = linhas.map(r => r.map(v => `"${String(v??'').replace(/"/g,'""')}"`).join(';')).join('\n');
     const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'comparativo_compras_difal.csv'; a.click(); URL.revokeObjectURL(a.href);
   };
 })();
 
-</script>
 
-</body>
+/* === CORREÇÕES FELIPE 3.0 — BOTÕES COMPRAS/DIFAL, SENHA E EXPORTAÇÃO === */
+(function(){
+  const byId = id => document.getElementById(id);
+  const safe = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const csvCellLocal = v => `"${String(v ?? '').replace(/"/g,'""')}"`;
+  const brlNumber = v => Number(v || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const downloadCsvLocal = (filename, linhas) => {
+    const csv = '\ufeff' + linhas.map(row => row.map(csvCellLocal).join(';')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+  };
+
+  // Expõe as funções chamadas por botões inline da aba Compras/DIFAL.
+  Object.assign(window, {
+    cpShowTab,
+    cpInitUfSelect,
+    cpOnUfDestinoChange,
+    cpAddFornecedor,
+    cpRemoveFornecedor,
+    cpUpdateForn,
+    cpImportarDaBase,
+    cpRenderImportList,
+    cpConfirmarImport,
+    cpAddInsumo,
+    cpRemoveInsumo,
+    cpUpdateIns,
+    cpImportarBulk,
+    cpRenderDifalTable,
+    cpRenderIpiTable,
+    cpSetIpi,
+    cpCalcular,
+    cpBuildPrecoInput,
+    cpGerarResultado,
+    cpAbrirModalOrcamento,
+    cpParsearOrcamento,
+    cpImportarOrcamento
+  });
+
+  // Mantém os dados de Compras visíveis para funções auxiliares sem perder o escopo do módulo.
+  Object.defineProperty(window, 'cpFornecedores', { configurable:true, get(){ return cpFornecedores; } });
+  Object.defineProperty(window, 'cpInsumos', { configurable:true, get(){ return cpInsumos; } });
+  Object.defineProperty(window, 'cpPrecoData', { configurable:true, get(){ return cpPrecoData; } });
+
+  // Troca de senha pelo próprio usuário, com gravação direta no Firestore.
+  byId('ownPasswordForm')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const currentUser = getCurrentUser();
+    if(!currentUser?.user) return alert('Faça login antes de alterar a senha.');
+    const senhaAtual = byId('ownCurrentPass')?.value || '';
+    const novaSenha = byId('ownNewPass')?.value || '';
+    const confirma = byId('ownConfirmPass')?.value || '';
+    if(novaSenha.length < 6) return alert('A nova senha precisa ter pelo menos 6 caracteres.');
+    if(novaSenha !== confirma) return alert('A confirmação da senha não confere.');
+    try {
+      const username = slugUsername(currentUser.user);
+      const snap = await getDoc(doc(db, COLLECTION_USERS, username));
+      if(!snap.exists()) return alert('Seu usuário não foi localizado no Firestore. Entre novamente e tente de novo.');
+      const data = snap.data() || {};
+      const senhaSalva = String(data.senha || data.pass || '');
+      if(senhaSalva && senhaSalva !== senhaAtual) return alert('Senha atual incorreta.');
+      const patch = sanitizeForFirebase({
+        senha:novaSenha,
+        atualizadoPor:username,
+        atualizadoEmIso:new Date().toISOString(),
+        atualizadoEmBr:new Date().toLocaleString('pt-BR'),
+        senhaAlteradaPeloUsuario:true
+      });
+      await setDoc(doc(db, COLLECTION_USERS, username), patch, {merge:true});
+      const uid = data.uid || currentUser.uid || `local-${username}`;
+      if(uid) await setDoc(doc(db, COLLECTION_USERS_UID, uid), patch, {merge:true});
+      byId('ownPasswordForm').reset();
+      writeAuditLog(null, 'Senha alterada pelo próprio usuário', [{campo:'Usuário', antes:username, depois:username}]);
+      alert('Senha alterada com sucesso no Firestore.');
+    } catch(err) {
+      console.error(err);
+      alert(`Não foi possível alterar a senha: ${err.message || err}`);
+    }
+  });
+
+  // Modelos editáveis de cotação. Os textos continuam 100% alteráveis manualmente antes do envio.
+  window.COTACAO_MODELOS = {
+    servico: {
+      assunto: 'Solicitação de Cotação — Serviço | [Objeto] | [Cidade/UF]',
+      mensagem: `Prezados, boa tarde.\n\nSolicitamos, por gentileza, proposta comercial para execução do serviço abaixo:\n\nESCOPO DO SERVIÇO\n• Serviço: [descrever serviço]\n• Local de execução: [endereço / cidade / UF]\n• Prazo necessário: [informar prazo]\n• Visita técnica: [sim/não]\n• Responsável para alinhamento técnico: [nome / telefone]\n\nA PROPOSTA DEVE CONTER\n• Valor total dos serviços, com impostos inclusos;\n• Mão de obra, materiais, deslocamento, alimentação, hospedagem e demais custos, quando aplicável;\n• Prazo de execução e disponibilidade para início;\n• Condição de pagamento;\n• Validade da proposta;\n• Dados da empresa, CNPJ e responsável comercial;\n• Premissas, exclusões e documentos técnicos necessários.\n\nPor favor, retornar até [data limite].\n\nAtenciosamente,\n[Seu nome]\nCompras — ABILITY`
+    },
+    material: {
+      assunto: 'Solicitação de Cotação — Material | [Item] | [Cidade/UF]',
+      mensagem: `Prezados, boa tarde.\n\nSolicitamos, por gentileza, cotação para fornecimento dos materiais abaixo:\n\nDADOS DO MATERIAL\n• Item/material: [descrever item]\n• Quantidade: [informar]\n• Unidade: [UN / PC / CX / M / M² / M³ etc.]\n• Marca/modelo/referência: [informar, se houver]\n• Local de entrega: [endereço / cidade / UF]\n• Prazo desejado de entrega: [informar]\n\nA PROPOSTA DEVE CONTER\n• Valor unitário e valor total;\n• NCM, IPI, ICMS, DIFAL, ST e frete, quando aplicável;\n• Prazo de entrega;\n• Condição de pagamento;\n• Validade da proposta;\n• Dados da empresa, CNPJ e responsável comercial;\n• Catálogo/ficha técnica, quando aplicável.\n\nPor favor, retornar até [data limite].\n\nAtenciosamente,\n[Seu nome]\nCompras — ABILITY`
+    }
+  };
+  window.cotacaoAplicarModelo = function(forcar=true){
+    const tipo = byId('cotacaoModelo')?.value || 'servico';
+    const modelo = window.COTACAO_MODELOS[tipo];
+    if(!modelo) return;
+    const assunto = byId('cotacaoAssunto');
+    const msg = byId('cotacaoMensagem');
+    if(assunto && forcar) assunto.value = modelo.assunto;
+    if(msg && forcar) msg.value = modelo.mensagem;
+  };
+  byId('cotacaoModelo')?.addEventListener('change', () => window.cotacaoAplicarModelo(true));
+
+  // XLSX: importa orçamento convertido, detecta CNPJ e vincula preços ao fornecedor correto.
+  window.cpPopularFornecedorOrcamentoSelect = function(){
+    const sel = byId('cpOrcamentoFornecedorSelect');
+    if(!sel) return;
+    const atual = sel.value;
+    sel.innerHTML = '<option value="">Detectar automaticamente pelo CNPJ</option>' + cpFornecedores.map(f => `<option value="${safe(f.id)}">${safe(f.nome || 'Fornecedor')} ${f.cnpj ? '— '+safe(f.cnpj) : ''} ${f.uf ? '('+safe(f.uf)+')' : ''}</option>`).join('');
+    if(atual) sel.value = atual;
+  };
+  const abrirOriginal = window.cpAbrirModalOrcamento;
+  window.cpAbrirModalOrcamento = function(){
+    abrirOriginal?.();
+    window.cpPopularFornecedorOrcamentoSelect();
+    const diag = byId('cpOrcamentoDiagnostico');
+    if(diag) diag.textContent = 'Importe o XLSX convertido do orçamento. O sistema tentará localizar CNPJ, fornecedor, descrição, quantidade, unidade, valor unitário e valor total.';
+  };
+
+  function normLocal(v){ return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim(); }
+  function onlyDigits(v){ return String(v||'').replace(/\D/g,''); }
+  function rowsText(rows){ return rows.map(r => r.join(' ')).join('\n'); }
+  function inferCols(rows){
+    const limit = rows.slice(0, Math.min(rows.length, 15));
+    let headerRow = 0, scoreBest = -1;
+    limit.forEach((r,idx)=>{
+      const line = r.map(normLocal).join(' ');
+      const score = ['descricao','produto','servico','material','item','quant','qtde','unidade','unitario','valor','total','ncm','cnpj'].reduce((a,k)=>a+(line.includes(k)?1:0),0);
+      if(score > scoreBest){ scoreBest = score; headerRow = idx; }
+    });
+    const headers = (rows[headerRow] || []).map(normLocal);
+    const find = keys => headers.findIndex(h => keys.some(k => h.includes(k)));
+    return {
+      headerRow,
+      desc: find(['descricao','produto','servico','material','item']),
+      qtd: find(['quant','qtde','qtd']),
+      un: find(['unidade','und',' un','um']),
+      unit: find(['unitario','vl unit','valor unit','preco unit']),
+      total: find(['total','vl total','valor total']),
+      ncm: find(['ncm','codigo','cod'])
+    };
+  }
+  function fornecedorPorCnpj(texto){
+    const cnpjs = (texto.match(/\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}/g) || []).map(onlyDigits);
+    for(const cnpj of cnpjs){
+      const f = cpFornecedores.find(x => onlyDigits(x.cnpj) === cnpj);
+      if(f) return {fornecedor:f, cnpj, todos:cnpjs};
+    }
+    return {fornecedor:null, cnpj:cnpjs[0] || '', todos:cnpjs};
+  }
+  window.cpImportarXlsxOrcamento = function(){
+    const input = byId('cpOrcamentoXlsxInput');
+    const file = input?.files?.[0];
+    if(!file) return alert('Selecione um arquivo XLSX/XLS.');
+    if(typeof XLSX === 'undefined') return alert('Biblioteca XLSX não carregada. Verifique a conexão e tente novamente.');
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+        let rows = [];
+        wb.SheetNames.forEach(name => {
+          rows = rows.concat(XLSX.utils.sheet_to_json(wb.Sheets[name], {header:1, raw:false, defval:''}).filter(r => r.some(c => String(c).trim())));
+        });
+        if(!rows.length) return alert('Nenhuma linha útil encontrada no XLSX.');
+        const texto = rowsText(rows);
+        const manualId = byId('cpOrcamentoFornecedorSelect')?.value || '';
+        const match = fornecedorPorCnpj(texto);
+        const fornecedor = manualId ? cpFornecedores.find(f => String(f.id) === String(manualId)) : match.fornecedor;
+        const cols = inferCols(rows);
+        _cpOrcItens = [];
+        rows.slice(cols.headerRow + 1).forEach(r => {
+          const descricao = String(cols.desc >= 0 ? r[cols.desc] : r.find(c => /[a-zA-ZÀ-ÿ]{4}/.test(String(c))) || '').trim();
+          if(!descricao || /total geral|subtotal|desconto|observa/i.test(descricao)) return;
+          const qtde = cpParseBRL(cols.qtd >= 0 ? r[cols.qtd] : '') || 1;
+          const unidade = String(cols.un >= 0 ? r[cols.un] : 'UN').trim().toUpperCase() || 'UN';
+          const vUnit = cpParseBRL(cols.unit >= 0 ? r[cols.unit] : '');
+          const vTotal = cpParseBRL(cols.total >= 0 ? r[cols.total] : '') || (qtde && vUnit ? qtde * vUnit : 0);
+          if(!vUnit && !vTotal) return;
+          _cpOrcItens.push({
+            codigo:String(cols.ncm >= 0 ? r[cols.ncm] : '').trim(),
+            descricao,
+            qtde,
+            unidade,
+            vUnit:vUnit || (qtde ? vTotal/qtde : 0),
+            vTotal,
+            fornecedorId:fornecedor?.id || '',
+            sel:true
+          });
+        });
+        const diag = byId('cpOrcamentoDiagnostico');
+        if(diag){
+          const colScore = [cols.desc, cols.qtd, cols.unit, cols.total].filter(v => v >= 0).length;
+          diag.innerHTML = `<strong>Diagnóstico:</strong><br>CNPJ encontrado: ${match.cnpj ? safe(match.cnpj) : 'não localizado'}<br>Fornecedor vinculado: ${fornecedor ? safe(fornecedor.nome) : 'não vinculado'}<br>Colunas essenciais detectadas: ${colScore}/4<br>Itens lidos: ${_cpOrcItens.length}`;
+        }
+        if(!_cpOrcItens.length){
+          const paste = byId('cpOrcamentoPasteArea');
+          if(paste) paste.value = texto;
+          return alert('Não consegui montar itens automaticamente. Colei o texto no campo alternativo; clique em Identificar Itens.');
+        }
+        cpParsearOrcamentoPreviewManual();
+      } catch(err) {
+        console.error(err);
+        alert('Erro ao ler XLSX. Converta novamente o PDF ou use o campo de texto alternativo.');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  window.cpParsearOrcamentoPreviewManual = function(){
+    const tbody = byId('cpOrcamentoPreviewBody'), preview = byId('cpOrcamentoPreview'), empty = byId('cpOrcamentoEmpty');
+    if(!tbody || !preview) return;
+    if(!_cpOrcItens.length){ preview.style.display='none'; if(empty) empty.style.display='block'; return; }
+    if(empty) empty.style.display='none'; preview.style.display='block';
+    const unidades = Array.isArray(CP_UNIDADES) ? CP_UNIDADES : ['un','pc','cx','m','m2','m3','kg','lt'];
+    tbody.innerHTML = _cpOrcItens.map((it, idx) => {
+      const unitOpts = unidades.map(u => `<option value="${safe(u)}" ${String(u).toLowerCase()===String(it.unidade).toLowerCase()?'selected':''}>${safe(u)}</option>`).join('');
+      return `<tr>
+        <td style="text-align:center;"><input type="checkbox" class="cp-orc-check" data-idx="${idx}" checked style="accent-color:var(--primary);width:14px;height:14px;"></td>
+        <td style="font-size:11px;color:var(--muted);font-family:monospace;white-space:nowrap;">${safe(it.codigo || '')}</td>
+        <td><input type="text" value="${safe(it.descricao)}" style="width:100%;font-size:12px;background:#fff;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 8px;" onchange="_cpOrcItens[${idx}].descricao=this.value"></td>
+        <td><input type="number" value="${it.qtde}" min="0.001" step="any" style="width:82px;font-size:12px;background:#fff;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 8px;" onchange="_cpOrcItens[${idx}].qtde=parseFloat(this.value)||1"></td>
+        <td><select style="font-size:12px;background:#fff;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:5px 8px;" onchange="_cpOrcItens[${idx}].unidade=this.value">${unitOpts}</select></td>
+        <td style="font-size:12px;color:var(--muted);font-family:monospace;">${cpFmtBRL(it.vUnit)}</td>
+        <td style="font-size:12px;font-family:monospace;font-weight:700;">${cpFmtBRL(it.vTotal)}</td>
+      </tr>`;
+    }).join('');
+  };
+
+  const importarOrcOriginal = window.cpImportarOrcamento;
+  window.cpImportarOrcamento = function(){
+    const marcados = [...document.querySelectorAll('.cp-orc-check:checked')].map(el => parseInt(el.dataset.idx));
+    if(!marcados.length) return alert('Selecione ao menos um item.');
+    marcados.forEach(idx => {
+      const it = _cpOrcItens[idx];
+      if(!it) return;
+      const descr = [it.codigo, it.descricao].filter(Boolean).join(' · ').slice(0, 140);
+      const unNorm = CP_UNIDADES.includes(String(it.unidade).toLowerCase()) ? String(it.unidade).toLowerCase() : 'un';
+      cpAddInsumo(descr, it.qtde, unNorm);
+      const novoInsumo = cpInsumos[cpInsumos.length - 1];
+      if(it.fornecedorId && novoInsumo && it.vUnit) cpPrecoData[it.fornecedorId + '_' + novoInsumo.id] = Number(it.vUnit) || 0;
+    });
+    const status = byId('cpOrcamentoStatus');
+    if(status){ status.textContent = `✅ ${marcados.length} item(ns) importado(s) e preço(s) vinculado(s).`; status.style.color = 'var(--primary)'; }
+    byId('cpOrcamentoModal')?.classList.remove('show');
+    cpShowTab('insumos');
+  };
+
+  window.cpAuditarComparativo = function(){
+    const faltas = [];
+    if(!cpFornecedores.length) faltas.push('nenhum fornecedor cadastrado');
+    if(!cpInsumos.length) faltas.push('nenhum insumo cadastrado');
+    cpFornecedores.forEach(f => { if(!f.nome) faltas.push(`nome ausente em fornecedor ${f.id}`); if(!f.uf) faltas.push(`UF ausente em ${f.nome || f.id}`); if(!f.cnpj) faltas.push(`CNPJ ausente em ${f.nome || f.id}`); });
+    cpInsumos.forEach(ins => {
+      const semPreco = cpFornecedores.filter(f => !Number(cpPrecoData[f.id + '_' + ins.id] || 0));
+      if(semPreco.length) faltas.push(`${ins.nome}: sem preço em ${semPreco.length} fornecedor(es)`);
+    });
+    alert(faltas.length ? 'Pontos para corrigir:\n- ' + faltas.slice(0,22).join('\n- ') + (faltas.length > 22 ? '\n- ...' : '') : 'Base pronta para cálculo. Nenhuma pendência crítica encontrada.');
+  };
+
+  window.cpSugerirMelhorCompra = function(){
+    if(!cpFornecedores.length || !cpInsumos.length) return alert('Cadastre fornecedores e insumos antes de gerar o resumo.');
+    cpCalcular();
+    const totais = window._cpLastTotais || {};
+    const ord = cpFornecedores.slice().sort((a,b)=>(Number(totais[a.id] ?? Infinity))-(Number(totais[b.id] ?? Infinity)));
+    const best = ord[0], second = ord[1];
+    if(!best) return alert('Não foi possível montar o ranking. Verifique os preços informados.');
+    const economia = second ? Number(totais[second.id] || 0) - Number(totais[best.id] || 0) : 0;
+    alert(`Melhor compra pelo custo total calculado: ${best.nome || best.id}\nTotal: R$ ${brlNumber(totais[best.id])}\nEconomia contra 2º colocado: R$ ${brlNumber(economia)}\n\nValide prazo, frete, impostos e escopo antes da decisão final.`);
+  };
+
+  // Exportação específica do comparativo: não usa a base completa de fornecedores.
+  window.cpExportarComparativoCsv = function(){
+    if(!cpFornecedores.length || !cpInsumos.length) return alert('Cadastre fornecedores e insumos antes de exportar.');
+    if(typeof cpGerarResultado === 'function') cpGerarResultado();
+    const totais = window._cpLastTotais || {};
+    const linhas = [];
+    linhas.push(['COMPARATIVO COMPRAS / DIFAL']);
+    linhas.push(['Gerado em', new Date().toLocaleString('pt-BR')]);
+    linhas.push([]);
+    linhas.push(['FORNECEDORES']);
+    linhas.push(['Fornecedor','CNPJ','UF','Desconto %','Frete % NF','Outros custos R$','Prazo entrega dias','Total calculado R$']);
+    cpFornecedores.forEach(f => linhas.push([f.nome, f.cnpj, f.uf, f.desconto, f.frete, f.outros, f.prazoEntrega, Number(totais[f.id] || 0).toFixed(2).replace('.',',')]));
+    linhas.push([]);
+    linhas.push(['ITENS E PREÇOS']);
+    linhas.push(['Insumo','Quantidade','Unidade',...cpFornecedores.map(f => `${f.nome || f.id} - preço unitário`)]);
+    cpInsumos.forEach(ins => linhas.push([ins.nome, ins.qty, ins.unit, ...cpFornecedores.map(f => Number(cpPrecoData[f.id + '_' + ins.id] || 0).toFixed(2).replace('.',','))]));
+    downloadCsvLocal(`comparativo_compras_difal_${new Date().toISOString().slice(0,10)}.csv`, linhas);
+  };
+
+
+  // Ponte global definitiva dos botões do Comparativo.
+  // Motivo: os botões HTML usam onclick="cp..."; estes nomes precisam existir em window.
+  try {
+    Object.defineProperty(window, 'cpFornecedores', { configurable:true, get:() => cpFornecedores, set:v => { cpFornecedores = Array.isArray(v) ? v : []; } });
+    Object.defineProperty(window, 'cpInsumos', { configurable:true, get:() => cpInsumos, set:v => { cpInsumos = Array.isArray(v) ? v : []; } });
+    Object.defineProperty(window, 'cpPrecoData', { configurable:true, get:() => cpPrecoData, set:v => { cpPrecoData = v && typeof v === 'object' ? v : {}; } });
+    Object.defineProperty(window, 'cpIpiMatrix', { configurable:true, get:() => cpIpiMatrix, set:v => { cpIpiMatrix = v && typeof v === 'object' ? v : {}; } });
+  } catch(e) { console.warn('Ponte CP já existia:', e); }
+
+  Object.assign(window, {
+    cpGetAliqInter, cpShowTab, cpInitUfSelect, cpOnUfDestinoChange, cpAtualizarBadges,
+    cpAddFornecedor, cpRemoveFornecedor, cpUpdateForn, cpRenderFornecedores,
+    cpImportarDaBase, cpRenderImportList, cpConfirmarImport,
+    cpAddInsumo, cpRemoveInsumo, cpUpdateIns, cpRenderInsumos, cpImportarBulk,
+    cpRenderDifalTable, cpRenderIpiTable, cpSetIpi, cpFmtBRL, cpFmtNum,
+    cpCalcular, cpBuildPrecoInput, cpGerarResultado,
+    cpAbrirModalOrcamento, cpParseBRL, cpParsearOrcamento, cpImportarOrcamento
+  });
+
+  // Modelos reais enviados por imagem — mantidos editáveis no textarea.
+  window.COTACAO_MODELOS = {
+    servico: {
+      assunto: 'Solicitação de Cotação — Serviço | Favor não alterar o assunto do e-mail com o NR da RM',
+      mensagem: `Prezado(a), bom dia!
+
+Por favor, enviar orçamento para o serviço descrito abaixo:
+
+Observações:
+[Descreva aqui o serviço, escopo técnico, quantidades, locais e premissas.]
+
+Por favor, mencionar na proposta as seguintes informações:
+
+• Nome do solicitante (comprador)
+• Nome do vendedor
+• Validade da proposta
+• Data de entrega ou prazo de execução do serviço
+• Condição de pagamento
+
+*Condição de pagamento mínima: 35DDL
+
+**Favor não alterar o assunto do e-mail com o NR da RM**
+
+Segue os dados do site (local do serviço):
+
+Sigla Site: [informar]
+Localidade: [informar]
+Site Região: [informar]
+Município: [informar]
+Bairro: [informar]
+Endereço: [informar]
+CEP: [informar]
+Latitude: [informar]
+Longitude: [informar]
+Altitude: [informar]
+
+Atte.`
+    },
+    material: {
+      assunto: 'Solicitação de Cotação — Material | [Objeto/Item]',
+      mensagem: `Prezado(a), bom dia!
+
+Solicito cotação para os insumos abaixo.
+
+Imagens dos itens e suas descrições em anexo.
+
+Descrição | Und | Qtde | V.Unit.Á | Valor Total
+[Preencher itens, unidades, quantidades e valores]
+
+CNPJ: [informar CNPJ do site/empresa]
+
+Atte.`
+    }
+  };
+  window.cotacaoAplicarModelo = function(forcar=true){
+    const tipo = byId('cotacaoModelo')?.value || 'servico';
+    const modelo = window.COTACAO_MODELOS[tipo];
+    if(!modelo) return;
+    const assunto = byId('cotacaoAssunto');
+    const msg = byId('cotacaoMensagem');
+    if(assunto && (forcar || !assunto.dataset.manualEdit)) assunto.value = modelo.assunto;
+    if(msg && (forcar || !msg.dataset.manualEdit)) msg.value = modelo.mensagem;
+  };
+  byId('cotacaoModelo')?.addEventListener('change', () => window.cotacaoAplicarModelo(true));
+  setTimeout(() => { if(byId('cotacaoModelo')) window.cotacaoAplicarModelo(false); }, 300);
+
+  document.addEventListener('DOMContentLoaded', () => {
+    cpInitUfSelect?.();
+    cpAtualizarBadges?.();
+  });
+})();
+
+</script>
+<script>
+/* === HOTFIX V5 FELIPE — ponte funcional, modelos e botões === */
+(function(){
+  const $ = id => document.getElementById(id);
+  const BRL = v => Number(v || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+  const csvCell = v => '"' + String(v ?? '').replace(/"/g,'""') + '"';
+  const downloadCsv = (filename, linhas) => {
+    const csv = '\ufeff' + linhas.map(row => row.map(csvCell).join(';')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 150);
+  };
+
+  window.COTACAO_MODELOS = {
+    servico: {
+      assunto: 'Solicitação de Cotação — Serviço | Favor não alterar o assunto do e-mail com o NR da RM',
+      mensagem: `Prezado(a), bom dia!
+
+Por favor, enviar orçamento para o serviço descrito abaixo:
+
+Observações:
+[DESCREVA AQUI O ESCOPO DO SERVIÇO]
+
+[INSIRA AQUI OS ITENS / QUANTIDADES / DETALHES TÉCNICOS]
+
+Por favor, mencionar na proposta as seguintes informações:
+
+• Nome do solicitante (comprador)
+• Nome do vendedor
+• Validade da proposta
+• Data de entrega ou prazo de execução do serviço
+• Condição de pagamento
+
+*Condição de pagamento mínima: 35DDL
+
+**Favor não alterar o assunto do e-mail com o NR da RM**
+
+Seguem os dados do site (local do serviço):
+
+Sigla Site: [INFORMAR]
+Localidade: [INFORMAR]
+Site Região: [INFORMAR]
+
+MUNICÍPIO | BAIRRO | ENDEREÇO | CEP | LATITUDE | LONGITUDE | ALTITUDE
+[INFORMAR] | [INFORMAR] | [INFORMAR] | [INFORMAR] | [INFORMAR] | [INFORMAR] | [INFORMAR]
+
+Atte.`
+    },
+    material: {
+      assunto: 'Solicitação de Cotação — Material | Favor não alterar o assunto do e-mail com o NR da RM',
+      mensagem: `Prezado(a), bom dia!
+
+Solicito cotação para os insumos abaixo.
+
+Imagens dos itens e suas descrições em anexo.
+
+Descrição | Und | Qtde | V.Unit. | Valor Total
+[DESCREVER ITEM] | [UND] | [QTDE] | [PREENCHER] | [PREENCHER]
+
+CNPJ: [INFORMAR CNPJ]
+
+Atte.`
+    }
+  };
+
+  function aplicarModeloCotacao(force){
+    const sel = $('cotacaoModelo');
+    const msg = $('cotacaoMensagem');
+    const assunto = $('cotacaoAssunto');
+    if(!sel || !msg) return;
+    const modelo = window.COTACAO_MODELOS[sel.value] || window.COTACAO_MODELOS.servico;
+    if(force || !msg.dataset.editado || confirm('Trocar o modelo vai substituir o corpo atual. Deseja continuar?')){
+      msg.value = modelo.mensagem;
+      msg.dataset.editado = '';
+    }
+    if(assunto) assunto.value = modelo.assunto;
+  }
+
+  function instalarCotacoes(){
+    const sel = $('cotacaoModelo');
+    const msg = $('cotacaoMensagem');
+    if(sel && !sel.dataset.hotfixV5){
+      sel.dataset.hotfixV5 = '1';
+      sel.addEventListener('change', () => aplicarModeloCotacao(false));
+      aplicarModeloCotacao(true);
+    }
+    if(msg && !msg.dataset.hotfixV5){
+      msg.dataset.hotfixV5 = '1';
+      msg.addEventListener('input', () => { msg.dataset.editado = '1'; });
+    }
+  }
+
+  function cpState(){
+    return {
+      fornecedores: Array.isArray(window.cpFornecedores) ? window.cpFornecedores : [],
+      insumos: Array.isArray(window.cpInsumos) ? window.cpInsumos : [],
+      precos: window.cpPrecoData && typeof window.cpPrecoData === 'object' ? window.cpPrecoData : {}
+    };
+  }
+
+  window.cpAuditarComparativo = function(){
+    const {fornecedores, insumos, precos} = cpState();
+    const faltas = [];
+    if(!fornecedores.length) faltas.push('Nenhum fornecedor adicionado ao comparativo.');
+    if(!insumos.length) faltas.push('Nenhum insumo adicionado ao comparativo.');
+    fornecedores.forEach(f => {
+      if(!String(f.uf || '').trim()) faltas.push(`UF ausente no fornecedor ${f.nome || f.razao || f.id}.`);
+      if(!String(f.cnpj || '').trim()) faltas.push(`CNPJ ausente no fornecedor ${f.nome || f.razao || f.id}.`);
+    });
+    insumos.forEach(ins => {
+      const pendentes = fornecedores.filter(f => !Number(precos[`${f.id}_${ins.id}`] || 0));
+      if(pendentes.length) faltas.push(`${ins.nome || ins.descricao || 'Insumo'} sem preço em ${pendentes.length} fornecedor(es).`);
+    });
+    alert(faltas.length ? 'Pontos para corrigir:\n\n- ' + faltas.slice(0,22).join('\n- ') + (faltas.length > 22 ? '\n- ...' : '') : 'Base pronta para cálculo. Nenhuma pendência crítica encontrada.');
+  };
+
+  window.cpSugerirMelhorCompra = function(){
+    if(typeof window.cpCalcular === 'function') window.cpCalcular();
+    const {fornecedores, insumos, precos} = cpState();
+    if(!fornecedores.length || !insumos.length) return alert('Cadastre fornecedores e insumos antes de gerar o resumo.');
+    const totais = fornecedores.map(f => {
+      const total = insumos.reduce((s,ins) => s + (Number(precos[`${f.id}_${ins.id}`] || 0) * Number(ins.qty || ins.quantidade || 1)), 0);
+      return {f,total};
+    }).sort((a,b) => a.total - b.total);
+    const best = totais[0];
+    const second = totais[1];
+    alert(`Melhor fornecedor pelo preço-base informado: ${best.f.nome || best.f.razao || best.f.id}\nTotal estimado: ${BRL(best.total)}\nEconomia contra 2º colocado: ${second ? BRL(second.total - best.total) : 'Sem segundo fornecedor'}\n\nConfirme no Resultado final com DIFAL, IPI, frete, descontos e prazo antes de decidir.`);
+  };
+
+  window.cpExportarComparativoCsv = function(){
+    const {fornecedores, insumos, precos} = cpState();
+    if(!fornecedores.length || !insumos.length) return alert('Cadastre fornecedores e insumos antes de exportar.');
+    const linhas = [['Item','Quantidade','Unidade', ...fornecedores.map(f => `${f.nome || f.razao || f.id} (${f.uf || '-'})`)]];
+    insumos.forEach(ins => linhas.push([ins.nome || ins.descricao || '', ins.qty || ins.quantidade || '', ins.unit || ins.unidade || '', ...fornecedores.map(f => precos[`${f.id}_${ins.id}`] || '')]));
+    const totais = ['TOTAL','','', ...fornecedores.map(f => insumos.reduce((s,ins) => s + Number(precos[`${f.id}_${ins.id}`] || 0) * Number(ins.qty || ins.quantidade || 1), 0))];
+    linhas.push(totais);
+    downloadCsv('comparativo_compras_difal.csv', linhas);
+  };
+
+  function instalarBotoesCompras(){
+    document.querySelectorAll('#compras button[onclick], #cpOrcamentoModal button[onclick]').forEach(btn => {
+      if(btn.dataset.hotfixClickV5) return;
+      btn.dataset.hotfixClickV5 = '1';
+      const code = btn.getAttribute('onclick') || '';
+      btn.addEventListener('click', ev => {
+        const fn = (code.match(/^\s*([A-Za-z_$][\w$]*)\s*\(/) || [])[1];
+        if(fn && typeof window[fn] !== 'function'){
+          ev.preventDefault();
+          ev.stopPropagation();
+          alert(`A função ${fn} não carregou. O arquivo foi corrigido na versão V5; recarregue sem cache (Ctrl+F5) e teste novamente.`);
+        }
+      }, true);
+    });
+  }
+
+  function fixTutorialCard(){
+    const arrow = $('tutorialArrow');
+    if(arrow) arrow.style.display = 'none';
+    const card = $('tutorialCard');
+    if(card){
+      const r = card.getBoundingClientRect();
+      const maxTop = Math.max(10, window.innerHeight - card.offsetHeight - 10);
+      const maxLeft = Math.max(10, window.innerWidth - card.offsetWidth - 10);
+      if(r.top < 0 || r.top > window.innerHeight - 40) card.style.top = Math.min(20, maxTop) + 'px';
+      if(r.left < 0 || r.left > window.innerWidth - 40) card.style.left = Math.min(20, maxLeft) + 'px';
+    }
+  }
+
+  function initHotfix(){
+    instalarCotacoes();
+    instalarBotoesCompras();
+    fixTutorialCard();
+    setInterval(fixTutorialCard, 700);
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initHotfix);
+  else initHotfix();
+})();
+</script></body>
 </html>
