@@ -1,12 +1,13 @@
 
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Painel de Cadastro</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%231e40af%27/%3E%3Cpath d=%27M18 14h28a4 4 0 0 1 4 4v32a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4z%27 fill=%27%23eff6ff%27/%3E%3Cpath d=%27M22 24h20M22 32h20M22 40h14%27 stroke=%27%231e40af%27 stroke-width=%274%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
-<link rel="stylesheet" href="./style.css">
+<link href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%231e40af%27/%3E%3Cpath d=%27M18 14h28a4 4 0 0 1 4 4v32a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4z%27 fill=%27%23eff6ff%27/%3E%3Cpath d=%27M22 24h20M22 32h20M22 40h14%27 stroke=%27%231e40af%27 stroke-width=%274%27 stroke-linecap=%27round%27/%3E%3C/svg%3E" rel="icon"/>
+<link href="./style.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body data-active-page="dashboard">
@@ -85,7 +86,7 @@
 <div class="brand">
 <div class="brand-badge">🧾</div>
 <div>
-<h1><img class="brand-site-icon" alt="Painel" src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%231e40af%27/%3E%3Cpath d=%27M18 14h28a4 4 0 0 1 4 4v32a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4z%27 fill=%27%23eff6ff%27/%3E%3Cpath d=%27M22 24h20M22 32h20M22 40h14%27 stroke=%27%231e40af%27 stroke-width=%274%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">Cadastro Pro</h1>
+<h1><img alt="Painel" class="brand-site-icon" src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%231e40af%27/%3E%3Cpath d=%27M18 14h28a4 4 0 0 1 4 4v32a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4z%27 fill=%27%23eff6ff%27/%3E%3Cpath d=%27M22 24h20M22 32h20M22 40h14%27 stroke=%27%231e40af%27 stroke-width=%274%27 stroke-linecap=%27round%27/%3E%3C/svg%3E"/>Cadastro Pro</h1>
 <p>Fornecedores, homologação e passagem para operação</p>
 </div>
 </div>
@@ -97,7 +98,7 @@
 <button class="nav-btn" data-page="checklist">📎 Checklist</button>
 <button class="nav-btn" data-page="acessos">👥 Acessos</button>
 <button class="nav-btn" data-page="cotacoes">📨 Cotações</button>
-<button class="nav-btn" data-page="compras">🛒 Compras / DIFAL</button>
+
 </nav>
 <div class="sidebar-footer">
       Dados sincronizados com banco de dados. Use CSV como relatório/atualização em massa. 🗃️
@@ -632,106 +633,102 @@
 <!-- gerado pelo JS -->
 </div>
 </div>
-<div class="cotacao-type-selector" aria-label="Tipo de cotação">
-  <button type="button" class="cotacao-type-card active" data-cotacao-type="servico" id="cotacaoTipoServicoBtn">
-    <span class="cotacao-type-icon">🛠️</span>
-    <span class="cotacao-type-content">
-      <strong>Cotação de Serviço</strong>
-      <small>Execução, visita técnica, mão de obra, mobilização e escopo técnico.</small>
-    </span>
-    <span class="cotacao-type-check">✓</span>
-  </button>
-  <button type="button" class="cotacao-type-card" data-cotacao-type="material" id="cotacaoTipoMaterialBtn">
-    <span class="cotacao-type-icon">📦</span>
-    <span class="cotacao-type-content">
-      <strong>Cotação de Material</strong>
-      <small>Itens, quantidades, NCM, frete, impostos, entrega e condições comerciais.</small>
-    </span>
-    <span class="cotacao-type-check">✓</span>
-  </button>
+<div aria-label="Tipo de cotação" class="cotacao-type-selector">
+<button class="cotacao-type-card active" data-cotacao-type="servico" id="cotacaoTipoServicoBtn" type="button">
+<span class="cotacao-type-icon">🛠️</span>
+<span class="cotacao-type-content">
+<strong>Cotação de Serviço</strong>
+<small>Execução, visita técnica, mão de obra, mobilização e escopo técnico.</small>
+</span>
+<span class="cotacao-type-check">✓</span>
+</button>
+<button class="cotacao-type-card" data-cotacao-type="material" id="cotacaoTipoMaterialBtn" type="button">
+<span class="cotacao-type-icon">📦</span>
+<span class="cotacao-type-content">
+<strong>Cotação de Material</strong>
+<small>Itens, quantidades, NCM, frete, impostos, entrega e condições comerciais.</small>
+</span>
+<span class="cotacao-type-check">✓</span>
+</button>
 </div>
-<div id="cotacaoBasesStatus" role="status" aria-live="polite">As bases serão carregadas ao abrir a aba.</div>
-<select id="cotacaoModelo" class="hidden" aria-hidden="true" tabindex="-1">
-  <option value="servico">Serviço</option>
-  <option value="material">Material</option>
+<div aria-live="polite" id="cotacaoBasesStatus" role="status">As bases serão carregadas ao abrir a aba.</div>
+<select aria-hidden="true" class="hidden" id="cotacaoModelo" tabindex="-1">
+<option value="servico">Serviço</option>
+<option value="material">Material</option>
 </select>
-
-<div id="cotacaoServicoBox" class="cotacao-mode-panel cotacao-service-panel active">
-  <div class="cotacao-mode-header">
-    <div>
-      <span class="cotacao-mode-label">SERVIÇO</span>
-      <h4>🛠️ Dados do local de execução</h4>
-      <p>Pesquise e selecione o site VIVO que será incluído automaticamente no corpo do e-mail.</p>
-    </div>
-  </div>
-  <div class="form-grid">
-    <div class="field row-span-2">
-      <label>Buscar site VIVO</label>
-      <input id="cotacaoSiteServicoSearch" placeholder="Digite sigla, município, bairro, endereço ou CEP">
-    </div>
-    <div class="field row-span-2">
-      <label>Site VIVO selecionado</label>
-      <select id="cotacaoSiteServicoSelect"><option value="">Digite no campo de busca para listar os sites</option></select>
-    </div>
-    <div class="field row-span-2">
-      <label>Dados que serão enviados no e-mail</label>
-      <textarea id="cotacaoSiteServicoPreview" readonly style="min-height:132px;line-height:1.5;">Selecione um site para preencher o corpo do e-mail de serviço.</textarea>
-    </div>
-  </div>
+<div class="cotacao-mode-panel cotacao-service-panel active" id="cotacaoServicoBox">
+<div class="cotacao-mode-header">
+<div>
+<span class="cotacao-mode-label">SERVIÇO</span>
+<h4>🛠️ Dados do local de execução</h4>
+<p>Pesquise e selecione o site VIVO que será incluído automaticamente no corpo do e-mail.</p>
 </div>
-
-<div id="cotacaoCnpjBaseBox" class="cotacao-mode-panel cotacao-material-panel" hidden>
-  <div class="cotacao-mode-header">
-    <div>
-      <span class="cotacao-mode-label">MATERIAL</span>
-      <h4>📦 Dados de faturamento e entrega</h4>
-      <p>Selecione a base/CNPJ ABILITY que será inserida automaticamente no corpo do e-mail.</p>
-    </div>
-  </div>
-  <div class="form-grid">
-    <div class="field row-span-2">
-      <label>Base / CNPJ ABILITY</label>
-      <select id="cotacaoCnpjBaseSelect"><option value="">Selecionar CNPJ ABILITY</option></select>
-    </div>
-    <div class="field row-span-2">
-      <label>CNPJ que será inserido no e-mail</label>
-      <textarea id="cotacaoCnpjBasePreview" readonly style="min-height:84px;line-height:1.5;" placeholder="Selecione um CNPJ"></textarea>
-    </div>
-  </div>
 </div>
-
+<div class="form-grid">
+<div class="field row-span-2">
+<label>Buscar site VIVO</label>
+<input id="cotacaoSiteServicoSearch" placeholder="Digite sigla, município, bairro, endereço ou CEP"/>
+</div>
+<div class="field row-span-2">
+<label>Site VIVO selecionado</label>
+<select id="cotacaoSiteServicoSelect"><option value="">Digite no campo de busca para listar os sites</option></select>
+</div>
+<div class="field row-span-2">
+<label>Dados que serão enviados no e-mail</label>
+<textarea id="cotacaoSiteServicoPreview" readonly="" style="min-height:132px;line-height:1.5;">Selecione um site para preencher o corpo do e-mail de serviço.</textarea>
+</div>
+</div>
+</div>
+<div class="cotacao-mode-panel cotacao-material-panel" hidden="" id="cotacaoCnpjBaseBox">
+<div class="cotacao-mode-header">
+<div>
+<span class="cotacao-mode-label">MATERIAL</span>
+<h4>📦 Dados de faturamento e entrega</h4>
+<p>Selecione a base/CNPJ ABILITY que será inserida automaticamente no corpo do e-mail.</p>
+</div>
+</div>
+<div class="form-grid">
+<div class="field row-span-2">
+<label>Base / CNPJ ABILITY</label>
+<select id="cotacaoCnpjBaseSelect"><option value="">Selecionar CNPJ ABILITY</option></select>
+</div>
+<div class="field row-span-2">
+<label>CNPJ que será inserido no e-mail</label>
+<textarea id="cotacaoCnpjBasePreview" placeholder="Selecione um CNPJ" readonly="" style="min-height:84px;line-height:1.5;"></textarea>
+</div>
+</div>
+</div>
 <!-- IMPORTAÇÃO DE INSUMOS PARA COTAÇÃO -->
 <div class="cotacao-context-box" id="cotacaoItensImportBox" style="margin-top:14px;">
-  <div class="cotacao-context-title">
-    <img alt="Importar itens" src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%2316a34a%27/%3E%3Cpath d=%27M20 14h18l10 10v26H20z%27 fill=%27%23fff%27/%3E%3Cpath d=%27M38 14v11h10%27 fill=%27none%27 stroke=%27%2316a34a%27 stroke-width=%273%27/%3E%3Cpath d=%27M24 34h20M24 42h20M24 50h12%27 stroke=%27%2316a34a%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E">
+<div class="cotacao-context-title">
+<img alt="Importar itens" src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%2316a34a%27/%3E%3Cpath d=%27M20 14h18l10 10v26H20z%27 fill=%27%23fff%27/%3E%3Cpath d=%27M38 14v11h10%27 fill=%27none%27 stroke=%27%2316a34a%27 stroke-width=%273%27/%3E%3Cpath d=%27M24 34h20M24 42h20M24 50h12%27 stroke=%27%2316a34a%27 stroke-width=%273%27 stroke-linecap=%27round%27/%3E%3C/svg%3E"/>
     Importar insumos por Excel/CSV para entrar automaticamente no corpo do e-mail
   </div>
-  <div class="form-grid">
-    <div class="field">
-      <label>Arquivo de insumos (.xlsx ou .csv)</label>
-      <input id="cotacaoItensArquivo" type="file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
-    </div>
-    <div class="field">
-      <label>Status da importação</label>
-      <input id="cotacaoItensStatus" readonly value="Nenhum arquivo importado">
-    </div>
-    <div class="field row-span-2">
-      <label>Itens identificados</label>
-      <textarea id="cotacaoItensPreview" readonly style="min-height:110px;line-height:1.5;">Importe um XLSX/CSV com colunas como DESCRIÇÃO, QUANTIDADE, UNIDADE, VALOR UNI e VALOR TOTAL.</textarea>
-    </div>
-  </div>
+<div class="form-grid">
+<div class="field">
+<label>Arquivo de insumos (.xlsx ou .csv)</label>
+<input accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" id="cotacaoItensArquivo" type="file"/>
 </div>
-
+<div class="field">
+<label>Status da importação</label>
+<input id="cotacaoItensStatus" readonly="" value="Nenhum arquivo importado"/>
+</div>
+<div class="field row-span-2">
+<label>Itens identificados</label>
+<textarea id="cotacaoItensPreview" readonly="" style="min-height:110px;line-height:1.5;">Importe um XLSX/CSV com colunas como DESCRIÇÃO, QUANTIDADE, UNIDADE, VALOR UNI e VALOR TOTAL.</textarea>
+</div>
+</div>
+</div>
 <!-- PARA (campo aberto) -->
 <div class="form-grid" style="margin-bottom:14px;">
 <div class="field">
 <label>Campo "Para:" do e-mail (deixe em branco ou use seu próprio e-mail)</label>
-<input id="cotacaoParaCampo" placeholder="Ex.: compras@suaempresa.com.br" type="email"/>
-</div>
+<input id="cotacaoParaCampo" placeholder="Ex.: compras@suaempresa.com.br" type="email">
+</input></div>
 <div class="field">
 <label>Assunto do e-mail</label>
-<input id="cotacaoAssunto" placeholder="Ex.: Solicitação de Cotação — Manutenção Elétrica" value="Solicitação de Cotação — [descreva o objeto]"/>
-</div>
+<input id="cotacaoAssunto" placeholder="Ex.: Solicitação de Cotação — Manutenção Elétrica" value="Solicitação de Cotação — [descreva o objeto]">
+</input></div>
 </div>
 <div class="field" style="margin-bottom:20px;">
 <label>Corpo do e-mail</label>
@@ -761,216 +758,13 @@ Compras — ABILITY</textarea>
         </div>
 </div>
 </section>
-<!-- ══════════════════ ABA COMPRAS / DIFAL+IPI ══════════════════ -->
-<section class="page" id="compras">
-<div class="card" style="margin-bottom:18px;">
-<div class="panel-title">
-<div>
-<h3>🛒 Comparativo de Preços · DIFAL &amp; IPI</h3>
-<p>Cadastre fornecedores e insumos, informe preços e obtenha o custo total com DIFAL, IPI, frete e PIS/COFINS calculados automaticamente.</p>
-</div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;">
-<button class="ghost-btn" onclick="cpShowTab('fornecedores')">🏭 Fornecedores <span class="tag info" id="cp-badge-forn" style="margin-left:4px;">0</span></button>
-<button class="ghost-btn" onclick="cpShowTab('insumos')">📦 Insumos <span class="tag info" id="cp-badge-ins" style="margin-left:4px;">0</span></button>
-<button class="ghost-btn" onclick="cpShowTab('ipi')">🔢 IPI</button>
-<button class="primary-btn" onclick="cpCalcular()">▶ Calcular</button>
-</div>
-</div>
-<div class="cp-automation-panel" id="cpAutomationPanel">
-<div class="cp-automation-card"><strong>⚡ Pré-análise automática</strong><span>Valida fornecedores, insumos sem preço, UF, CNPJ e campos fiscais antes do cálculo.</span><button class="ghost-btn" onclick="cpAuditarComparativo()" type="button">Auditar dados</button></div>
-<div class="cp-automation-card"><strong>🧾 Importação inteligente</strong><span>Lê XLSX convertido do PDF, procura CNPJ, sugere fornecedor e carrega preços nos insumos.</span><button class="ghost-btn" onclick="cpAbrirModalOrcamento()" type="button">Importar orçamento</button></div>
-<div class="cp-automation-card"><strong>🏆 Melhor compra</strong><span>Mostra fornecedor vencedor, economia e itens em que cada fornecedor ganhou.</span><button class="ghost-btn" onclick="cpSugerirMelhorCompra()" type="button">Gerar resumo</button></div>
-<div class="cp-automation-card"><strong>📤 Exportação rápida</strong><span>Baixa um CSV do comparativo para anexar ao pedido, aprovação ou e-mail.</span><button class="ghost-btn" onclick="cpExportarComparativoCsv()" type="button">Exportar CSV</button></div>
-</div>
-<!-- Sub-tabs internas -->
-<div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:18px;overflow-x:auto;">
-<button class="cp-tab active" data-tab="fornecedores" onclick="cpShowTab('fornecedores')" style="background:transparent;border:none;border-bottom:2px solid var(--primary);color:var(--primary);padding:10px 18px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;">🏭 Fornecedores</button>
-<button class="cp-tab" data-tab="insumos" onclick="cpShowTab('insumos')" style="background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px 18px;cursor:pointer;font-size:13px;white-space:nowrap;">📦 Insumos</button>
-<button class="cp-tab" data-tab="config" onclick="cpShowTab('config')" style="background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px 18px;cursor:pointer;font-size:13px;white-space:nowrap;">⚙️ Config. Fiscal</button>
-<button class="cp-tab" data-tab="ipi" onclick="cpShowTab('ipi')" style="background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px 18px;cursor:pointer;font-size:13px;white-space:nowrap;">🔢 IPI</button>
-<button class="cp-tab" data-tab="resultado" onclick="cpShowTab('resultado')" style="background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);padding:10px 18px;cursor:pointer;font-size:13px;white-space:nowrap;">📊 Resultado</button>
-</div>
-<!-- TAB FORNECEDORES -->
-<div class="cp-page" id="cp-page-fornecedores">
-<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
-<button class="primary-btn" onclick="cpAddFornecedor()">+ Adicionar Fornecedor Manual</button>
-<button class="ghost-btn" onclick="cpImportarDaBase()">📂 Importar da Base de Fornecedores</button>
-</div>
-<div id="cp-forn-import-panel" style="display:none;margin-bottom:14px;padding:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;">
-<div class="panel-title" style="margin-bottom:12px;">
-<div><strong>Importar da base cadastrada</strong><br/><span style="color:var(--muted);font-size:12px;">Selecione fornecedores já cadastrados para usar neste comparativo.</span></div>
-<button class="ghost-btn" onclick="document.getElementById('cp-forn-import-panel').style.display='none'" style="padding:6px 12px;font-size:12px;">✕ Fechar</button>
-</div>
-<div class="filters" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:12px;">
-<div class="field"><label>Buscar</label><input id="cp-import-search" oninput="cpRenderImportList()" placeholder="Nome, CNPJ, e-mail..." type="text"/></div>
-<div class="field"><label>UF</label><select id="cp-import-uf" onchange="cpRenderImportList()"><option value="todos">Todas</option></select></div>
-<div class="field"><label>Segmento</label><select id="cp-import-seg" onchange="cpRenderImportList()"><option value="todos">Todos</option></select></div>
-</div>
-<div id="cp-import-list" style="max-height:280px;overflow-y:auto;display:grid;gap:6px;"></div>
-<div style="margin-top:12px;display:flex;gap:8px;">
-<button class="primary-btn" onclick="cpConfirmarImport()" style="font-size:13px;">✔ Adicionar selecionados</button>
-<span id="cp-import-count" style="color:var(--muted);font-size:12px;align-self:center;"></span>
-</div>
-</div>
-<div id="cp-forn-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;">
-<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted);font-size:13px;">Nenhum fornecedor adicionado. Clique em "+ Adicionar" ou importe da base.</div>
-</div>
-</div>
-<!-- TAB INSUMOS -->
-<div class="cp-page" id="cp-page-insumos" style="display:none;">
-<div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
-<button class="primary-btn" onclick="cpAddInsumo()">+ Adicionar Insumo</button>
-<button class="ghost-btn" onclick="document.getElementById('cp-bulk-panel').style.display=document.getElementById('cp-bulk-panel').style.display==='none'?'block':'none'">📋 Importar em lote</button>
-<button class="ghost-btn" onclick="cpAbrirModalOrcamento()" style="border-color:rgba(251,191,36,0.35);color:#fbbf24;">📊 Importar Orçamento XLSX</button>
-</div>
-<div id="cp-bulk-panel" style="display:none;margin-bottom:14px;padding:14px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;">
-<p style="color:var(--muted);font-size:12px;margin-bottom:10px;">Uma linha por item: <code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:6px;font-size:11px;">Nome do Item;Quantidade;Unidade</code></p>
-<textarea id="cp-bulk-input" placeholder="Cimento CP-II;50;sc
-Areia média;10;m³
-Brita 1;8;m³" style="min-height:140px;width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);border-radius:14px;padding:12px;font-family:monospace;font-size:12px;resize:vertical;outline:none;"></textarea>
-<div style="margin-top:8px;display:flex;gap:8px;">
-<button class="primary-btn" onclick="cpImportarBulk()" style="font-size:13px;">Importar</button>
-</div>
-</div>
-<div class="table-wrap" style="max-height:400px;">
-<table style="min-width:560px;">
-<thead>
-<tr>
-<th style="width:36px;">#</th>
-<th>Descrição do Insumo</th>
-<th>Quantidade</th>
-<th>Unidade</th>
-<th style="width:44px;"></th>
-</tr>
-</thead>
-<tbody id="cp-insumos-body">
-<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted);">Nenhum insumo cadastrado.</td></tr>
-</tbody>
-</table>
-</div>
-</div>
-<!-- TAB CONFIG FISCAL -->
-<div class="cp-page" id="cp-page-config" style="display:none;">
-<div class="form-grid">
-<div class="field">
-<label>UF de Destino (sua empresa)</label>
-<select id="cp-uf-destino" onchange="cpOnUfDestinoChange()">
-<option selected="" value="SP">SP</option>
-</select>
-</div>
-<div class="field">
-<label>Alíquota ICMS Interno do Destino (%)</label>
-<input id="cp-aliq-interno" max="30" min="0" step="0.01" type="number" value="18"/>
-</div>
-<div class="field">
-<label>FCP — Fundo de Combate à Pobreza (%)</label>
-<input id="cp-aliq-fcp" max="5" min="0" placeholder="0" step="0.01" type="number" value="0"/>
-</div>
-<div class="field">
-<label>Partilha DIFAL (%)</label>
-<input id="cp-partilha-difal" max="100" min="0" placeholder="100" step="1" type="number" value="100"/>
-</div>
-<div class="field">
-<label>PIS (%)</label>
-<input id="cp-aliq-pis" max="10" min="0" placeholder="0" step="0.01" type="number" value="0"/>
-</div>
-<div class="field">
-<label>COFINS (%)</label>
-<input id="cp-aliq-cofins" max="10" min="0" placeholder="0" step="0.01" type="number" value="0"/>
-</div>
-<div class="field">
-<label>Margem / Mark-up (%)</label>
-<input id="cp-margem" max="200" min="0" placeholder="0" step="0.01" type="number" value="0"/>
-</div>
-</div>
-<div id="cp-difal-table-area" style="margin-top:16px;">
-<p style="color:var(--muted);font-size:13px;">Adicione fornecedores para ver a tabela DIFAL.</p>
-</div>
-</div>
-<!-- TAB IPI -->
-<div class="cp-page" id="cp-page-ipi" style="display:none;">
-<p style="color:var(--muted);font-size:12px;margin-bottom:12px;">Defina o IPI (%) de cada fornecedor por insumo. Deixe em branco ou 0 para isento.</p>
-<div class="table-wrap" id="cp-ipi-table-area">
-<p style="padding:2rem;text-align:center;color:var(--muted);font-size:13px;">Adicione fornecedores e insumos para configurar o IPI.</p>
-</div>
-</div>
-<!-- TAB RESULTADO -->
-<div class="cp-page" id="cp-page-resultado" style="display:none;">
-<div id="cp-resultado-content" style="text-align:center;padding:3rem;color:var(--muted);">
-            Configure os dados e clique em <strong>▶ Calcular</strong> para ver o comparativo.
-          </div>
-</div>
-</div><!-- /card -->
-</section><!-- /compras -->
+
+<!-- /compras -->
 </main>
 </div>
 <button class="tutorial-reopen-btn hidden" id="tutorialReopenBtn" type="button">🤖 Ver tutorial novamente</button>
-<!-- MODAL IMPORTAÇÃO DE ORÇAMENTO XLSX / TEXTO -->
-<div class="modal-backdrop" id="cpOrcamentoModal">
-<div class="modal" style="width:min(860px,96vw);max-height:92vh;overflow:auto;">
-<div class="panel-title" style="margin-bottom:16px;">
-<div>
-<h3>📊 Importar Orçamento / Cotação XLSX</h3>
-<p>Importe o XLSX do orçamento. Se o arquivo ainda estiver em PDF, converta antes pelo link do iLovePDF e depois selecione o Excel gerado.</p>
-</div>
-<button class="ghost-btn" id="cpCloseOrcamentoModal" style="padding:8px 14px;">✕ Fechar</button>
-</div>
-<div style="margin-bottom:14px;padding:12px 14px;border-radius:12px;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.20);font-size:12px;color:#fde68a;line-height:1.7;">
-<strong>Como usar:</strong> Converta o PDF para XLSX em <a href="https://www.ilovepdf.com/pdf_to_excel" rel="noopener" style="color:#2563eb;font-weight:800;" target="_blank">iLovePDF — PDF para Excel</a>. Depois selecione o XLSX aqui. O sistema procura CNPJ no arquivo, tenta vincular ao fornecedor da base e identifica colunas de descrição, quantidade, unidade, valor unitário e total. O campo de texto abaixo continua como plano B para modelos fora do padrão.
-    </div>
-<div class="field" style="margin-bottom:14px;">
-<label>Arquivo XLSX do orçamento</label>
-<input accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" id="cpOrcamentoXlsxInput" type="file"/>
-<span class="subtle">Dica: quando o orçamento vier em PDF, converta no iLovePDF e importe o Excel aqui.</span>
-</div>
-<div class="cp-match-panel">
-<div class="field">
-<label>Fornecedor vinculado ao orçamento</label>
-<select id="cpOrcamentoFornecedorSelect"><option value="">Detectar automaticamente pelo CNPJ</option></select>
-</div>
-<div class="cp-mini-report" id="cpOrcamentoDiagnostico">Nenhum arquivo lido ainda. Após importar, o sistema exibirá CNPJ encontrado, fornecedor sugerido e colunas detectadas.</div>
-</div>
-<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-<button class="primary-btn" onclick="cpImportarXlsxOrcamento()">📥 Ler XLSX e vincular fornecedor</button>
-<a class="ghost-btn" href="https://www.ilovepdf.com/pdf_to_excel" rel="noopener" style="text-decoration:none;display:inline-flex;align-items:center;" target="_blank">🔗 Converter PDF no iLovePDF</a>
-</div>
-<div class="field" style="margin-bottom:14px;">
-<label>Texto copiado do PDF / conteúdo alternativo</label>
-<textarea id="cpOrcamentoPasteArea" placeholder="Cole aqui o texto do orçamento/cotação..." style="min-height:220px;width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px;font-family:monospace;font-size:12px;resize:vertical;outline:none;"></textarea>
-</div>
-<div style="display:flex;gap:8px;margin-bottom:16px;">
-<button class="primary-btn" onclick="cpParsearOrcamento()">🔍 Identificar Itens</button>
-<button class="ghost-btn" onclick="document.getElementById('cpOrcamentoPasteArea').value=''">Limpar</button>
-</div>
-<!-- Preview dos itens parseados -->
-<div id="cpOrcamentoPreview" style="display:none;">
-<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px;">Itens identificados — confirme antes de importar:</div>
-<div class="table-wrap" style="max-height:320px;margin-bottom:14px;">
-<table id="cpOrcamentoPreviewTable" style="min-width:700px;">
-<thead>
-<tr>
-<th style="width:32px;"><input id="cpOrcCheckAll" onchange="document.querySelectorAll('.cp-orc-check').forEach(c=&gt;c.checked=this.checked)" style="accent-color:var(--primary);" type="checkbox"/></th>
-<th>Código</th>
-<th>Descrição</th>
-<th>Qtde</th>
-<th>Un</th>
-<th>V. Unitário</th>
-<th>V. Total</th>
-</tr>
-</thead>
-<tbody id="cpOrcamentoPreviewBody"></tbody>
-</table>
-</div>
-<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-<button class="primary-btn" onclick="cpImportarOrcamento()">✔ Importar selecionados como insumos</button>
-<span id="cpOrcamentoStatus" style="font-size:12px;color:var(--muted);"></span>
-</div>
-</div>
-<div id="cpOrcamentoEmpty" style="display:none;text-align:center;padding:1.5rem;color:var(--muted);font-size:13px;border:1px dashed var(--border);border-radius:12px;">
-      Nenhum item identificado. Verifique se o texto foi copiado corretamente do PDF.
-    </div>
-</div>
-</div>
+
+
 <!-- MODAL PRIMEIRO ACESSO -->
 <div class="modal-backdrop" id="firstAccessModal">
 <div class="modal modal-sm">
@@ -1039,7 +833,6 @@ Brita 1;8;m³" style="min-height:140px;width:100%;background:rgba(255,255,255,0.
 </div>
 </div>
 </div>
-
 <!-- MODAL DETALHE -->
 <div class="modal-backdrop" id="detailModal">
 <div class="modal">
@@ -1121,14 +914,10 @@ Brita 1;8;m³" style="min-height:140px;width:100%;background:rgba(255,255,255,0.
 </div>
 </div>
 </div>
-<script type="module" src="./app.module.js"></script>
+<script src="./app.module.js" type="module"></script>
 <script src="./script-2.js"></script>
-<script src="./script-3.js"></script>
 
 <script src="./script-4.js"></script>
-
-
 <script src="./cotacao-cards.js"></script>
-
 </body>
 </html>

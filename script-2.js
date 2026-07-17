@@ -288,7 +288,7 @@ PRAZO DE ENTREGA DESEJADO: [informar]
 
 Favor informar:
 - Valor unitário e valor total;
-- IPI, ICMS, DIFAL, frete e demais custos, quando houver;
+- NCM e detalhamento dos tributos destacados na proposta, incluindo IBS, CBS, IPI, ICMS/ISS de transição, frete e demais custos, quando aplicável;
 - Prazo de entrega;
 - Condições de pagamento;
 - Validade da proposta;

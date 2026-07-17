@@ -589,27 +589,6 @@
     .site-icon-inline { width:18px; height:18px; vertical-align:-4px; margin-right:6px; border-radius:5px; }
     .brand-site-icon { width:26px; height:26px; object-fit:contain; border-radius:8px; margin-right:8px; vertical-align:-6px; }
 
-    /* ─── COMPARATIVO DE PREÇOS — visual próprio ─── */
-    #compras .cp-resultado-card { background: #0f1520; border: 1px solid rgba(59,130,246,0.18); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
-    #compras .cp-metric-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 16px; }
-    #compras .cp-metric { background: #161b27; border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 16px; }
-    #compras .cp-metric-label { font-size: 11px; color: #8a9bb8; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
-    #compras .cp-metric-val { font-size: 22px; font-weight: 700; line-height: 1.2; }
-    #compras .cp-metric-val.green { color: #34d399; }
-    #compras .cp-metric-val.red { color: #f87171; }
-    #compras .cp-metric-val.blue { color: #60a5fa; }
-    #compras .cp-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
-    #compras .cp-tbl th { background: #0f1520; color: #8a9bb8; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; padding: 9px 12px; border: 1px solid rgba(255,255,255,0.07); white-space: nowrap; }
-    #compras .cp-tbl td { padding: 8px 12px; border: 1px solid rgba(255,255,255,0.06); font-family: 'Courier New', monospace; font-size: 12px; color: #8a9bb8; }
-    #compras .cp-tbl td.item-name { font-family: 'Segoe UI', sans-serif; color: #e8edf5; font-weight: 500; }
-    #compras .cp-tbl td.best { background: rgba(52,211,153,0.08); color: #34d399 !important; font-weight: 700; }
-    #compras .cp-tbl tr.total-row td { background: rgba(59,130,246,0.08); color: #93c5fd !important; font-weight: 700; border-top: 2px solid rgba(59,130,246,0.3); }
-    #compras .cp-tbl tr.detail-row td { background: rgba(255,255,255,0.015); padding: 4px 12px; }
-    #compras .cp-rank-card { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.07); background: #161b27; margin-bottom: 8px; }
-    #compras .cp-rank-card.rank-1 { border-color: rgba(52,211,153,0.3); background: rgba(52,211,153,0.05); }
-    #compras .cp-rank-pos { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
-    #compras .cp-ci-block { background: rgba(52,211,153,0.06); border: 1px solid rgba(52,211,153,0.2); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
-    @media (max-width:900px) { #compras .cp-metric-row { grid-template-columns: 1fr 1fr; } }
 
 
     /* === AJUSTE ADMINISTRATIVO CLARO + CORES POR ABA === */
@@ -654,13 +633,7 @@
     .login-user-row, .access-note, .sla-preview, .json-preview, .tutorial-card { background:#ffffff; color:#172033; border-color:var(--border); }
     .tag, .legend span, .chip { background:#f8fafc; border:1px solid #d9e2ee; color:#475569; }
     body[data-active-page="cotacoes"] { --page-accent:#0ea5e9; --page-accent-2:#2563eb; --page-rgb:14,165,233; --page-rgb-2:37,99,235; --page-soft:rgba(14,165,233,.12); --page-glow:rgba(14,165,233,.22); }
-    body[data-active-page="compras"] { --page-accent:#16a34a; --page-accent-2:#f59e0b; --page-rgb:22,163,74; --page-rgb-2:245,158,11; --page-soft:rgba(22,163,74,.12); --page-glow:rgba(22,163,74,.22); }
     .menu button[data-page="cotacoes"]::before { background:#0ea5e9; box-shadow:0 0 14px rgba(14,165,233,0.45); }
-    .menu button[data-page="compras"]::before { background:#16a34a; box-shadow:0 0 14px rgba(22,163,74,0.45); }
-    #compras .cp-resultado-card, #compras .cp-metric, #compras .cp-rank-card { background:#ffffff; border-color:var(--border); }
-    #compras .cp-tbl th { background:#eef4fb; color:#475569; }
-    #compras .cp-tbl td { color:#273449; border-color:#e5edf5; }
-    #compras .cp-tbl td.item-name { color:#172033; }
 
   
 
@@ -725,17 +698,6 @@ tbody tr:hover { background:rgba(var(--page-rgb),0.07) !important; }
 #cotacaoMensagem { min-height:330px !important; }
 .cotacao-template-picker { display:grid; grid-template-columns:repeat(3,minmax(180px,1fr)); gap:12px; margin:0 0 14px; }
 .cotacao-template-note { padding:12px 14px; border-radius:14px; background:rgba(var(--page-rgb),0.10); border:1px solid rgba(var(--page-rgb),0.25); color:#172033; font-size:12px; line-height:1.6; }
-.cp-automation-panel { display:grid; grid-template-columns:repeat(4,minmax(160px,1fr)); gap:12px; margin:0 0 18px; }
-.cp-automation-card { border:1px solid rgba(var(--page-rgb),0.22); border-radius:16px; background:#ffffff; padding:14px; box-shadow:inset 4px 0 0 rgba(var(--page-rgb),0.7); }
-.cp-automation-card strong { display:block; margin-bottom:6px; }
-.cp-automation-card span { display:block; color:#52627a; font-size:12px; line-height:1.55; }
-.cp-automation-card button { margin-top:10px; width:100%; }
-.cp-match-panel { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:10px 0 14px; }
-.cp-mini-report { border:1px solid rgba(15,23,42,.12); background:#f8fafc; border-radius:12px; padding:10px 12px; color:#253449; font-size:12px; line-height:1.6; }
-#compras .cp-tbl th { background:#eef4fb !important; color:#253449 !important; }
-#compras .cp-tbl td { color:#172033 !important; }
-#compras .cp-tbl td.best { background:#ecfdf5 !important; color:#065f46 !important; }
-#compras .cp-tbl tr.total-row td { background:#eff6ff !important; color:#1d4ed8 !important; }
 @media (max-width: 1180px) {
   .cotacao-template-picker, .cp-automation-panel, .cp-match-panel { grid-template-columns:1fr 1fr; }
   .filters[style] { grid-template-columns:1fr 1fr !important; }
@@ -750,7 +712,6 @@ tbody tr:hover { background:rgba(var(--page-rgb),0.07) !important; }
   .title-block h2 { font-size:22px !important; }
   table { min-width:760px !important; }
   #cotacoes table { min-width:720px !important; }
-  #compras .cp-metric-row { grid-template-columns:1fr !important; }
   .modal { width:calc(100vw - 20px) !important; padding:14px !important; }
   .tutorial-card { width:calc(100vw - 20px) !important; left:10px !important; right:10px !important; }
 }
@@ -758,7 +719,6 @@ tbody tr:hover { background:rgba(var(--page-rgb),0.07) !important; }
 
 
 /* === PATCH V9 — legibilidade forte e cotação limpa === */
-#compras, #compras * { color-scheme: light; }
 #compras .cp-resultado-card,
 #compras .cp-metric,
 #compras .cp-rank-card,
@@ -792,25 +752,12 @@ tbody tr:hover { background:rgba(var(--page-rgb),0.07) !important; }
 #compras .cp-rank-card.rank-1 [style*="color:#34d399"] {
   color:#047857 !important;
 }
-#compras .cp-metric-val.red { color:#b91c1c !important; }
-#compras .cp-metric-val.blue { color:#1d4ed8 !important; }
-#compras .cp-tbl th { background:#dbeafe !important; color:#0f172a !important; border-color:#9fb4cc !important; }
-#compras .cp-tbl td { background:#ffffff !important; color:#0f172a !important; border-color:#cbd5e1 !important; }
 #compras .cp-tbl tr.detail-row td,
-#compras .cp-tbl tr.detail-row div { background:#f8fafc !important; color:#1e293b !important; }
-#compras .cp-tbl tr.total-row td { background:#eaf2ff !important; color:#003b8f !important; font-weight:800 !important; }
-#compras .cp-tbl td.best { background:#dcfce7 !important; font-weight:900 !important; }
-#compras .cp-rank-card.rank-1 { background:#dcfce7 !important; border-left:5px solid #16a34a !important; }
-#compras .cp-rank-card { background:#f8fafc !important; border-left:5px solid #0ea5e9 !important; }
-#compras .cp-ci-block { background:#ecfdf5 !important; border-color:#86efac !important; }
 #cotacaoCnpjBaseSelect option,
 #cotacaoSiteServicoSelect option { color:#0f172a !important; background:#fff !important; }
 .cotacao-v9-box { margin:0 0 14px; padding:14px; border:1px solid rgba(14,165,233,.28); border-radius:16px; background:rgba(14,165,233,.08); }
 .cotacao-v9-box .subtle { color:#1e3a8a !important; }
 @media print {
-  #compras .cp-resultado-card, #compras .cp-metric, #compras .cp-rank-card, #compras .cp-ci-block { background:#fff !important; color:#111 !important; box-shadow:none !important; }
-  #compras .cp-tbl th { background:#e5e7eb !important; color:#111 !important; }
-  #compras .cp-tbl td { color:#111 !important; }
 }
 
 
