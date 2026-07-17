@@ -74,9 +74,8 @@ SDKs Firebase usados no código:
 ├── script-3.js
 ├── script-4.js
 ├── cotacao-cards.js
-├── data/
-│   ├── sites-vivo.json
-│   └── bases-ability.json
+├── sites-vivo.json
+├── bases-ability.json
 └── README.md
 ```
 
@@ -132,9 +131,18 @@ Perfis identificados na aplicação:
 
 As listas de sites VIVO e bases/CNPJs Ability foram retiradas do `index.html` e do JavaScript principal. Elas agora ficam em:
 
-- `data/sites-vivo.json`
-- `data/bases-ability.json`
+- `sites-vivo.json`
+- `bases-ability.json`
 
 O arquivo `script-3.js` carrega essas bases com `fetch()` ao iniciar a página. Para testar localmente, abra o projeto usando um servidor HTTP, como a extensão Live Server do VS Code. Abrir o `index.html` diretamente por `file://` pode bloquear o carregamento dos arquivos JSON.
 
 Os cards **Cotação de Serviço** e **Cotação de Material** foram compactados. Ao selecionar um tipo, somente o painel correspondente permanece visível.
+
+
+## Busca otimizada de sites Vivo
+
+- A base Vivo não é carregada ao abrir o painel.
+- O carregamento ocorre somente na primeira pesquisa com pelo menos 3 caracteres.
+- Há atraso de 350 ms entre a digitação e a busca para evitar pesquisas repetidas.
+- São exibidos no máximo 10 sites por pesquisa.
+- Os arquivos JSON ficam na raiz do projeto, sem a pasta `data`.

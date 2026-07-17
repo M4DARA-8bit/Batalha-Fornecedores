@@ -1442,26 +1442,48 @@ Atte.`
   /* === PATCH V9 — CNPJ material, Sites VIVO serviço, CSV/PDF completo === */
   let ABILITY_CNPJ_BASES_V9 = [];;
   let VIVO_SITE_BASE_V9 = [];;
-  async function carregarBasesExternasCotacao() {
+  let VIVO_BASE_CARREGADA_V9 = false;
+  let VIVO_BASE_CARREGANDO_V9 = null;
+
+  async function carregarBaseAbilityCotacao() {
     const status = document.getElementById('cotacaoBasesStatus');
     try {
-      if (status) status.textContent = 'Carregando bases de cotação...';
-      const [abilityResponse, vivoResponse] = await Promise.all([
-        fetch('./data/bases-ability.json', { cache: 'no-cache' }),
-        fetch('./data/sites-vivo.json', { cache: 'no-cache' })
-      ]);
-      if (!abilityResponse.ok) throw new Error(`Bases Ability: HTTP ${abilityResponse.status}`);
-      if (!vivoResponse.ok) throw new Error(`Sites Vivo: HTTP ${vivoResponse.status}`);
-      ABILITY_CNPJ_BASES_V9 = await abilityResponse.json();
-      VIVO_SITE_BASE_V9 = await vivoResponse.json();
+      const response = await fetch('./bases-ability.json', { cache: 'no-cache' });
+      if (!response.ok) throw new Error(`Bases Ability: HTTP ${response.status}`);
+      ABILITY_CNPJ_BASES_V9 = await response.json();
       window.ABILITY_CNPJ_BASES = ABILITY_CNPJ_BASES_V9;
-      window.VIVO_SITE_BASE = VIVO_SITE_BASE_V9;
-      if (status) status.textContent = `${VIVO_SITE_BASE_V9.length} sites Vivo e ${ABILITY_CNPJ_BASES_V9.length} bases Ability carregados.`;
+      if (status) status.textContent = 'Bases Ability carregadas. Digite ao menos 3 caracteres para pesquisar sites Vivo.';
     } catch (erro) {
-      console.error('Falha ao carregar as bases externas da cotação:', erro);
-      if (status) status.textContent = 'Não foi possível carregar as bases. Abra o projeto por um servidor HTTP, não diretamente pelo arquivo.';
+      console.error('Falha ao carregar as bases Ability:', erro);
+      if (status) status.textContent = 'Não foi possível carregar as bases Ability.';
       throw erro;
     }
+  }
+
+  async function carregarBaseVivoSobDemanda() {
+    if (VIVO_BASE_CARREGADA_V9) return VIVO_SITE_BASE_V9;
+    if (VIVO_BASE_CARREGANDO_V9) return VIVO_BASE_CARREGANDO_V9;
+    const status = document.getElementById('cotacaoBasesStatus');
+    if (status) status.textContent = 'Carregando base Vivo para a primeira pesquisa...';
+    VIVO_BASE_CARREGANDO_V9 = fetch('./sites-vivo.json', { cache: 'no-cache' })
+      .then(response => {
+        if (!response.ok) throw new Error(`Sites Vivo: HTTP ${response.status}`);
+        return response.json();
+      })
+      .then(data => {
+        VIVO_SITE_BASE_V9 = Array.isArray(data) ? data : [];
+        window.VIVO_SITE_BASE = VIVO_SITE_BASE_V9;
+        VIVO_BASE_CARREGADA_V9 = true;
+        if (status) status.textContent = `Base Vivo pronta. Pesquisa limitada a 10 resultados por vez.`;
+        return VIVO_SITE_BASE_V9;
+      })
+      .catch(erro => {
+        VIVO_BASE_CARREGANDO_V9 = null;
+        console.error('Falha ao carregar a base Vivo:', erro);
+        if (status) status.textContent = 'Não foi possível carregar a base Vivo.';
+        throw erro;
+      });
+    return VIVO_BASE_CARREGANDO_V9;
   }
 
   window.ABILITY_CNPJ_BASES = ABILITY_CNPJ_BASES_V9;
@@ -1530,19 +1552,49 @@ Altitude: ${site.altitude || '[informar]'}`;
     if(prev) prev.value = b ? `${b.cnpj} - ${b.base}` : '';
     if((byId('cotacaoModelo')?.value||'servico')==='material') v9AplicarModeloCotacao(true);
   }
-  function v9FilterSites(){
+  let v9SiteSearchTimer = null;
+  async function v9FilterSites(){
     const input=byId('cotacaoSiteServicoSearch');
     const sel=byId('cotacaoSiteServicoSelect');
+    const prev=byId('cotacaoSiteServicoPreview');
     if(!sel) return;
-    const q=v9Norm(input?.value||'');
-    const terms=q.split(' ').filter(Boolean);
-    let list = !terms.length ? VIVO_SITE_BASE_V9.slice(0,80) : VIVO_SITE_BASE_V9.filter(s => {
-      const txt=v9Norm(`${s.sigla} ${s.localidade} ${s.regiao} ${s.municipio} ${s.bairro} ${s.endereco} ${s.cep}`);
-      return terms.every(t => txt.includes(t));
-    }).slice(0,200);
-    sel.innerHTML = '<option value="">Selecionar site encontrado</option>' + list.map(s => `<option value="${VIVO_SITE_BASE_V9.indexOf(s)}">${v9Escape(v9SiteLabel(s))}</option>`).join('');
-    if(list.length===1) sel.value=String(VIVO_SITE_BASE_V9.indexOf(list[0]));
-    v9UpdateSitePreview();
+    const raw=String(input?.value||'').trim();
+    const q=v9Norm(raw);
+    if(raw.length < 3){
+      sel.innerHTML='<option value="">Digite pelo menos 3 caracteres para pesquisar</option>';
+      sel.disabled=true;
+      if(prev) prev.value='A busca começa após 3 caracteres e mostra até 10 sites por vez.';
+      return;
+    }
+    sel.disabled=true;
+    sel.innerHTML='<option value="">Pesquisando sites...</option>';
+    try {
+      await carregarBaseVivoSobDemanda();
+      const terms=q.split(' ').filter(Boolean);
+      const list=[];
+      for(let i=0;i<VIVO_SITE_BASE_V9.length && list.length<10;i++){
+        const site=VIVO_SITE_BASE_V9[i];
+        const txt=v9Norm(`${site.sigla} ${site.localidade} ${site.regiao} ${site.municipio} ${site.bairro} ${site.endereco} ${site.cep}`);
+        if(terms.every(t => txt.includes(t))) list.push({site,index:i});
+      }
+      sel.disabled=false;
+      if(!list.length){
+        sel.innerHTML='<option value="">Nenhum site encontrado</option>';
+        if(prev) prev.value='Nenhum site encontrado. Tente sigla, município, bairro, endereço ou CEP.';
+        return;
+      }
+      sel.innerHTML='<option value="">Selecione um dos 10 resultados</option>' + list.map(item => `<option value="${item.index}">${v9Escape(v9SiteLabel(item.site))}</option>`).join('');
+      if(list.length===1) sel.value=String(list[0].index);
+      v9UpdateSitePreview();
+    } catch(erro){
+      sel.disabled=true;
+      sel.innerHTML='<option value="">Erro ao carregar a base de sites</option>';
+      if(prev) prev.value='Não foi possível consultar os sites Vivo.';
+    }
+  }
+  function v9AgendarBuscaSites(){
+    clearTimeout(v9SiteSearchTimer);
+    v9SiteSearchTimer=setTimeout(v9FilterSites, 350);
   }
   function v9UpdateSitePreview(){
     const sel=byId('cotacaoSiteServicoSelect'), prev=byId('cotacaoSiteServicoPreview');
@@ -1681,15 +1733,15 @@ Atte.`;
     cpInitUfSelect?.();
     cpAtualizarBadges?.();
     try {
-      await carregarBasesExternasCotacao();
+      await carregarBaseAbilityCotacao();
       v9PopularCnpjs();
       v9FilterSites();
       v9ToggleCotacaoBoxes();
       byId('cotacaoModelo')?.addEventListener('change', () => { v9ToggleCotacaoBoxes(); v9AplicarModeloCotacao(true); });
       byId('cotacaoCnpjBaseSelect')?.addEventListener('change', v9UpdateCnpjPreview);
-      byId('cotacaoSiteServicoSearch')?.addEventListener('input', v9FilterSites);
+      byId('cotacaoSiteServicoSearch')?.addEventListener('input', v9AgendarBuscaSites);
       byId('cotacaoSiteServicoSelect')?.addEventListener('change', v9UpdateSitePreview);
-      setTimeout(() => { v9PopularCnpjs(); v9FilterSites(); v9ToggleCotacaoBoxes(); v9AplicarModeloCotacao(true); }, 250);
+      setTimeout(() => { v9PopularCnpjs(); v9ToggleCotacaoBoxes(); v9AplicarModeloCotacao(true); }, 250);
     } catch(e) { console.warn('Falha ao inicializar controles de cotação V10', e); }
   });
 })();
