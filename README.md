@@ -1,10 +1,39 @@
-# Painel de Fornecedores — Etapa 1
+# Painel de Fornecedores — versão final integrada
 
-Versão do Painel de Fornecedores sem o antigo módulo Compras/DIFAL.
+Sistema de cadastro, documentação, acompanhamento e cotação de fornecedores.
 
-## Estrutura
+## Endereços
 
-Todos os arquivos estão diretamente na raiz do projeto:
+- Direto: `https://painel-fornecedores-ability.vercel.app`
+- Pelo Portal: `https://portal-compras-flax.vercel.app/fornecedores/`
+
+## Autenticação
+
+- Pelo Portal: utiliza a sessão já aberta e não solicita novo login.
+- Pelo endereço direto: exige e-mail e senha do Firebase Authentication.
+- A sessão expira após duas horas.
+- As permissões são consultadas em `usuariosUid/{uid}`.
+
+## Controle de acessos
+
+O controle local foi retirado. Este sistema não cria usuários nem altera permissões. Todas as funções são gerenciadas exclusivamente no Portal de Compras.
+
+Mapeamento aplicado:
+
+- Visualizador: consulta sem edição.
+- Editor: edição operacional.
+- Aprovador: edição e aprovações disponíveis no módulo.
+- Administrador: acesso operacional completo, sem administração de usuários.
+
+## Principais ajustes
+
+- Remoção definitiva do antigo Compras/DIFAL.
+- Cotação preparada para IBS, CBS e tributos de transição quando aplicáveis.
+- Botão para retorno ao Portal.
+- Login centralizado no Firebase.
+- Bases Vivo e Ability mantidas na raiz.
+
+## Arquivos
 
 ```text
 index.html
@@ -15,38 +44,10 @@ script-4.js
 cotacao-cards.js
 sites-vivo.json
 bases-ability.json
+vercel.json
 README.md
 ```
 
-## Alterações realizadas
-
-- Remoção da aba Compras/DIFAL.
-- Remoção do modal e das chamadas do comparativo antigo.
-- Remoção do JavaScript legado do comparativo.
-- Preservação das abas e funções do Painel de Fornecedores.
-- Atualização da cotação de material para solicitar IBS, CBS e tributos de transição quando aplicáveis.
-- Bases Vivo e Ability mantidas na raiz.
-
-## Arquitetura dos sistemas
-
-O futuro Comparativo de Preços não importará arquivos nem funções deste painel.
-
-Os sistemas serão independentes e compartilharão somente:
-
-- Firebase Authentication para login;
-- Cloud Firestore para fornecedores, usuários, permissões e demais dados autorizados;
-- configuração visual e funções comuns quando o Portal Geral for criado.
-
-Fluxo previsto:
-
-```text
-Painel de Fornecedores -> Firebase <- Comparativo de Preços
-                                  <- Gestão de Contratos
-                                  <- Portal de Sistemas
-```
-
-O Painel cadastra e atualiza fornecedores no Firestore. O Comparativo e o Gestor de Contratos consultam essa mesma coleção diretamente, conforme as permissões do usuário.
-
 ## Publicação
 
-Envie todos os arquivos deste projeto para a raiz do repositório no GitHub. No Vercel, use o diretório raiz como diretório de publicação.
+Envie todos os arquivos para a raiz do repositório e publique no Vercel sem comando de build. Mantenha o domínio em Firebase Authentication → Authorized domains.

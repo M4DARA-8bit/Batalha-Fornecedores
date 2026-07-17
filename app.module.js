@@ -82,7 +82,7 @@
 
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
 import { getAnalytics, isSupported as analyticsIsSupported } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-analytics.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
 import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -96,11 +96,9 @@ const firebaseConfig = {
 };
 
 const app = getApps().find(item => item.name === "[DEFAULT]") || initializeApp(firebaseConfig);
-const secondaryApp = getApps().find(item => item.name === "accessCreator") || initializeApp(firebaseConfig, "accessCreator");
 analyticsIsSupported().then(ok => { if(ok) getAnalytics(app); }).catch(() => {});
 
 const auth = getAuth(app);
-const secondaryAuth = getAuth(secondaryApp);
 const db = getFirestore(app);
 
 const COLLECTION_SUPPLIERS = "fornecedores";
@@ -206,9 +204,7 @@ const ROLE_PROFILES = {
 // MODO DESENVOLVIMENTO
 // Usuário raiz temporário para destravar o primeiro acesso.
 // Depois que criar acessos no Firestore, dá para remover este bloco e deixar só login pela coleção usuarios.
-const DEV_ROOT_USERS = [
-  {user:'daniel', pass:'Ability@123', nome:'Daniel', role:'Compras', label:'Compras', full:true, viewOnly:false, approval:null, ativo:true, email:'daniel@fornecedores-cp.local'}
-];
+const DEV_ROOT_USERS = [];
 
 const slugUsername = value => String(value || '')
   .normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -233,10 +229,10 @@ const setCurrentUser = user => { CURRENT_USER = user; sessionStorage.setItem(AUT
 const clearCurrentUser = () => { CURRENT_USER = null; sessionStorage.removeItem(AUTH_STORAGE_KEY); };
 const canFullEdit = () => !!getCurrentUser()?.full;
 const isComprasProfile = () => slugUsername(getCurrentUser()?.role || getCurrentUser()?.label || '') === 'compras';
-const isDanielRestoreAccess = () => slugUsername(getCurrentUser()?.user || '') === 'daniel';
+const isDanielRestoreAccess = () => !!getCurrentUser()?.portalAdmin;
 const canExportReports = () => isComprasProfile();
 const canRestoreEmbeddedBase = () => isDanielRestoreAccess();
-const canCreateAccess = () => canFullEdit();
+const canCreateAccess = () => false;
 const isViewOnly = () => !!getCurrentUser()?.viewOnly;
 const approvalKeyForUser = () => getCurrentUser()?.approval || null;
 const canApprovePlex = item => {
@@ -593,10 +589,6 @@ const startFirebaseListeners = () => {
     REMOTE_APPLY = false;
     if(typeof renderAll === 'function') renderAll();
   }, err => console.error('Erro ao ouvir serviços:', err));
-  onSnapshot(collection(db, COLLECTION_USERS), snap => {
-    ACCESS_USERS = snap.docs.map(d => ({docId:d.id, ...d.data()})).sort((a,b)=>String(a.user||a.docId).localeCompare(String(b.user||b.docId)));
-    if(typeof renderAccessUsers === 'function') renderAccessUsers();
-  }, err => console.error('Erro ao ouvir usuários:', err));
 };
 
 const deepClone = value => JSON.parse(JSON.stringify(value || {}));
@@ -1217,17 +1209,13 @@ const applyGlobalPermissions = () => {
   document.querySelectorAll('[data-page="cadastro"], [data-page="servicos"]').forEach(btn => {
     btn.style.display = (full || approver) ? 'block' : 'none';
   });
-  document.querySelectorAll('[data-page="acessos"]').forEach(btn => {
-    btn.style.display = canCreateAccess() ? 'block' : 'none';
-  });
-  document.querySelectorAll('[data-page="cotacoes"], [data-page="compras"]').forEach(btn => {
+  document.querySelectorAll('[data-page="cotacoes"]').forEach(btn => {
     btn.style.display = isComprasProfile() ? 'block' : 'none';
   });
-  ['cotacoes','compras'].forEach(pageId => {
+  ['cotacoes'].forEach(pageId => {
     const pageEl = $(pageId);
     if(pageEl) pageEl.classList.toggle('hidden', !isComprasProfile());
   });
-  if($('accessForm')) $('accessForm').classList.toggle('readonly-lock', !canCreateAccess());
   updateUserBadge();
 };
 const actionButtonsFor = item => {
@@ -1628,7 +1616,6 @@ const switchPage = page => {
   $(page).classList.add('active');
   $('sidebar').classList.remove('open');
   if(page==='servicos') renderServices();
-  if(page==='acessos') renderAccessUsers();
 };
 document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>switchPage(b.dataset.page)));
 $('menuToggle').addEventListener('click',()=>$('sidebar').classList.add('open'));
@@ -2070,7 +2057,7 @@ $('chooseBulkCsvFileBtn')?.addEventListener('click', () => {
   $('bulkCsvUpdateInput').click();
 });
 $('bulkCsvUpdateInput')?.addEventListener('change',e=>{ const file=e.target.files[0]; handleBulkCsvFile(file); e.target.value=''; });
-$('resetBtn').addEventListener('click',async()=>{ if(!canRestoreEmbeddedBase()) return alert('A restauração da base é permitida apenas para o acesso Daniel.'); if(!confirm('Restaurar a base embutida neste HTML e substituir a coleção do Firestore?')) return; try{ const base=JSON.parse(JSON.stringify(BASE_DATA)); APP_STORE={...APP_STORE, ...base, suppliers:(base.suppliers||[]).map(normalizeSupplierForBusinessRules), serviceTypes:base.serviceTypes||[], restoredAt:todayKey()}; saveLocalCache(); clearForm(); renderAll(); const result=await bulkUploadToFirestore(APP_STORE.suppliers, APP_STORE.serviceTypes, {replace:true}); alert(`Base restaurada no Firestore: ${result.suppliers} fornecedores e ${result.services} serviços. Removidos fora da base: ${result.deletedSuppliers} fornecedores e ${result.deletedServices} serviços.`); }catch(err){ console.error(err); alert(`Não foi possível restaurar a base no Firestore: ${err.message || err}`); } });
+$('resetBtn').addEventListener('click',async()=>{ if(!canRestoreEmbeddedBase()) return alert('A restauração da base é permitida apenas para o administrador do Portal de Compras.'); if(!confirm('Restaurar a base embutida neste HTML e substituir a coleção do Firestore?')) return; try{ const base=JSON.parse(JSON.stringify(BASE_DATA)); APP_STORE={...APP_STORE, ...base, suppliers:(base.suppliers||[]).map(normalizeSupplierForBusinessRules), serviceTypes:base.serviceTypes||[], restoredAt:todayKey()}; saveLocalCache(); clearForm(); renderAll(); const result=await bulkUploadToFirestore(APP_STORE.suppliers, APP_STORE.serviceTypes, {replace:true}); alert(`Base restaurada no Firestore: ${result.suppliers} fornecedores e ${result.services} serviços. Removidos fora da base: ${result.deletedSuppliers} fornecedores e ${result.deletedServices} serviços.`); }catch(err){ console.error(err); alert(`Não foi possível restaurar a base no Firestore: ${err.message || err}`); } });
 $('copyTemplateBtn').addEventListener('click',async()=>{ try{ await navigator.clipboard.writeText($('templateMsg').value); }catch(err){ $('templateMsg').select(); document.execCommand('copy'); } alert('Texto copiado.'); });
 
 
@@ -2096,23 +2083,70 @@ const normalizeLoginProfile = (profile={}) => {
   };
 };
 
-const readProfileFromFirestoreLogin = async (username, pass) => {
-  const snap = await getDoc(doc(db, COLLECTION_USERS, username));
-  if(!snap.exists()) return null;
-  const data = snap.data() || {};
-  if(data.ativo === false) throw new Error('Acesso inativo.');
-  const savedPass = String(data.senha || data.pass || '');
-  if(!savedPass || savedPass !== String(pass)) return null;
-  return normalizeLoginProfile({...data, user:username});
+const PORTAL_SESSION_KEY = 'ability_portal_session_started_at';
+const PORTAL_SESSION_DURATION_MS = 2 * 60 * 60 * 1000;
+let portalSessionTimer = null;
+
+const getPortalSessionRemainingMs = () => {
+  const startedAt = Number(sessionStorage.getItem(PORTAL_SESSION_KEY) || 0);
+  return startedAt ? Math.max(0, PORTAL_SESSION_DURATION_MS - (Date.now() - startedAt)) : 0;
 };
 
-const findDevLoginProfile = (username, pass) => {
-  const found = DEV_ROOT_USERS.find(item => slugUsername(item.user) === username && String(item.pass) === String(pass));
-  return found ? normalizeLoginProfile(found) : null;
+const getPortalSystemRole = profile => {
+  const entry = profile?.sistemas?.fornecedores || profile?.acessos?.fornecedores;
+  if(typeof entry === 'string') return entry;
+  if(typeof entry === 'boolean') return entry ? 'visualizador' : 'sem_acesso';
+  if(!entry) return 'sem_acesso';
+  if(entry.acessar === false || entry.ativo === false) return 'sem_acesso';
+  return entry.funcao || entry.role || 'visualizador';
+};
+
+const readFirebasePortalProfile = async user => {
+  const candidates = [
+    [COLLECTION_USERS_UID, user.uid],
+    [COLLECTION_USERS, user.uid],
+    [COLLECTION_USERS, user.email]
+  ];
+  for(const [collectionName, id] of candidates){
+    if(!id) continue;
+    try{
+      const snap = await getDoc(doc(db, collectionName, id));
+      if(snap.exists()) return {id:snap.id, ...snap.data()};
+    }catch(err){ console.warn(`Falha ao consultar ${collectionName}/${id}`, err); }
+  }
+  return null;
+};
+
+const mapPortalProfileToLegacy = (profile, user) => {
+  if(!profile || profile.ativo === false) return null;
+  const systemRole = getPortalSystemRole(profile);
+  if(systemRole === 'sem_acesso') return null;
+  const roleMap = {
+    visualizador: {role:'Solicitante', label:'Visualizador', full:false, viewOnly:true},
+    editor: {role:'Compras', label:'Editor', full:true, viewOnly:false},
+    aprovador: {role:'Compras', label:'Aprovador', full:true, viewOnly:false},
+    administrador: {role:'Compras', label:'Administrador', full:true, viewOnly:false}
+  };
+  const mapped = roleMap[systemRole] || roleMap.visualizador;
+  return {
+    ...normalizeLoginProfile({
+      ...mapped,
+      user: user.email?.split('@')[0] || user.uid,
+      nome: profile.nomeCompleto || profile.nome || user.displayName || user.email,
+      email: user.email,
+      uid: user.uid,
+      ativo: true
+    }),
+    ...mapped,
+    portalRole: systemRole,
+    portalAdmin: profile.administradorPortal === true,
+    firebaseAuth: true
+  };
 };
 
 const showLoggedInApp = profile => {
   setCurrentUser(profile);
+  $('loginError').textContent = '';
   $('loginScreen').classList.add('hidden');
   $('appShell').style.display = 'grid';
   $('tutorialReopenBtn')?.classList.remove('hidden');
@@ -2123,171 +2157,79 @@ const showLoggedInApp = profile => {
   maybeShowFirstAccessPrompt();
 };
 
-const doLogin = async (user, pass) => {
-  const username = slugUsername(user);
-  if(!username || !pass) return false;
-  const devProfile = findDevLoginProfile(username, pass);
-  if(devProfile) {
-    showLoggedInApp(devProfile);
-    return true;
-  }
-  const firestoreProfile = await readProfileFromFirestoreLogin(username, pass);
-  if(firestoreProfile) {
-    showLoggedInApp(firestoreProfile);
-    return true;
-  }
-  return false;
-};
-
-const bootAuth = () => {
-  const cached = getCurrentUser();
-  if(cached?.user) {
-    showLoggedInApp(cached);
-    return;
-  }
-  $('loginScreen').classList.remove('hidden');
+const showLoginScreen = message => {
+  clearCurrentUser();
   $('appShell').style.display = 'none';
   $('tutorialReopenBtn')?.classList.add('hidden');
+  $('loginScreen').classList.remove('hidden');
+  $('loginError').textContent = message || '';
 };
 
-const SELF_ACCESS_WHATSAPP = '11 94173-0621';
+const startPortalSessionWatch = () => {
+  clearInterval(portalSessionTimer);
+  portalSessionTimer = setInterval(async () => {
+    if(getPortalSessionRemainingMs() > 0) return;
+    clearInterval(portalSessionTimer);
+    await signOut(auth).catch(()=>{});
+    showLoginScreen('Sua sessão de duas horas foi encerrada.');
+  }, 1000);
+};
 
-$('toggleSelfAccessBtn')?.addEventListener('click', () => {
-  $('selfAccessForm')?.classList.toggle('hidden');
-});
-
-$('selfAccessForm')?.addEventListener('submit', async e => {
-  e.preventDefault();
-  const nome = $('selfAccessName')?.value.trim() || '';
-  const username = slugUsername($('selfAccessUser')?.value || '');
-  const senha = $('selfAccessPass')?.value || '';
-  if(!nome || !username || !senha) return alert('Preencha nome completo, usuário e senha.');
-  if(senha.length < 6) return alert('A senha precisa ter pelo menos 6 caracteres.');
-  try {
-    const existing = await getDoc(doc(db, COLLECTION_USERS, username));
-    if(existing.exists()) return alert('Este usuário já existe. Escolha outro nome de usuário ou faça login.');
-    const profile = normalizeLoginProfile({...getRoleProfile('Solicitante'), user:username, nome, ativo:true});
-    const userProfileDoc = sanitizeForFirebase({
-      ...profile,
-      uid:`local-${username}`,
-      senha,
-      criadoPor:'auto cadastro',
-      criadoEmIso:new Date().toISOString(),
-      criadoEmBr:new Date().toLocaleString('pt-BR'),
-      observacao:`Acesso criado pelo próprio usuário. Perfil limitado. Para ampliar acesso, solicitar no WhatsApp ${SELF_ACCESS_WHATSAPP}.`
-    });
-    await setDoc(doc(db, COLLECTION_USERS, username), userProfileDoc, {merge:false});
-    await setDoc(doc(db, COLLECTION_USERS_UID, `local-${username}`), userProfileDoc, {merge:false});
-    $('loginUser').value = username;
-    $('loginPass').value = senha;
-    $('selfAccessForm').reset();
-    $('selfAccessForm').classList.add('hidden');
-    alert(`Acesso criado com sucesso. Seu perfil é Solicitante e possui acesso limitado. Para solicitar um acesso maior, fale com Daniel pelo WhatsApp ${SELF_ACCESS_WHATSAPP}.`);
-  } catch(err) {
-    console.error(err);
-    alert(`Não foi possível criar seu acesso: ${err.message || err}`);
-  }
-});
+const bootAuth = async () => {
+  await setPersistence(auth, browserSessionPersistence);
+  onAuthStateChanged(auth, async user => {
+    if(!user){ showLoginScreen(''); return; }
+    if(!getPortalSessionRemainingMs()){
+      await signOut(auth).catch(()=>{});
+      showLoginScreen('Sua sessão expirou. Entre novamente.');
+      return;
+    }
+    const portalProfile = await readFirebasePortalProfile(user);
+    const profile = mapPortalProfileToLegacy(portalProfile, user);
+    if(!profile){
+      showLoginScreen('Sua conta não possui acesso ao Painel de Fornecedores.');
+      return;
+    }
+    showLoggedInApp(profile);
+    startPortalSessionWatch();
+  });
+};
 
 $('loginForm').addEventListener('submit', async e => {
   e.preventDefault();
+  $('loginError').textContent = 'Validando acesso...';
   try {
-    const ok = await doLogin($('loginUser').value, $('loginPass').value);
-    if(!ok) alert('Usuário ou senha inválidos. Confira o usuário/senha no código ou na coleção usuarios.');
+    await setPersistence(auth, browserSessionPersistence);
+    sessionStorage.setItem(PORTAL_SESSION_KEY, String(Date.now()));
+    await signInWithEmailAndPassword(auth, $('loginUser').value.trim(), $('loginPass').value);
   } catch(err) {
+    sessionStorage.removeItem(PORTAL_SESSION_KEY);
     console.error(err);
-    alert(err.message || 'Não foi possível validar o acesso. Confira as regras do Firestore.');
+    $('loginError').textContent = 'E-mail ou senha inválidos.';
   }
 });
-$('logoutBtn').addEventListener('click', () => {
+
+$('logoutBtn').addEventListener('click', async () => {
+  sessionStorage.removeItem(PORTAL_SESSION_KEY);
+  clearInterval(portalSessionTimer);
   clearCurrentUser();
-  $('loginUser').value = '';
-  $('loginPass').value = '';
-  $('appShell').style.display = 'none';
-  $('tutorialReopenBtn')?.classList.add('hidden');
-  $('loginScreen').classList.remove('hidden');
+  await signOut(auth).catch(()=>{});
+  $('loginForm').reset();
+  showLoginScreen('');
 });
 
-
-
-// --- ACESSOS FIREBASE ---
-const renderAccessUsers = () => {
-  if(!$('accessTable')) return;
-  const rows = ACCESS_USERS || [];
-  $('accessCount').textContent = `${rows.length} acessos`;
-  $('accessEmpty').style.display = rows.length ? 'none' : 'block';
-  $('accessTable').innerHTML = rows.map(item => {
-    const active = item.ativo !== false;
-    const username = item.user || item.docId || '';
-    return `<tr>
-      <td><div class="supplier-name">${esc(item.nome || '-')}</div><div class="muted-cell">${esc(item.email || usernameToEmail(username))}</div></td>
-      <td>${esc(username)}</td>
-      <td>${chip(item.label || item.role || '-')}</td>
-      <td>${chip(active ? 'ATIVO' : 'INATIVO')}</td>
-      <td>${esc(item.criadoEmBr || '-')}</td>
-      <td>${canCreateAccess() ? `<button class="icon-btn" onclick="toggleAccessActive('${esc(username)}', ${active}, '${esc(item.uid || '')}')">${active ? 'Inativar' : 'Ativar'}</button>` : '-'}</td>
-    </tr>`;
-  }).join('');
-};
-
-const clearAccessForm = () => {
-  if(!$('accessForm')) return;
-  $('accessForm').reset();
-  $('accessRole').value = 'Compras';
-};
-
-$('clearAccessFormBtn')?.addEventListener('click', clearAccessForm);
-$('accessForm')?.addEventListener('submit', async e => {
-  e.preventDefault();
-  if(!canCreateAccess()) return alert('Seu perfil não possui permissão para criar acessos.');
-  const username = slugUsername($('accessUser').value);
-  const senha = $('accessPass').value;
-  const role = $('accessRole').value;
-  const nome = $('accessName').value.trim();
-  const note = $('accessNote').value.trim();
-  if(!username || !senha || !role || !nome) return alert('Preencha nome, usuário, perfil e senha.');
-  const profile = normalizeLoginProfile({...getRoleProfile(role), user:username, nome, ativo:true});
-  const localUid = `local-${username}`;
-  try {
-    const userProfileDoc = sanitizeForFirebase({
-      ...profile,
-      uid:localUid,
-      senha,
-      observacao:note,
-      criadoPor:getCurrentUser()?.user || 'sistema',
-      criadoEmIso:new Date().toISOString(),
-      criadoEmBr:new Date().toLocaleString('pt-BR')
-    });
-    await setDoc(doc(db, COLLECTION_USERS, username), userProfileDoc, {merge:true});
-    await setDoc(doc(db, COLLECTION_USERS_UID, localUid), userProfileDoc, {merge:true});
-    writeAuditLog(null, 'Acesso criado', [{campo:'Usuário', antes:'-', depois:username}, {campo:'Perfil', antes:'-', depois:profile.label || role}]);
-    clearAccessForm();
-    alert(`Acesso criado: ${username}`);
-  } catch(err) {
-    console.error(err);
-    alert(`Não foi possível criar o acesso: ${err.message || err}`);
-  }
+$('portalBackBtn')?.addEventListener('click', () => {
+  const inPortal = location.pathname.startsWith('/fornecedores');
+  window.location.assign(inPortal ? '/' : 'https://portal-compras-flax.vercel.app');
 });
 
-window.toggleAccessActive = async (username, active, uid='') => {
-  if(!canCreateAccess()) return alert('Seu perfil não possui permissão para alterar acessos.');
-  if(username === getCurrentUser()?.user && active) return alert('Não inative seu próprio acesso enquanto estiver logado.');
-  const next = !active;
-  const accessPatch = sanitizeForFirebase({
-    ativo:next,
-    atualizadoPor:getCurrentUser()?.user || 'sistema',
-    atualizadoEmIso:new Date().toISOString(),
-    atualizadoEmBr:new Date().toLocaleString('pt-BR')
-  });
-  await setDoc(doc(db, COLLECTION_USERS, slugUsername(username)), accessPatch, {merge:true});
-  if(uid) await setDoc(doc(db, COLLECTION_USERS_UID, uid), accessPatch, {merge:true});
-  writeAuditLog(null, next ? 'Acesso ativado' : 'Acesso inativado', [{campo:'Usuário', antes:String(active), depois:String(next)}]);
-};
+// O cadastro e a administração de usuários foram centralizados no Portal de Compras.
+
+// Controle de acessos removido deste módulo; o Portal de Compras é a fonte única de permissões.
 
 const renderAll = () => {
   renderDashboard();
   renderServices();
-  renderAccessUsers();
   applyGlobalPermissions();
 };
 
@@ -2543,30 +2485,7 @@ const buildTutorialSteps = () => {
     );
   }
 
-  if(canCreateAccess()) {
-    steps.push(
-      step('acessos', '[data-page="acessos"]', 'Aba Acessos',
-        'Compras controla usuários e permissões por aqui.',
-        [
-          'Você cria nome, usuário, perfil e senha inicial.',
-          'Perfis limitam o que cada pessoa pode visualizar ou editar.',
-          'Quem cria acesso sozinho entra como Solicitante.'
-        ],
-        'Governança de acesso é importante para evitar bagunça no painel.',
-        'Teste sugerido: veja as regras de perfil e depois observe a tabela de acessos cadastrados.'
-      ),
-      step('acessos', '#accessTable', 'Lista de acessos',
-        'Esta tabela exibe os usuários já cadastrados no painel.',
-        [
-          'Você vê nome, usuário, perfil, status e criação.',
-          'Também consegue gerenciar a ativação dos acessos.',
-          'É a área de conferência administrativa dos usuários.'
-        ],
-        'Sempre revise essa tabela quando houver dúvida sobre permissão ou bloqueio de acesso.',
-        'Teste sugerido: observe como os perfis refletem as permissões vistas no tutorial.'
-      )
-    );
-  }
+
 
   // ── Cotações
   steps.push(
@@ -2594,31 +2513,7 @@ const buildTutorialSteps = () => {
     )
   );
 
-  // ── Compras / DIFAL
-  if(canFullEdit()) {
-    steps.push(
-      step('compras', '[data-page="compras"]', 'Aba Compras · Comparativo DIFAL e XLSX',
-        'Esta aba calcula o custo real de compra considerando DIFAL, IPI, PIS/COFINS, frete e descontos.',
-        [
-          'Importe fornecedores direto da base cadastrada ou adicione manualmente.',
-          'Cadastre os insumos que serão cotados com quantidade e unidade.',
-          'Configure a alíquota ICMS do seu estado para cálculo automático do DIFAL.'
-        ],
-        'O comparativo mostra qual fornecedor tem o menor custo total já com todos os impostos incluídos.',
-        'Teste sugerido: adicione dois fornecedores de UFs diferentes e calcule para ver o DIFAL aplicado.'
-      ),
-      step('compras', '#cp-page-resultado', 'Resultado e Compra Inteligente',
-        'Após calcular, o sistema mostra a tabela comparativa e a estratégia de compra ideal.',
-        [
-          'A Compra Inteligente distribui cada item para o fornecedor mais barato.',
-          'O Ranking ordena fornecedores do menor para o maior custo total.',
-          'Você pode exportar o resultado como PDF direto pelo botão de impressão.'
-        ],
-        'A combinação de DIFAL com a compra inteligente pode representar economia significativa.',
-        'Teste sugerido: gere o comparativo e compare o total da compra inteligente com a compra de um único fornecedor.'
-      )
-    );
-  }
+
 
   return steps.filter(item => isPageVisibleForUser(item.page) && document.querySelector(item.selector));
 };

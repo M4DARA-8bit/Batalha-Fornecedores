@@ -982,3 +982,4 @@ body[data-active-page] .primary-btn *{
 .cotacao-material-panel .cotacao-mode-label { background:#dbeafe; color:#1e40af; }
 #cotacaoBasesStatus { margin:-5px 0 10px; color:#64748b; font-size:10.5px; }
 @media (max-width:900px) { .cotacao-type-selector { grid-template-columns:1fr; } }
+.login-error{min-height:20px;margin:12px 0 0;color:#dc2626;font-size:13px;font-weight:700}

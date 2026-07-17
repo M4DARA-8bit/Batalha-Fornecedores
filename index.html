@@ -18,13 +18,13 @@
 <div class="panel-title">
 <div>
 <h3>Acesso ao Painel de Fornecedores</h3>
-<p>Login por usuário cadastrado, com dados salvos no Firestore.</p>
+<p>Use a mesma conta do Portal de Compras.</p>
 </div>
 </div>
 <form class="form-grid" id="loginForm">
 <div class="field row-span-2">
-<label>Usuário / comprador</label>
-<input autocomplete="username" id="loginUser" placeholder="Ex.: daniel, compras, rh" required="" type="text"/>
+<label>E-mail corporativo</label>
+<input autocomplete="email" id="loginUser" placeholder="nome@empresa.com" required="" type="email"/>
 </div>
 <div class="field row-span-2">
 <label>Senha</label>
@@ -33,51 +33,24 @@
 <div class="field row-span-2">
 <button class="primary-btn" type="submit">Entrar</button>
 </div>
-</form>
-<div class="access-note">
-        Neste momento o login usa usuários cadastrados no Firestore. O usuário raiz temporário existe apenas para liberar a primeira configuração.
-      </div>
-<div class="access-note">
-<strong>Primeiro acesso?</strong><br/>
-        Crie seu acesso inicial como Solicitante. Esse perfil é limitado para visualização e acompanhamento.
-        <div style="margin-top:12px;">
-<button class="ghost-btn" id="toggleSelfAccessBtn" type="button">Criar meu acesso limitado</button>
-</div>
-<form class="form-grid hidden" id="selfAccessForm" style="margin-top:12px;">
-<div class="field row-span-2">
-<label>Nome completo</label>
-<input id="selfAccessName" placeholder="Seu nome completo" type="text"/>
-</div>
-<div class="field">
-<label>Usuário</label>
-<input id="selfAccessUser" placeholder="Ex.: joao.silva" type="text"/>
-</div>
-<div class="field">
-<label>Senha</label>
-<input id="selfAccessPass" minlength="6" placeholder="Mínimo 6 caracteres" type="password"/>
-</div>
-<div class="field row-span-2">
-<button class="primary-btn" type="submit">Salvar acesso limitado</button>
-</div>
-</form>
-</div>
+</form><p class="login-error" id="loginError"></p>
+
+
 </div>
 <div class="card">
 <div class="panel-title">
 <div>
 <h3>Área restrita</h3>
-<p>Digite o usuário e a senha informados pelo administrador do painel.</p>
+<p>Entre com o e-mail e a senha corporativos cadastrados no Firebase Authentication.</p>
 </div>
 </div>
 <div class="login-users">
-<div class="login-user-row"><strong>Usuário</strong><span>Nome cadastrado</span></div>
-<div class="login-user-row"><strong>Senha</strong><span>Individual e não exibida</span></div>
-<div class="login-user-row"><strong>Perfis</strong><span>Compras, RH, SESMT, Jurídico, Diretoria, Solicitante</span></div>
-<div class="login-user-row"><strong>Controle</strong><span>Acessos gerenciados pela aba Acessos</span></div>
+<div class="login-user-row"><strong>Conta</strong><span>Mesma conta utilizada no Portal de Compras</span></div>
+<div class="login-user-row"><strong>Sessão</strong><span>Expira automaticamente após duas horas</span></div>
+<div class="login-user-row"><strong>Função</strong><span>Visualizador, Editor, Aprovador ou Administrador</span></div>
+<div class="login-user-row"><strong>Controle</strong><span>Permissões gerenciadas exclusivamente no Portal de Compras</span></div>
 </div>
-<div class="access-note">
-        Os logins não são listados nesta tela. Novos acessos administrativos devem ser criados apenas por Compras.
-      </div>
+
 </div>
 </div>
 </div>
@@ -96,9 +69,8 @@
 <button class="nav-btn" data-page="acompanhamento">🧭 Acompanhamento</button>
 <button class="nav-btn" data-page="servicos">🛠️ Tipos de Serviço</button>
 <button class="nav-btn" data-page="checklist">📎 Checklist</button>
-<button class="nav-btn" data-page="acessos">👥 Acessos</button>
-<button class="nav-btn" data-page="cotacoes">📨 Cotações</button>
 
+<button class="nav-btn" data-page="cotacoes">📨 Cotações</button>
 </nav>
 <div class="sidebar-footer">
       Dados sincronizados com banco de dados. Use CSV como relatório/atualização em massa. 🗃️
@@ -113,13 +85,13 @@
 </div>
 <div class="top-actions">
 <span class="tag info" id="currentUserBadge">Não logado</span>
-<button class="ghost-btn" id="logoutBtn">Sair</button>
+<button class="ghost-btn" id="portalBackBtn" type="button">← Portal de Compras</button><button class="ghost-btn" id="logoutBtn">Sair</button>
 <select class="top-select" id="csvExportScope" title="Escolha a aba do relatório Excel/CSV">
 <option value="dashboard">Excel - Dashboard filtrado</option>
 <option value="baseCompleta">Excel - Base completa</option>
 <option value="acompanhamento">Excel - Acompanhamento</option>
 <option value="servicos">Excel - Tipos de Serviço</option>
-<option value="acessos">Excel - Acessos</option>
+
 <option value="checklist">Excel - Checklist</option>
 </select>
 <button class="ghost-btn" id="downloadCsvBtn">Exportar Excel</button>
@@ -477,76 +449,7 @@
 </div>
 </section>
 <!-- ACESSOS -->
-<section class="page" id="acessos">
-<div class="section-grid">
-<div class="card">
-<div class="panel-title">
-<div><h3>Criar acesso</h3><p>Cadastre compradores e áreas com login por nome de usuário.</p></div>
-<span class="tag warning">Firestore</span>
-</div>
-<form class="form-grid" id="accessForm">
-<div class="field"><label>Nome completo</label><input id="accessName" placeholder="Ex.: Daniel Baldini" required="" type="text"/></div>
-<div class="field"><label>Usuário / comprador</label><input id="accessUser" placeholder="Ex.: daniel" required="" type="text"/></div>
-<div class="field"><label>Perfil</label>
-<select id="accessRole" required="">
-<option value="Compras">Compras</option>
-<option value="RH">RH</option>
-<option value="SESMT">SESMT</option>
-<option value="Juridico">Jurídico</option>
-<option value="Diretoria">Diretoria</option>
-<option value="Solicitante">Solicitante</option>
-</select>
-</div>
-<div class="field"><label>Senha inicial</label><input id="accessPass" minlength="6" placeholder="Mínimo 6 caracteres" required="" type="password"/></div>
-<div class="field row-span-2"><label>Observação</label><textarea id="accessNote" placeholder="Ex.: acesso criado para comprador responsável por fornecedores"></textarea></div>
-<div class="field row-span-2" style="display:flex;gap:10px;flex-wrap:wrap;">
-<button class="primary-btn" type="submit">Criar acesso</button>
-<button class="ghost-btn" id="clearAccessFormBtn" type="button">Limpar</button>
-</div>
-</form>
-<div class="access-note">
-            Neste modelo temporário, a senha fica salva no Firestore para permitir login por usuário sem Firebase Auth. Quando migrarmos para Firebase Auth, a senha sai do banco e fica protegida pelo Authentication.
-          </div>
-</div>
-<div class="card stack">
-<div class="panel-title">
-<div><h3>Regras de perfil</h3><p>Permissões aplicadas na interface e registradas no banco.</p></div>
-</div>
-<div class="mini-card"><strong>Compras</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Cria e edita fornecedores, serviços, documentação e acessos.</span></div>
-<div class="mini-card"><strong>RH / SESMT / Jurídico / Diretoria</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Aprova somente a etapa correspondente em Serviço PLEX.</span></div>
-<div class="mini-card"><strong>Diretoria</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Sem acesso total. Atua apenas na aprovação de Diretoria para Serviço PLEX.</span></div>
-<div class="mini-card"><strong>Solicitante</strong><span style="font-size:14px;color:var(--muted);font-weight:normal;">Visualização sem edição estrutural.</span></div>
-</div>
-</div>
-<div class="card" style="margin-bottom:18px;">
-<div class="panel-title">
-<div><h3>Alterar minha senha</h3><p>Cada usuário pode trocar a própria senha. A alteração é gravada direto no Firestore.</p></div>
-<span class="tag info">Senha individual</span>
-</div>
-<form class="form-grid" id="ownPasswordForm">
-<div class="field"><label>Senha atual</label><input autocomplete="current-password" id="ownCurrentPass" minlength="6" placeholder="Digite sua senha atual" required="" type="password"/></div>
-<div class="field"><label>Nova senha</label><input autocomplete="new-password" id="ownNewPass" minlength="6" placeholder="Mínimo 6 caracteres" required="" type="password"/></div>
-<div class="field"><label>Confirmar nova senha</label><input autocomplete="new-password" id="ownConfirmPass" minlength="6" placeholder="Repita a nova senha" required="" type="password"/></div>
-<div class="field" style="justify-content:end;"><button class="primary-btn" type="submit">Salvar minha nova senha</button></div>
-</form>
-<div class="access-note">
-          A senha é atualizada nos documentos <strong>usuarios</strong> e <strong>usuarios_uid</strong>. O usuário continua com o mesmo perfil e permissões.
-        </div>
-</div>
-<div class="card">
-<div class="panel-title">
-<div><h3>Acessos cadastrados</h3><p>Usuários salvos na coleção <strong>usuarios</strong> do Firestore.</p></div>
-<span class="tag info" id="accessCount">0 acessos</span>
-</div>
-<div class="table-wrap">
-<table>
-<thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Status</th><th>Criado em</th><th>Ações</th></tr></thead>
-<tbody id="accessTable"></tbody>
-</table>
-</div>
-<div class="empty-state" id="accessEmpty">Nenhum acesso encontrado.</div>
-</div>
-</section>
+
 <!-- COTAÇÕES -->
 <section class="page" id="cotacoes">
 <!-- FILTROS -->
@@ -723,12 +626,12 @@
 <div class="form-grid" style="margin-bottom:14px;">
 <div class="field">
 <label>Campo "Para:" do e-mail (deixe em branco ou use seu próprio e-mail)</label>
-<input id="cotacaoParaCampo" placeholder="Ex.: compras@suaempresa.com.br" type="email">
-</input></div>
+<input id="cotacaoParaCampo" placeholder="Ex.: compras@suaempresa.com.br" type="email"/>
+</div>
 <div class="field">
 <label>Assunto do e-mail</label>
-<input id="cotacaoAssunto" placeholder="Ex.: Solicitação de Cotação — Manutenção Elétrica" value="Solicitação de Cotação — [descreva o objeto]">
-</input></div>
+<input id="cotacaoAssunto" placeholder="Ex.: Solicitação de Cotação — Manutenção Elétrica" value="Solicitação de Cotação — [descreva o objeto]"/>
+</div>
 </div>
 <div class="field" style="margin-bottom:20px;">
 <label>Corpo do e-mail</label>
@@ -758,13 +661,10 @@ Compras — ABILITY</textarea>
         </div>
 </div>
 </section>
-
 <!-- /compras -->
 </main>
 </div>
 <button class="tutorial-reopen-btn hidden" id="tutorialReopenBtn" type="button">🤖 Ver tutorial novamente</button>
-
-
 <!-- MODAL PRIMEIRO ACESSO -->
 <div class="modal-backdrop" id="firstAccessModal">
 <div class="modal modal-sm">
@@ -916,7 +816,6 @@ Compras — ABILITY</textarea>
 </div>
 <script src="./app.module.js" type="module"></script>
 <script src="./script-2.js"></script>
-
 <script src="./script-4.js"></script>
 <script src="./cotacao-cards.js"></script>
 </body>
